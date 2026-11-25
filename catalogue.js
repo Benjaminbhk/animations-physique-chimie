@@ -17,5 +17,14 @@ window.CATALOGUE = [
     chapitre: "Solutions aqueuses",
     mots: ["concentration en masse", "facteur de dilution", "soluté", "solvant"],
     statut: "en-ligne"
+    },
+  {
+    dossier: "preparation-dissolution",
+    titre: "Préparer une solution par dissolution",
+    resume: "Le protocole avec la fiole jaugée étape par étape, puis s'entraîner : remettre les étapes dans l'ordre et choisir la bonne fiole par le calcul.",
+    theme: "matiere",
+    chapitre: "Solutions aqueuses",
+    mots: ["fiole jaugée", "protocole", "concentration en masse", "exercices"],
+    statut: "en-ligne"
   }
 ];
