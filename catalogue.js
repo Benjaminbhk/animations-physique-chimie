@@ -2,6 +2,8 @@
 // Pour en ajouter une : copier un bloc, changer les champs, et mettre le dossier de l'animation à côté.
 //   theme : "matiere" | "mouvement" | "ondes"
 //   statut : "en-ligne" (carte cliquable) ou "bientot" (carte grisée, annoncée)
+//   niveau : facultatif, "seconde" par défaut ; "quatrieme" pour la 4e (thèmes de la 4e dans niveaux.js :
+//            "matiere-4" | "mouvement-4" | "energie-4" | "signaux-4")
 window.THEMES = [
   { id: "matiere",   titre: "Constitution et transformations de la matière", couleur: "#7a3fd0" },
   { id: "mouvement", titre: "Mouvement et interactions",                      couleur: "#1f7fbf" },
