@@ -62,5 +62,14 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "ajuster-equations",
+    titre: "Ajuster une équation de réaction",
+    resume: "Régler les nombres stœchiométriques et voir les modèles moléculaires de chaque côté : compteurs d'atomes par élément et de charges, indices, puis exercices aléatoires corrigés (avec des ions).",
+    theme: "matiere",
+    chapitre: "Transformations chimiques",
+    mots: ["équation de réaction", "ajuster", "nombre stœchiométrique", "conservation des éléments", "conservation de la charge", "exercices"],
+    statut: "en-ligne"
   }
 ];
