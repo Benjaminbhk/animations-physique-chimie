@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le vecteur vitesse</title>
+<meta name="description" content="Simulation interactive : construire le vecteur vitesse point par point sur une chronophotographie, puis le vecteur variation de vitesse, et le relier à la somme des forces (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f7fbf; --accent-soft:#e3f1fb; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --grid:rgba(31,127,191,.13); --grid-strong:rgba(31,127,191,.28);
+  --pt:#1c2333; --vcol:#1f6fd1; --dvcol:#e0540f; --fcol:#2b8a3e; --ground:#8a7a66;
+  --ok:#2b8a3e; --ko:#c92a2a;
+  --exo-bg:#e6f3fc; --exo-border:#a9d3f0; --exo-ink:#14659f; --card:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#5fb3ea; --accent-soft:#16283a; --accent-ink:#0c1520;
+    --canvas:#141821; --grid:rgba(95,179,234,.13); --grid-strong:rgba(95,179,234,.28);
+    --pt:#e6e9f0; --vcol:#6aa8ff; --dvcol:#ff8a4c; --fcol:#5cc27a; --ground:#a8987f;
+    --ok:#5cc27a; --ko:#ff7676;
+    --exo-bg:#0f2234; --exo-border:#25496b; --exo-ink:#8ccaf5; --card:#0b1828;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#5fb3ea; --accent-soft:#16283a; --accent-ink:#0c1520;
+  --canvas:#141821; --grid:rgba(95,179,234,.13); --grid-strong:rgba(95,179,234,.28);
+  --pt:#e6e9f0; --vcol:#6aa8ff; --dvcol:#ff8a4c; --fcol:#5cc27a; --ground:#a8987f;
+  --ok:#5cc27a; --ko:#ff7676;
+  --exo-bg:#0f2234; --exo-border:#25496b; --exo-ink:#8ccaf5; --card:#0b1828;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:78ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/600;border-radius:10px;background:var(--canvas);
+  border:1px solid var(--border);touch-action:manipulation;cursor:pointer}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:1rem;margin:0 0 .35rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.45rem .7rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:40px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.modes button{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.88rem;line-height:1.2;text-align:left}
+.modes button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.9rem;min-width:7.5em}
+select{font:inherit;font-size:.9rem;padding:.3rem .45rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:6.5ch;font-size:.92rem}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:4px}
+.sw{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .85rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:4.5em;line-height:1.65}
+.explain b.v{color:var(--vcol)} .explain b.dv{color:var(--dvcol)} .explain b.f{color:var(--fcol)}
+details.tab{margin-top:10px}
+details.tab summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums;margin-top:6px;min-width:100%}
+th,td{border:1px solid var(--border);padding:.25rem .5rem;text-align:center;white-space:nowrap}
+th{background:var(--bg)}
+tr.sel td{background:var(--accent-soft);font-weight:700}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.memo div{line-height:1.7;border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+.vec{position:relative;display:inline-block;padding-top:.15em}
+.vec::before{content:"→";position:absolute;left:50%;top:-.5em;transform:translateX(-50%) scaleX(.9);font-size:.8em;line-height:1}
+
+/* ---------- exercices : fond bleu ciel (mêmes couleurs que commun/exercices.css) ---------- */
+.exos{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:18px 16px 8px;margin:0 0 24px}
+.exos > h2{margin:0 0 .2rem;font-size:1.35rem;color:var(--exo-ink)}
+.exos > p.intro{margin:0 0 14px;color:var(--muted)}
+.exo{line-height:1.75;background:var(--card);border:1px solid var(--exo-border);border-radius:12px;padding:.8rem 1rem;margin:0 0 14px}
+.exo h3{margin:0 0 .35rem;font-size:1.03rem}
+.exo h3 span{display:inline-block;background:var(--exo-ink);color:var(--card);border-radius:6px;padding:0 .45rem;margin-right:.4rem;font-size:.9rem}
+.exo p{margin:.35rem 0}
+.exo ol{margin:.3rem 0;padding-left:1.4rem}
+.exo figure{margin:.5rem 0;overflow-x:auto}
+.exo svg{display:block;max-width:100%;height:auto}
+.ans{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:.4rem 0}
+.ans input{font:inherit;width:7.5em;padding:.25rem .45rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.ans button{min-height:34px;padding:.25rem .65rem;font-size:.9rem}
+.ans .fb{font-weight:600;font-size:.92rem}
+.fb.ok{color:var(--ok)} .fb.ko{color:var(--ko)}
+details.corr{margin-top:.5rem}
+details.corr summary{cursor:pointer;font-weight:600;color:var(--exo-ink);display:inline-block}
+.correction{border:2px solid var(--ok);border-radius:10px;padding:.55rem .9rem;margin-top:8px;line-height:1.75}
+.correction h4{margin:0 0 .2rem;color:var(--ok);font-size:1rem}
+.correction p{margin:.25rem 0}
+.res{font-weight:700}
+
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+.scene:fullscreen .layout{grid-template-columns:auto 360px;justify-content:center}
+.scene:fullscreen canvas{height:calc(100vh - 170px);width:auto;max-width:calc(100vw - 420px)}
+.scene:fullscreen .memo,.scene:fullscreen details.tab{display:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+  .exos{padding:14px 10px 4px}
+  .exo{padding:.7rem .75rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Le vecteur vitesse</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Lance le mouvement : une <strong>chronophotographie</strong> enregistre la position M<sub>i</sub> du système toutes les Δt.
+    Construis ensuite le <strong>vecteur vitesse</strong> en chaque point, puis le <strong>vecteur variation de vitesse</strong>
+    Δ<span class="vec">v</span>, et compare-le à la somme des forces. Clique sur un point pour voir le calcul détaillé.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation : chronophotographie et vecteurs vitesse">
+    <div class="layout">
+      <div>
+        <canvas id="cv" width="900" height="600" role="img" aria-label="Chronophotographie du mouvement avec les vecteurs vitesse"></canvas>
+        <div class="explain" id="msg" aria-live="polite"></div>
+        <details class="tab">
+          <summary>Tableau des mesures</summary>
+          <div class="tablewrap"><table id="tab"></table></div>
+        </details>
+      </div>
+      <div class="panel">
+        <div>
+          <h2>1. Choisir un mouvement</h2>
+          <div class="grid2 modes" id="modes" role="group" aria-label="Type de mouvement"></div>
+        </div>
+        <div>
+          <h2>2. Réglages <small id="dt-info"></small></h2>
+          <div id="params"></div>
+          <div class="row">
+            <label for="dt">Intervalle Δt</label>
+            <select id="dt"></select>
+          </div>
+          <div class="grid2" style="margin-top:8px">
+            <button id="play" type="button">Rejouer le mouvement</button>
+            <label class="check"><input type="checkbox" id="slow" checked> Ralenti</label>
+          </div>
+        </div>
+        <div>
+          <h2>3. Construire les vecteurs <small id="nb"></small></h2>
+          <div class="grid2">
+            <button id="step" type="button">Construire v<sub>i</sub> suivant</button>
+            <button id="all" class="ghost" type="button">Tout construire</button>
+          </div>
+          <div class="row">
+            <label for="vs">Échelle de <span class="vec">v</span></label>
+            <select id="vs"></select>
+          </div>
+          <label class="check"><input type="checkbox" id="showdv"> <span class="sw" style="background:var(--dvcol)"></span> <span>Vecteurs Δ<span class="vec">v</span></span></label>
+          <div class="row">
+            <label for="dvs">Échelle de Δ<span class="vec">v</span></label>
+            <select id="dvs"></select>
+          </div>
+          <label class="check"><input type="checkbox" id="showf"> <span class="sw" style="background:var(--fcol)"></span> Somme des forces (direction et sens)</label>
+          <div class="grid2" style="margin-top:8px">
+            <button id="clear" class="ghost" type="button">Effacer les vecteurs</button>
+            <button id="fs" class="ghost" type="button">Plein écran</button>
+          </div>
+        </div>
+        <div>
+          <h2>4. Point étudié <small id="selinfo"></small></h2>
+          <div class="grid2">
+            <button id="prev" class="ghost" type="button">← Point précédent</button>
+            <button id="next" class="ghost" type="button">Point suivant →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Vecteur vitesse</h3>Au point M<sub>i</sub> : <span class="vec">v</span><sub>i</sub> ≈ <span class="vec">M<sub>i</sub>M<sub>i+1</sub></span> / Δt.
+        Direction : celle de (M<sub>i</sub>M<sub>i+1</sub>). Sens : celui du mouvement. Valeur : v<sub>i</sub> = M<sub>i</sub>M<sub>i+1</sub> / Δt, en m·s<sup>−1</sup>.
+        On le dessine avec une échelle, par exemple 1 carreau ↔ 1 m·s<sup>−1</sup>.</div>
+      <div><h3>Variation de vitesse</h3>Δ<span class="vec">v</span><sub>i</sub> = <span class="vec">v</span><sub>i+1</sub> − <span class="vec">v</span><sub>i</sub>.
+        On reporte <span class="vec">v</span><sub>i+1</sub> à partir du point M<sub>i</sub> : Δ<span class="vec">v</span><sub>i</sub> va de l'extrémité de <span class="vec">v</span><sub>i</sub>
+        à l'extrémité de <span class="vec">v</span><sub>i+1</sub>. On le représente au point M<sub>i</sub>.</div>
+      <div><h3>Lien avec les forces</h3>Si Δ<span class="vec">v</span> = <span class="vec">0</span>, alors Σ<span class="vec">F</span> = <span class="vec">0</span> (principe d'inertie) : le mouvement est rectiligne uniforme.
+        Sinon, Δ<span class="vec">v</span> et Σ<span class="vec">F</span> ont <strong>même direction et même sens</strong>.</div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Modèle : frottements de l'air négligés pour le lancer et la chute (g = 9,81 N·kg<sup>−1</sup>).
+      Δ<span class="vec">v</span><sub>i</sub> tracé au point M<sub>i</sub> n'est qu'approximativement parallèle à Σ<span class="vec">F</span> dans le mouvement circulaire :
+      l'accord est d'autant meilleur que Δt est petit (essaie les trois valeurs de Δt).</p>
+  </section>
+
+  <!-- ===================== EXERCICES ===================== -->
+  <section class="exos" id="exercices" aria-labelledby="exos-titre">
+    <h2 id="exos-titre">S'entraîner : exercices d'application directe</h2>
+    <p class="intro">Cherche d'abord seul, sur ton cahier, puis vérifie ta réponse ou ouvre la correction.
+      Les résultats sont donnés avec le bon nombre de chiffres significatifs et en écriture scientifique.</p>
+
+    <article class="exo">
+      <h3><span>1</span>Calculer la valeur d'une vitesse</h3>
+      <p>Sur la chronophotographie d'un skateur, les positions sont enregistrées toutes les Δt = 40 ms.
+        La distance réelle entre les positions M<sub>3</sub> et M<sub>4</sub> est M<sub>3</sub>M<sub>4</sub> = 0,48 m.</p>
+      <p>Exprimer puis calculer la valeur v<sub>3</sub> de la vitesse du skateur au point M<sub>3</sub>.</p>
+      <div class="ans" data-ans="12" data-tol="0.03">
+        <label>v<sub>3</sub> = <input inputmode="decimal" aria-label="Valeur de v3 en m/s"> m·s<sup>−1</sup></label>
+        <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
+      </div>
+      <details class="corr"><summary>Voir la correction</summary>
+        <div class="correction"><h4>Correction</h4>
+          <p>Expression littérale : v<sub>3</sub> = M<sub>3</sub>M<sub>4</sub> / Δt</p>
+          <p>Application numérique (Δt = 40 ms = 40 × 10<sup>−3</sup> s) : v<sub>3</sub> = 0,48 / (40 × 10<sup>−3</sup>)</p>
+          <p class="res">v<sub>3</sub> = 1,2 × 10<sup>1</sup> m·s<sup>−1</sup> (2 chiffres significatifs, comme 0,48 et 40)</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="exo">
+      <h3><span>2</span>Utiliser une échelle de représentation</h3>
+      <p>On choisit l'échelle : 1 cm ↔ 2,0 m·s<sup>−1</sup>.</p>
+      <ol>
+        <li>Quelle longueur doit avoir la flèche représentant une vitesse de valeur v = 5,0 m·s<sup>−1</sup> ?</li>
+        <li>Sur un autre document, avec la même échelle, une flèche vitesse mesure 3,6 cm. Quelle est la valeur de la vitesse ?</li>
+      </ol>
+      <div class="ans" data-ans="2.5" data-tol="0.02">
+        <label>1. ℓ = <input inputmode="decimal" aria-label="Longueur de la flèche en cm"> cm</label>
+        <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
+      </div>
+      <div class="ans" data-ans="7.2" data-tol="0.02">
+        <label>2. v = <input inputmode="decimal" aria-label="Valeur de la vitesse en m/s"> m·s<sup>−1</sup></label>
+        <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
+      </div>
+      <details class="corr"><summary>Voir la correction</summary>
+        <div class="correction"><h4>Correction</h4>
+          <p>1. Expression littérale : ℓ = v / (2,0 m·s<sup>−1</sup> par cm). Application numérique : ℓ = 5,0 / 2,0.
+            <span class="res">ℓ = 2,5 cm</span></p>
+          <p>2. Expression littérale : v = ℓ × (2,0 m·s<sup>−1</sup> par cm). Application numérique : v = 3,6 × 2,0.
+            <span class="res">v = 7,2 m·s<sup>−1</sup></span></p>
+        </div>
+      </details>
+    </article>
+
+    <article class="exo">
+      <h3><span>3</span>Exploiter une chronophotographie</h3>
+      <p>Une bille roule sur un plan incliné. On a relevé ses positions toutes les Δt = 0,10 s. Échelle des distances : 1 carreau ↔ 10 cm.</p>
+      <figure>
+        <svg viewBox="0 0 620 110" width="620" role="img" aria-label="Chronophotographie : cinq positions alignées, espacées de 2, 3, 4 puis 5 carreaux">
+          <defs><pattern id="g3" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="currentColor" stroke-opacity=".18"/></pattern></defs>
+          <rect x="0" y="0" width="620" height="110" fill="url(#g3)" style="color:var(--muted)"/>
+          <g fill="currentColor" style="color:var(--text)" font-size="15" text-anchor="middle">
+            <circle cx="60" cy="60" r="5"/><text x="60" y="40">M₀</text>
+            <circle cx="100" cy="60" r="5"/><text x="100" y="40">M₁</text>
+            <circle cx="160" cy="60" r="5"/><text x="160" y="40">M₂</text>
+            <circle cx="240" cy="60" r="5"/><text x="240" y="40">M₃</text>
+            <circle cx="340" cy="60" r="5"/><text x="340" y="40">M₄</text>
+          </g>
+          <g style="color:var(--muted)" fill="currentColor" font-size="13"><path d="M440 90h20" stroke="currentColor" stroke-width="2"/><text x="468" y="94">1 carreau ↔ 10 cm</text></g>
+        </svg>
+      </figure>
+      <ol>
+        <li>Quelle est la nature du mouvement de la bille ? Justifier.</li>
+        <li>Calculer les valeurs v<sub>1</sub> et v<sub>2</sub> de la vitesse aux points M<sub>1</sub> et M<sub>2</sub>.</li>
+        <li>En déduire la valeur, la direction et le sens de Δ<span class="vec">v</span><sub>1</sub> = <span class="vec">v</span><sub>2</sub> − <span class="vec">v</span><sub>1</sub>, puis ce que l'on peut dire de la somme des forces.</li>
+      </ol>
+      <div class="ans" data-ans="3.0" data-tol="0.02">
+        <label>v<sub>1</sub> = <input inputmode="decimal" aria-label="v1 en m/s"> m·s<sup>−1</sup></label>
+        <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
+      </div>
+      <details class="corr"><summary>Voir la correction</summary>
+        <div class="correction"><h4>Correction</h4>
+          <p>1. Les positions sont alignées : le mouvement est <strong>rectiligne</strong>. Pendant des durées égales, la bille parcourt des distances
+            de plus en plus grandes (2, 3, 4 puis 5 carreaux) : le mouvement est <strong>accéléré</strong>.</p>
+          <p>2. M<sub>1</sub>M<sub>2</sub> = 3 carreaux = 0,30 m et M<sub>2</sub>M<sub>3</sub> = 4 carreaux = 0,40 m.<br>
+            v<sub>1</sub> = M<sub>1</sub>M<sub>2</sub> / Δt = 0,30 / 0,10 donc <span class="res">v<sub>1</sub> = 3,0 m·s<sup>−1</sup></span><br>
+            v<sub>2</sub> = M<sub>2</sub>M<sub>3</sub> / Δt = 0,40 / 0,10 donc <span class="res">v<sub>2</sub> = 4,0 m·s<sup>−1</sup></span></p>
+          <p>3. Les deux vecteurs ont la même direction et le même sens : Δv<sub>1</sub> = v<sub>2</sub> − v<sub>1</sub> = 4,0 − 3,0, donc
+            <span class="res">Δv<sub>1</sub> = 1,0 m·s<sup>−1</sup></span>, direction : celle du mouvement, sens : celui du mouvement.
+            Δ<span class="vec">v</span> ≠ <span class="vec">0</span>, donc Σ<span class="vec">F</span> ≠ <span class="vec">0</span> :
+            la somme des forces est dirigée dans le sens du mouvement.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="exo">
+      <h3><span>4</span>Construire le vecteur variation de vitesse</h3>
+      <p>Lors du lancer d'un ballon, on a représenté à partir du même point les vecteurs vitesse <span class="vec">v</span><sub>5</sub> et
+        <span class="vec">v</span><sub>6</sub>. Échelle : 1 carreau ↔ 0,50 m·s<sup>−1</sup>.</p>
+      <figure>
+        <svg viewBox="0 0 300 180" width="300" role="img" aria-label="Deux vecteurs issus d'un même point : v5 vaut 4 carreaux vers la droite et 2 vers le haut, v6 vaut 4 carreaux vers la droite">
+          <defs>
+            <pattern id="g4" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="currentColor" stroke-opacity=".18"/></pattern>
+            <marker id="ab4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>
+          </defs>
+          <rect width="300" height="180" fill="url(#g4)" style="color:var(--muted)"/>
+          <g stroke-width="3" fill="none">
+            <path d="M60 120L180 60" stroke="var(--vcol)" marker-end="url(#ab4)"/>
+            <path d="M60 120L180 120" stroke="var(--vcol)" stroke-dasharray="7 4" marker-end="url(#ab4)"/>
+          </g>
+          <circle cx="60" cy="120" r="4" fill="currentColor" style="color:var(--text)"/>
+          <g font-size="16" font-style="italic" fill="var(--vcol)"><text x="98" y="78">v₅</text><text x="110" y="142">v₆</text></g>
+        </svg>
+      </figure>
+      <ol>
+        <li>Construire Δ<span class="vec">v</span><sub>5</sub> = <span class="vec">v</span><sub>6</sub> − <span class="vec">v</span><sub>5</sub> et donner sa valeur.</li>
+        <li>En déduire la direction et le sens de la somme des forces exercées sur le ballon. Quelle force peut-on reconnaître ?</li>
+      </ol>
+      <div class="ans" data-ans="1.0" data-tol="0.02">
+        <label>Δv<sub>5</sub> = <input inputmode="decimal" aria-label="Delta v5 en m/s"> m·s<sup>−1</sup></label>
+        <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
+      </div>
+      <details class="corr"><summary>Voir la correction</summary>
+        <div class="correction"><h4>Correction</h4>
+          <svg viewBox="0 0 300 180" width="260" role="img" aria-label="Le vecteur delta v va de l'extrémité de v5 à l'extrémité de v6 : 2 carreaux verticalement vers le bas">
+            <rect width="300" height="180" fill="url(#g4)" style="color:var(--muted)"/>
+            <g stroke-width="3" fill="none">
+              <path d="M60 120L180 60" stroke="var(--vcol)" marker-end="url(#ab4)"/>
+              <path d="M60 120L180 120" stroke="var(--vcol)" stroke-dasharray="7 4" marker-end="url(#ab4)"/>
+              <path d="M180 60L180 120" stroke="var(--dvcol)" marker-end="url(#ab4)"/>
+            </g>
+            <g font-size="16" font-style="italic"><text x="98" y="78" fill="var(--vcol)">v₅</text><text x="110" y="142" fill="var(--vcol)">v₆</text><text x="188" y="96" fill="var(--dvcol)">Δv₅</text></g>
+          </svg>
+          <p>1. Δ<span class="vec">v</span><sub>5</sub> relie l'extrémité de <span class="vec">v</span><sub>5</sub> à l'extrémité de <span class="vec">v</span><sub>6</sub> :
+            il mesure 2 carreaux, verticalement vers le bas.<br>Δv<sub>5</sub> = 2 × 0,50 donc <span class="res">Δv<sub>5</sub> = 1,0 m·s<sup>−1</sup></span></p>
+          <p>2. Σ<span class="vec">F</span> a la même direction et le même sens que Δ<span class="vec">v</span> : <strong>verticale, vers le bas</strong>.
+            On reconnaît le <strong>poids</strong> <span class="vec">P</span> du ballon (frottements de l'air négligés).</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="exo">
+      <h3><span>5</span>Mouvement circulaire uniforme</h3>
+      <p>Une nacelle de grande roue décrit un cercle de rayon R = 25 m. Elle effectue un tour complet en T = 2,0 min, à vitesse de valeur constante.</p>
+      <ol>
+        <li>Calculer la valeur v de la vitesse de la nacelle.</li>
+        <li>La valeur de la vitesse ne change pas. Le vecteur vitesse est-il constant ? Que peut-on en déduire pour la somme des forces ?</li>
+      </ol>
+      <div class="ans" data-ans="1.3" data-tol="0.04">
+        <label>v = <input inputmode="decimal" aria-label="v en m/s"> m·s<sup>−1</sup></label>
+        <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
+      </div>
+      <details class="corr"><summary>Voir la correction</summary>
+        <div class="correction"><h4>Correction</h4>
+          <p>1. En un tour, la nacelle parcourt le périmètre 2πR pendant la durée T = 2,0 min = 1,2 × 10<sup>2</sup> s.<br>
+            Expression littérale : v = 2πR / T. Application numérique : v = 2π × 25 / 120.<br>
+            <span class="res">v = 1,3 m·s<sup>−1</sup></span> (2 chiffres significatifs)</p>
+          <p>2. Non : la <strong>direction</strong> du vecteur vitesse (tangente au cercle) change à chaque instant, donc Δ<span class="vec">v</span> ≠ <span class="vec">0</span>.
+            D'après le principe d'inertie, Σ<span class="vec">F</span> ≠ <span class="vec">0</span> : la somme des forces n'est pas nulle,
+            elle est dirigée (comme Δ<span class="vec">v</span>) vers le centre du cercle.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="exo">
+      <h3><span>6</span>Vrai ou faux ?</h3>
+      <ol>
+        <li>Un palet glisse sur une glace sans frottement, en ligne droite à vitesse constante : la somme des forces qui s'exercent sur lui est nulle.</li>
+        <li>Si Δ<span class="vec">v</span> = <span class="vec">0</span>, le système est forcément immobile.</li>
+        <li>Une voiture freine en ligne droite : la somme des forces est dans le sens du mouvement.</li>
+        <li>Une bille lâchée sans vitesse initiale tombe : Δ<span class="vec">v</span> est vertical et dirigé vers le bas.</li>
+      </ol>
+      <details class="corr"><summary>Voir la correction</summary>
+        <div class="correction"><h4>Correction</h4>
+          <p>1. <strong>Vrai</strong> : le mouvement est rectiligne uniforme, Δ<span class="vec">v</span> = <span class="vec">0</span>, donc les forces se compensent (principe d'inertie).</p>
+          <p>2. <strong>Faux</strong> : le système peut aussi avoir un mouvement rectiligne uniforme.</p>
+          <p>3. <strong>Faux</strong> : la vitesse diminue, Δ<span class="vec">v</span> est opposé au mouvement, donc Σ<span class="vec">F</span> aussi.</p>
+          <p>4. <strong>Vrai</strong> : la vitesse augmente vers le bas ; Δ<span class="vec">v</span> a la direction et le sens du poids.</p>
+        </div>
+      </details>
+    </article>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>g = 9,81 N·kg<sup>−1</sup>, frottements de l'air négligés.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const G = 9.81;
+const SUBS = '₀₁₂₃₄₅₆₇₈₉';
+const sub = n => String(n).split('').map(c => SUBS[+c]).join('');
+const SUPS = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+const fr = s => s.replace('.', ',');
+/* Écriture scientifique avec n chiffres significatifs (HTML) */
+function sci(x, n = 3) {
+  if (!isFinite(x)) return '—';
+  if (Math.abs(x) < 1e-12) return '0';
+  let e = Math.floor(Math.log10(Math.abs(x)));
+  let m = x / 10 ** e;
+  let ms = m.toFixed(n - 1);
+  if (Math.abs(+ms) >= 10) { e += 1; ms = (x / 10 ** e).toFixed(n - 1); }
+  ms = fr(ms);
+  return e === 0 ? ms : ms + ' × 10<sup>' + (e < 0 ? '−' + (-e) : e) + '</sup>';
+}
+const dec = (x, n = 3) => Math.abs(x) < 1e-12 ? '0' : fr(Number(x.toPrecision(n)).toString());
+const fx = (x, d) => fr(x.toFixed(d));
+
+/* ---------- scénarios ---------- */
+const SC = {
+  lancer: {
+    nom: 'Lancer d’un ballon', court: 'Lancer',
+    params: [{ id: 'v0', lab: 'Vitesse initiale', min: 3, max: 8, step: 0.5, val: 6, u: 'm·s⁻¹', d: 1 },
+             { id: 'ang', lab: 'Angle de tir', min: 20, max: 80, step: 5, val: 55, u: '°', d: 0 }],
+    dts: [0.06, 0.08, 0.10], dt: 0.08, vs: 2, dvs: 0.5, L: 0.25, ground: true, obj: 'ballon',
+    pos(t, p) { const a = p.ang * Math.PI / 180; return [p.v0 * Math.cos(a) * t, 0.3 + p.v0 * Math.sin(a) * t - G * t * t / 2]; },
+    tEnd(p) { const a = p.ang * Math.PI / 180, vy = p.v0 * Math.sin(a); return (vy + Math.sqrt(vy * vy + 2 * G * 0.3)) / G; },
+    force: () => ({ d: [0, -1], nom: 'P', txt: 'Une seule force : le poids <b class="f"><span class="vec">P</span></b>, vertical et vers le bas (frottements de l’air négligés). Σ<b class="f"><span class="vec">F</span></b> = <b class="f"><span class="vec">P</span></b>.' })
+  },
+  chute: {
+    nom: 'Chute libre verticale', court: 'Chute libre',
+    params: [{ id: 'h', lab: 'Hauteur de départ', min: 1, max: 2.5, step: 0.25, val: 1.5, u: 'm', d: 2 }],
+    dts: [0.04, 0.05, 0.06], dt: 0.06, vs: 2, dvs: 0.5, L: 0.25, ground: true, obj: 'bille', line: [1, 0],
+    pos(t, p) { return [0, p.h - G * t * t / 2]; },
+    tEnd(p) { return Math.sqrt(2 * p.h / G); },
+    force: () => ({ d: [0, -1], nom: 'P', txt: 'La bille est lâchée sans vitesse initiale. Une seule force : le poids <b class="f"><span class="vec">P</span></b>, vertical et vers le bas. Σ<b class="f"><span class="vec">F</span></b> = <b class="f"><span class="vec">P</span></b>.' })
+  },
+  cercle: {
+    nom: 'Mouvement circulaire uniforme', court: 'Circulaire',
+    params: [{ id: 'R', lab: 'Rayon', min: 1, max: 2, step: 0.25, val: 1.5, u: 'm', d: 2 },
+             { id: 'T', lab: 'Durée d’un tour', min: 1.8, max: 3.6, step: 0.6, val: 2.4, u: 's', d: 1 }],
+    dts: null, nper: [24, 16, 12], nsel: 16, vs: 1, dvs: 1, L: 0.25, center: true, obj: 'fronde',
+    pos(t, p) { const w = 2 * Math.PI / p.T; return [p.R * Math.cos(w * t - Math.PI / 2), p.R * Math.sin(w * t - Math.PI / 2)]; },
+    tEnd(p) { return p.T; },
+    force: (M) => { const n = Math.hypot(M[0], M[1]); return { d: [-M[0] / n, -M[1] / n], nom: 'T', txt: 'Une bille attachée à un fil tourne sur une table horizontale sans frottement. Poids et réaction de la table se compensent : Σ<b class="f"><span class="vec">F</span></b> = <b class="f"><span class="vec">T</span></b>, la force exercée par le fil, dirigée vers le centre O.' }; }
+  },
+  uniforme: {
+    nom: 'Palet sur la glace', court: 'Rectiligne uniforme',
+    params: [{ id: 'v', lab: 'Vitesse', min: 1, max: 4, step: 0.5, val: 2, u: 'm·s⁻¹', d: 1 }],
+    dts: [0.10, 0.20, 0.25], dt: 0.20, vs: 1, dvs: 0.25, L: 0.25, ice: true, obj: 'palet', line: [0, 1],
+    pos(t, p) { return [p.v * t, 0]; },
+    tEnd(p) { return 11 * this.dtCur; },
+    force: () => ({ d: null, nom: '', txt: 'Le palet glisse sans frottement : son poids <b class="f"><span class="vec">P</span></b> et la réaction <b class="f"><span class="vec">R</span></b> de la glace se compensent. Σ<b class="f"><span class="vec">F</span></b> = <b class="f"><span class="vec">0</span></b> (principe d’inertie).' })
+  },
+  freinage: {
+    nom: 'Palet freiné', court: 'Rectiligne ralenti',
+    params: [{ id: 'v0', lab: 'Vitesse initiale', min: 2, max: 4, step: 0.5, val: 3, u: 'm·s⁻¹', d: 1 },
+             { id: 'a', lab: 'Freinage', min: 0.5, max: 3, step: 0.25, val: 1.5, u: 'm·s⁻²', d: 2 }],
+    dts: [0.10, 0.20, 0.25], dt: 0.20, vs: 1, dvs: 0.25, L: 0.25, ice: true, obj: 'palet', line: [0, 1],
+    pos(t, p) { const ts = p.v0 / p.a, tt = Math.min(t, ts); return [p.v0 * tt - p.a * tt * tt / 2, 0]; },
+    tEnd(p) { return p.v0 / p.a; },
+    force: () => ({ d: [-1, 0], nom: 'f', txt: 'Le palet glisse sur un sol rugueux. Poids et réaction normale se compensent ; il reste les frottements <b class="f"><span class="vec">f</span></b>, opposés au mouvement. Σ<b class="f"><span class="vec">F</span></b> = <b class="f"><span class="vec">f</span></b>.' })
+  }
+};
+const ORDER = ['lancer', 'chute', 'cercle', 'uniforme', 'freinage'];
+const VSC = [0.25, 0.5, 1, 2, 4];
+
+const S = { key: 'lancer', p: {}, dt: 0.08, pts: [], v: [], dv: [], built: 0, sel: 0, t: 0, playing: false, last: 0,
+  vs: 2, dvs: 0.5, showdv: false, showf: false };
+
+/* ---------- calcul de la chronophotographie ---------- */
+function compute() {
+  const sc = SC[S.key];
+  sc.dtCur = S.dt;
+  const tEnd = sc.tEnd(S.p);
+  let n = Math.floor(tEnd / S.dt + 1e-9);
+  if (S.key === 'cercle') n = Math.round(S.p.T / S.dt);
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(sc.pos(i * S.dt, S.p));
+  // pour le cercle, on garde les points d'un tour (le dernier rejoint M0) + un point pour v
+  S.pts = pts;
+  S.v = []; S.dv = [];
+  for (let i = 0; i + 1 < pts.length; i++) S.v.push([(pts[i + 1][0] - pts[i][0]) / S.dt, (pts[i + 1][1] - pts[i][1]) / S.dt]);
+  for (let i = 0; i + 1 < S.v.length; i++) S.dv.push([S.v[i + 1][0] - S.v[i][0], S.v[i + 1][1] - S.v[i][1]]);
+  S.tEnd = n * S.dt;
+  S.built = Math.min(S.built, S.v.length);
+  S.sel = Math.min(S.sel, pts.length - 1);
+  fit();
+}
+/* nombre de points affichés : pour le cercle, le dernier (= M0 après un tour) n'est pas redessiné */
+const nShown = () => S.key === 'cercle' ? S.pts.length - 1 : S.pts.length;
+const nVec = () => S.v.length;
+
+/* ---------- géométrie écran ---------- */
+const cv = $('cv'), ctx = cv.getContext('2d');
+const W = 900, H = 600;
+let K = 100, OX = 0, OY = 0;
+const X = x => OX + x * K, Y = y => OY - y * K;
+function fit() {
+  const sc = SC[S.key], L = sc.L;
+  let xs = [], ys = [];
+  const add = (x, y) => { xs.push(x); ys.push(y); };
+  S.pts.forEach(p => add(p[0], p[1]));
+  S.v.forEach((v, i) => add(S.pts[i][0] + v[0] / S.vs * L, S.pts[i][1] + v[1] / S.vs * L));
+  S.dv.forEach((d, i) => add(S.pts[i][0] + d[0] / S.dvs * L, S.pts[i][1] + d[1] / S.dvs * L));
+  if (sc.center) add(0, 0);
+  if (sc.line) S.pts.forEach(p => { add(p[0] + sc.line[0] * 4 * L, p[1] + sc.line[1] * 4 * L); if (sc.line[1]) add(p[0], p[1] - 1.6 * L); });
+  if (sc.ground) add(xs[0], 0);
+  if (sc.ice) add(xs[0], -0.6);
+  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const pad = 2.2 * L;
+  x0 -= pad; x1 += pad; y0 -= pad * 0.8; y1 += pad;
+  const minR = 2.5;
+  if (x1 - x0 < minR) { const c = (x0 + x1) / 2; x0 = c - minR / 2; x1 = c + minR / 2; }
+  if (y1 - y0 < minR * 0.66) { const c = (y0 + y1) / 2; y0 = c - minR / 3; y1 = c + minR / 3; }
+  const top = 46;
+  K = Math.min((W - 20) / (x1 - x0), (H - top - 14) / (y1 - y0));
+  OX = (W - (x1 - x0) * K) / 2 - x0 * K;
+  OY = top + ((H - top - 14) - (y1 - y0) * K) / 2 + y1 * K;
+}
+
+/* ---------- dessin ---------- */
+let C = {};
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  ['--text', '--muted', '--canvas', '--grid', '--grid-strong', '--pt', '--vcol', '--dvcol', '--fcol', '--ground', '--accent', '--surface', '--border']
+    .forEach(k => C[k.slice(2)] = cs.getPropertyValue(k).trim());
+}
+function arrow(x1, y1, x2, y2, col, w = 3, dash = null) {
+  const L = Math.hypot(x2 - x1, y2 - y1);
+  if (L < 1.5) return;
+  const ux = (x2 - x1) / L, uy = (y2 - y1) / L, hl = Math.min(13, 0.45 * L + 4), hw = hl * 0.5;
+  ctx.save();
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - ux * hl * 0.8, y2 - uy * hl * 0.8); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - ux * hl - uy * hw, y2 - uy * hl + ux * hw);
+  ctx.lineTo(x2 - ux * hl + uy * hw, y2 - uy * hl - ux * hw); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function vecLabel(txt, x, y, col, size = 16) {
+  ctx.save();
+  ctx.font = `italic 600 ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = col; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  // fond pour la lisibilité
+  const w = ctx.measureText(txt).width;
+  ctx.globalAlpha = .82; ctx.fillStyle = C.canvas; ctx.fillRect(x - 2, y - size, w + 4, size + 5); ctx.globalAlpha = 1;
+  ctx.fillStyle = col; ctx.fillText(txt, x, y);
+  // petite flèche au-dessus de la lettre principale
+  const base = txt.replace(/[₀-₉]/g, '');
+  const lw = ctx.measureText(base.slice(0, base.indexOf(base.trim().slice(-1)) + 1)).width;
+  const x0 = x + (txt.startsWith('Δ') ? ctx.measureText('Δ').width : 0), x1 = x + lw;
+  ctx.strokeStyle = col; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(x0, y - size + 1); ctx.lineTo(x1 + 1, y - size + 1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1 + 1, y - size + 1); ctx.lineTo(x1 - 3, y - size - 2); ctx.moveTo(x1 + 1, y - size + 1); ctx.lineTo(x1 - 3, y - size + 4); ctx.stroke();
+  ctx.restore();
+}
+/* place une étiquette à côté de l'extrémité d'une flèche, décalée perpendiculairement */
+function labelNear(txt, xa, ya, xb, yb, col) {
+  const L = Math.hypot(xb - xa, yb - ya) || 1;
+  let nx = -(yb - ya) / L, ny = (xb - xa) / L;
+  if (ny > 0) { nx = -nx; ny = -ny; }
+  const mx = xa + (xb - xa) * 0.62 + nx * 14, my = ya + (yb - ya) * 0.62 + ny * 14;
+  vecLabel(txt, mx - 6, my + 6, col);
+}
+
+function draw() {
+  const sc = SC[S.key], L = sc.L, gp = L * K;
+  ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+  ctx.fillStyle = C.canvas; ctx.fillRect(0, 0, W, H);
+  // quadrillage aligné sur l'origine
+  ctx.lineWidth = 1;
+  const i0 = Math.floor((0 - OX) / gp), i1 = Math.ceil((W - OX) / gp);
+  for (let i = i0; i <= i1; i++) { const x = OX + i * gp; ctx.strokeStyle = i % 4 === 0 ? C['grid-strong'] : C.grid; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  const j0 = Math.floor((OY - H) / gp), j1 = Math.ceil(OY / gp);
+  for (let j = j0; j <= j1; j++) { const y = OY - j * gp; ctx.strokeStyle = j % 4 === 0 ? C['grid-strong'] : C.grid; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+  // bandeau des échelles
+  ctx.fillStyle = C.surface; ctx.globalAlpha = .92; ctx.fillRect(0, 0, W, 38); ctx.globalAlpha = 1;
+  ctx.strokeStyle = C.border; ctx.beginPath(); ctx.moveTo(0, 38.5); ctx.lineTo(W, 38.5); ctx.stroke();
+  ctx.font = '600 14px system-ui, sans-serif'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.text; ctx.textAlign = 'left';
+  ctx.strokeStyle = C.text; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.rect(12, 12, 14, 14); ctx.stroke();
+  ctx.fillText('1 carreau ↔ ' + fx(L * 100, 0) + ' cm', 32, 19);
+  ctx.fillStyle = C.vcol; ctx.fillText('Vitesses : 1 carreau ↔ ' + fr(String(S.vs)) + ' m/s', 190, 19);
+  if (S.showdv) { ctx.fillStyle = C.dvcol; ctx.fillText('Variations de vitesse : 1 carreau ↔ ' + fr(String(S.dvs)) + ' m/s', 420, 19); }
+  ctx.fillStyle = C.muted; ctx.textAlign = 'right'; ctx.fillText('Δt = ' + fx(S.dt * 1000, 0) + ' ms', W - 12, 19);
+
+  // décor
+  if (sc.ground) {
+    const y = Y(0);
+    ctx.fillStyle = C.ground; ctx.globalAlpha = .18; ctx.fillRect(0, y, W, H - y); ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.ground; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  if (sc.ice) {
+    const y = Y(-0.08);
+    ctx.fillStyle = S.key === 'uniforme' ? 'rgba(120,190,240,.28)' : 'rgba(150,120,90,.25)';
+    ctx.fillRect(0, y, W, 16);
+    ctx.strokeStyle = C.ground; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  if (sc.center) {
+    ctx.strokeStyle = C.muted; ctx.setLineDash([5, 5]); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(X(0), Y(0), S.p.R * K, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.text; ctx.beginPath(); ctx.arc(X(0), Y(0), 4, 0, Math.PI * 2); ctx.fill();
+    ctx.font = '600 15px system-ui'; ctx.textAlign = 'left'; ctx.fillText('O', X(0) + 7, Y(0) + 12);
+  }
+
+  const shownT = S.playing ? S.t : S.tEnd;
+  const nPts = nShown();
+  // points de la chronophotographie
+  for (let i = 0; i < nPts; i++) {
+    if (i * S.dt > shownT + 1e-9) break;
+    const [x, y] = S.pts[i], px = X(x), py = Y(y);
+    if (i === S.sel && !S.playing) {
+      ctx.fillStyle = C.accent; ctx.globalAlpha = .22; ctx.beginPath(); ctx.arc(px, py, 13, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = C.pt; ctx.beginPath(); ctx.arc(px, py, 4.2, 0, Math.PI * 2); ctx.fill();
+    ctx.font = (i === S.sel ? '700 ' : '500 ') + '13px system-ui'; ctx.fillStyle = i === S.sel ? C.accent : C.muted;
+    let lx = px + 7, ly = py - 9;
+    if (sc.ice) { lx = px - 8; ly = py - 14; }
+    if (S.key === 'chute') { lx = px - 34; ly = py; }
+    if (sc.center) { const r = Math.hypot(x, y) || 1; lx = px + x / r * 18 - 8; ly = py - y / r * 18 + 4; }
+    ctx.textAlign = 'left'; ctx.fillText('M' + sub(i), lx, ly);
+  }
+
+  // segment MiMi+1 du point sélectionné
+  if (!S.playing && S.sel + 1 < S.pts.length && S.sel < nVec()) {
+    const a = S.pts[S.sel], b = S.pts[S.sel + 1];
+    ctx.strokeStyle = C.accent; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(X(a[0]), Y(a[1])); ctx.lineTo(X(b[0]), Y(b[1])); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  if (!S.playing) {
+    const vlen = (v, s) => [v[0] / s * L * K, -v[1] / s * L * K];
+    // vecteurs vitesse
+    for (let i = 0; i < S.built; i++) {
+      const p = S.pts[i], d = vlen(S.v[i], S.vs);
+      arrow(X(p[0]), Y(p[1]), X(p[0]) + d[0], Y(p[1]) + d[1], C.vcol, i === S.sel ? 3.4 : 2.6);
+    }
+    // décalage perpendiculaire (mouvements rectilignes) : les vecteurs colinéaires sont tracés sur des « couloirs » parallèles
+    const nl = sc.line, lane = k => nl ? [nl[0] * k * gp, -nl[1] * k * gp] : [0, 0];
+    const P = (i, k = 0) => { const o = lane(k); return [X(S.pts[i][0]) + o[0], Y(S.pts[i][1]) + o[1]]; };
+    if (nl && S.showdv) {
+      const a = P(0, 1), b = P(nShown() - 1, 1);
+      ctx.strokeStyle = C.dvcol; ctx.globalAlpha = .35; ctx.setLineDash([2, 5]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    }
+    // vecteurs variation de vitesse
+    if (S.showdv) {
+      for (let i = 0; i < Math.min(S.built - 1, S.dv.length); i++) {
+        const [ox, oy] = P(i, nl ? 1 : 0), d = vlen(S.dv[i], S.dvs);
+        if (nl) { ctx.fillStyle = C.dvcol; ctx.beginPath(); ctx.arc(ox, oy, 2.5, 0, Math.PI * 2); ctx.fill(); }
+        arrow(ox, oy, ox + d[0], oy + d[1], C.dvcol, i === S.sel ? 3.2 : 2.4);
+      }
+    }
+    // construction détaillée au point sélectionné
+    const i = S.sel;
+    if (i < S.built) {
+      const [ox, oy] = P(i), d1 = vlen(S.v[i], S.vs);
+      labelNear('v' + sub(i), ox, oy, ox + d1[0], oy + d1[1], C.vcol);
+      if (S.showdv && i + 1 < S.built && i < S.dv.length) {
+        const d2 = vlen(S.v[i + 1], S.vs), dd = vlen(S.dv[i], S.dvs);
+        if (nl) {
+          // construction à côté : v_i et v_{i+1} reportés depuis la même origine, sur deux couloirs
+          const [ax, ay] = P(i, 2.2), [bx, by] = P(i, 3.2);
+          ctx.strokeStyle = C.muted; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(bx, by); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ax + d1[0], ay + d1[1]); ctx.lineTo(bx + d1[0], by + d1[1]); ctx.stroke(); ctx.setLineDash([]);
+          arrow(ax, ay, ax + d1[0], ay + d1[1], C.vcol, 2.4);
+          arrow(bx, by, bx + d2[0], by + d2[1], C.vcol, 2.4, [6, 5]);
+          arrow(bx + d1[0], by + d1[1], bx + d2[0], by + d2[1], C.dvcol, 3);
+          const off = nl[1] ? [0, -8] : [8, 0];
+          vecLabel('v' + sub(i), ax + d1[0] / 2 + (nl[1] ? -8 : 10), ay + d1[1] / 2 + (nl[1] ? -6 : 5), C.vcol, 14);
+          vecLabel('v' + sub(i + 1), bx + d2[0] / 2 + (nl[1] ? -10 : 10), by + d2[1] / 2 + (nl[1] ? -6 : 5), C.vcol, 14);
+          vecLabel('Δv' + sub(i), bx + d1[0] + dd[0] / 2 + off[0] - (nl[1] ? 12 : 0), by + d1[1] + dd[1] / 2 + off[1] + (nl[1] ? -6 : 5), C.dvcol, 14);
+          const [cx, cy] = P(i, 1);
+          labelNear('Δv' + sub(i), cx, cy, cx + dd[0], cy + dd[1], C.dvcol);
+        } else {
+          arrow(ox, oy, ox + d2[0], oy + d2[1], C.vcol, 2, [6, 5]);
+          labelNear('v' + sub(i + 1), ox, oy, ox + d2[0], oy + d2[1], C.vcol);
+          arrow(ox + d1[0], oy + d1[1], ox + d2[0], oy + d2[1], C.dvcol, 2, [4, 4]);
+          labelNear('Δv' + sub(i), ox, oy, ox + dd[0], oy + dd[1], C.dvcol);
+        }
+      }
+    }
+    // somme des forces (qualitatif)
+    if (S.showf && i < nShown()) {
+      const f = sc.force(S.pts[i]);
+      const [ox, oy] = nl ? P(i, nl[1] ? -1.1 : 4.3) : P(i);
+      if (f.d) {
+        const l = 1.6 * gp, tx = ox + f.d[0] * l, ty = oy - f.d[1] * l;
+        arrow(ox, oy, tx, ty, C.fcol, 3.4);
+        if (nl) { ctx.fillStyle = C.fcol; ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill(); }
+        if (f.d[0] === 0) vecLabel('ΣF', tx + 8, ty - 2, C.fcol);
+        else if (f.d[1] === 0) vecLabel('ΣF', tx - 34, ty + 22, C.fcol);
+        else vecLabel('ΣF', ox + f.d[0] * l * 0.5 + 8, oy - f.d[1] * l * 0.5 + 22, C.fcol);
+      } else {
+        vecLabel('ΣF = 0', ox - 22, oy + 26, C.fcol, 15);
+      }
+    }
+  }
+
+  // objet en mouvement
+  const t = Math.min(shownT, S.tEnd);
+  const [ox, oy] = sc.pos(t, S.p);
+  const px = X(ox), py = Y(oy);
+  if (sc.obj === 'fronde') {
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(px, py); ctx.stroke();
+  }
+  ctx.save();
+  ctx.globalAlpha = S.playing ? 1 : .55;
+  if (sc.obj === 'palet') {
+    ctx.fillStyle = '#2b2f3a'; ctx.beginPath(); ctx.ellipse(px, py + 2, 16, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#4a5060'; ctx.beginPath(); ctx.ellipse(px, py - 3, 16, 6, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    const r = sc.obj === 'ballon' ? 11 : 8;
+    const g = ctx.createRadialGradient(px - r / 3, py - r / 3, 1, px, py, r);
+    g.addColorStop(0, '#ffd8a8'); g.addColorStop(1, sc.obj === 'ballon' ? '#e8590c' : '#c2255c');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ---------- texte explicatif ---------- */
+function describeDir(v) {
+  const n = Math.hypot(v[0], v[1]);
+  if (n < 1e-9) return '';
+  const a = Math.atan2(v[1], v[0]) * 180 / Math.PI;
+  if (Math.abs(a + 90) < 2) return 'verticale, vers le bas';
+  if (Math.abs(a - 90) < 2) return 'verticale, vers le haut';
+  if (Math.abs(a) < 2) return 'horizontale, vers la droite';
+  if (Math.abs(Math.abs(a) - 180) < 2) return 'horizontale, vers la gauche';
+  return null;
+}
+function explain() {
+  const sc = SC[S.key], i = S.sel, L = sc.L;
+  let h = '';
+  if (S.playing) { h = 'Enregistrement en cours : une position toutes les Δt = ' + fx(S.dt * 1000, 0) + ' ms…'; $('msg').innerHTML = h; return; }
+  if (i >= nVec()) {
+    h = `<b>Point M${sub(i)}</b> (t = ${dec(i * S.dt)} s) : c'est le dernier point, il n'y a pas de point M${sub(i + 1)} pour construire <b class="v"><span class="vec">v</span>${sub(i)}</b>.`;
+  } else {
+    const a = S.pts[i], b = S.pts[i + 1], d = Math.hypot(b[0] - a[0], b[1] - a[1]), v = d / S.dt;
+    h = `<b>Point M${sub(i)}</b>, t${sub(i)} = ${dec(i * S.dt)} s. `
+      + `M${sub(i)}M${sub(i + 1)} = ${dec(d / L)} carreaux × ${fr(String(L))} m = ${sci(d)} m.<br>`
+      + `v${sub(i)} = M${sub(i)}M${sub(i + 1)} / Δt = ${sci(d)} / ${sci(S.dt, 2)} = <b class="v">${sci(v)} m·s⁻¹</b> `
+      + `→ flèche de ${dec(v / S.vs)} carreaux (échelle 1 carreau ↔ ${fr(String(S.vs))} m·s⁻¹).`;
+    if (i >= S.built) h += ` <span class="small">Clique sur « Construire v<sub>i</sub> suivant » pour tracer ce vecteur.</span>`;
+    if (S.showdv && i < S.dv.length) {
+      const dv = S.dv[i], n = Math.hypot(dv[0], dv[1]);
+      if (n < 1e-6) h += `<br><b class="dv">Δ<span class="vec">v</span>${sub(i)} = <span class="vec">0</span></b> : le vecteur vitesse ne change pas.`;
+      else {
+        const dir = describeDir(dv);
+        h += `<br><b class="dv">Δ<span class="vec">v</span>${sub(i)} = <span class="vec">v</span>${sub(i + 1)} − <span class="vec">v</span>${sub(i)}</b> : valeur ${sci(n)} m·s⁻¹`
+          + (dir ? `, direction ${dir}` : (sc.center ? ', dirigé vers l’intérieur du cercle' : ''))
+          + ` → ${dec(n / S.dvs)} carreaux.`;
+      }
+      if (i + 1 >= S.built) h += ` <span class="small">(Construis aussi <span class="vec">v</span>${sub(i + 1)} pour voir la construction.)</span>`;
+    }
+  }
+  if (S.showf) h += '<br>' + sc.force(S.pts[i]).txt;
+  $('msg').innerHTML = h;
+}
+
+/* ---------- tableau ---------- */
+function table() {
+  let h = '<tr><th>Point</th><th>t (s)</th><th>MᵢMᵢ₊₁ (m)</th><th>vᵢ (m·s⁻¹)</th><th>Δvᵢ (m·s⁻¹)</th></tr>';
+  for (let i = 0; i < nShown(); i++) {
+    const d = i < nVec() ? Math.hypot(S.pts[i + 1][0] - S.pts[i][0], S.pts[i + 1][1] - S.pts[i][1]) : null;
+    const dv = i < S.dv.length ? Math.hypot(S.dv[i][0], S.dv[i][1]) : null;
+    h += `<tr class="${i === S.sel ? 'sel' : ''}"><td>M${sub(i)}</td><td>${dec(i * S.dt)}</td><td>${d === null ? '—' : dec(d)}</td>`
+      + `<td>${d === null ? '—' : dec(d / S.dt)}</td><td>${dv === null ? '—' : dec(dv)}</td></tr>`;
+  }
+  $('tab').innerHTML = h;
+}
+
+function refresh() {
+  $('nb').textContent = S.built + ' / ' + nVec() + ' vecteurs';
+  $('selinfo').textContent = 'M' + sub(S.sel);
+  $('step').disabled = S.built >= nVec();
+  $('prev').disabled = S.sel <= 0;
+  $('next').disabled = S.sel >= nShown() - 1;
+  draw(); explain(); table();
+}
+
+/* ---------- animation ---------- */
+function play() {
+  S.playing = true; S.t = 0; S.last = performance.now();
+  requestAnimationFrame(tick);
+  refresh();
+}
+function tick(now) {
+  if (!S.playing) return;
+  const k = $('slow').checked ? 0.3 : 1;
+  S.t += Math.min(0.05, (now - S.last) / 1000) * k; S.last = now;
+  if (S.t >= S.tEnd) { S.t = S.tEnd; S.playing = false; refresh(); return; }
+  draw(); explain();
+  requestAnimationFrame(tick);
+}
+function stopAnim() { if (S.playing) { S.playing = false; } }
+
+/* ---------- interface ---------- */
+function fillScale(sel, val) {
+  sel.innerHTML = VSC.map(s => `<option value="${s}" ${s === val ? 'selected' : ''}>1 carreau ↔ ${fr(String(s))} m/s</option>`).join('');
+}
+function setScenario(key) {
+  S.key = key; const sc = SC[key];
+  document.querySelectorAll('#modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === key));
+  S.p = {};
+  $('params').innerHTML = sc.params.map(p => `<div class="row"><label for="p-${p.id}">${p.lab}</label>
+    <input type="range" id="p-${p.id}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.val}">
+    <output id="o-${p.id}"></output></div>`).join('');
+  sc.params.forEach(p => {
+    S.p[p.id] = p.val;
+    const inp = $('p-' + p.id), out = $('o-' + p.id);
+    const show = () => out.textContent = fx(+inp.value, p.d) + ' ' + p.u;
+    show();
+    inp.addEventListener('input', () => { S.p[p.id] = +inp.value; show(); if (key === 'cercle') fillDt(); recompute(false); });
+  });
+  fillDt(true);
+  S.vs = sc.vs; S.dvs = sc.dvs; fillScale($('vs'), S.vs); fillScale($('dvs'), S.dvs);
+  S.built = 0; S.sel = 0;
+  recompute(true);
+}
+function fillDt(reset) {
+  const sc = SC[S.key], sel = $('dt');
+  if (sc.nper) {
+    const cur = reset ? sc.nsel : (+sel.selectedOptions[0]?.dataset.n || sc.nsel);
+    sel.innerHTML = sc.nper.map(n => `<option data-n="${n}" value="${S.p.T / n}" ${n === cur ? 'selected' : ''}>${fx(S.p.T / n * 1000, 0)} ms (${n} points par tour)</option>`).join('');
+    S.dt = S.p.T / cur;
+  } else {
+    if (reset) {
+      sel.innerHTML = sc.dts.map(d => `<option value="${d}" ${d === sc.dt ? 'selected' : ''}>${fx(d * 1000, 0)} ms</option>`).join('');
+      S.dt = sc.dt;
+    }
+  }
+}
+function recompute(animate) {
+  compute();
+  $('dt-info').textContent = (nShown()) + ' positions';
+  if (animate) play(); else { stopAnim(); refresh(); }
+}
+
+ORDER.forEach(k => {
+  const b = document.createElement('button'); b.type = 'button'; b.dataset.k = k;
+  b.innerHTML = SC[k].nom; b.addEventListener('click', () => setScenario(k));
+  $('modes').appendChild(b);
+});
+$('dt').addEventListener('change', e => { S.dt = +e.target.value; recompute(true); });
+$('play').addEventListener('click', play);
+$('step').addEventListener('click', () => {
+  stopAnim();
+  if (S.built < nVec()) { S.built++; S.sel = S.built - 1; }
+  refresh();
+});
+$('all').addEventListener('click', () => { stopAnim(); S.built = nVec(); refresh(); });
+$('clear').addEventListener('click', () => { stopAnim(); S.built = 0; S.sel = 0; refresh(); });
+$('vs').addEventListener('change', e => { S.vs = +e.target.value; fit(); refresh(); });
+$('dvs').addEventListener('change', e => { S.dvs = +e.target.value; fit(); refresh(); });
+$('showdv').addEventListener('change', e => { S.showdv = e.target.checked; if (S.showdv && S.built < 2) S.built = Math.min(nVec(), Math.max(S.built, S.sel + 2)); refresh(); });
+$('showf').addEventListener('change', e => { S.showf = e.target.checked; refresh(); });
+$('prev').addEventListener('click', () => { stopAnim(); S.sel = Math.max(0, S.sel - 1); refresh(); });
+$('next').addEventListener('click', () => { stopAnim(); S.sel = Math.min(nShown() - 1, S.sel + 1); refresh(); });
+cv.addEventListener('click', e => {
+  const r = cv.getBoundingClientRect();
+  const mx = (e.clientX - r.left) / r.width * W, my = (e.clientY - r.top) / r.height * H;
+  let best = -1, bd = 22;
+  for (let i = 0; i < nShown(); i++) { const d = Math.hypot(X(S.pts[i][0]) - mx, Y(S.pts[i][1]) - my); if (d < bd) { bd = d; best = i; } }
+  if (best >= 0) { stopAnim(); S.sel = best; refresh(); }
+});
+$('fs').addEventListener('click', () => {
+  const sc = $('sc');
+  if (document.fullscreenElement) document.exitFullscreen(); else if (sc.requestFullscreen) sc.requestFullscreen();
+});
+
+function resize() {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.round((r.width || W) * dpr), h = Math.round(w * H / W);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  draw();
+}
+window.addEventListener('resize', resize);
+document.addEventListener('fullscreenchange', () => setTimeout(resize, 60));
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+(mq.addEventListener ? mq.addEventListener('change', () => { readColors(); draw(); }) : null);
+
+/* ---------- vérification des réponses aux exercices ---------- */
+document.querySelectorAll('.ans').forEach(box => {
+  const inp = box.querySelector('input'), fb = box.querySelector('.fb'), btn = box.querySelector('button');
+  const check = () => {
+    const x = parseFloat(inp.value.replace(',', '.').replace(/\s/g, ''));
+    const ans = +box.dataset.ans, tol = +box.dataset.tol;
+    if (!isFinite(x)) { fb.className = 'fb ko'; fb.textContent = 'Écris un nombre.'; return; }
+    const ok = Math.abs(x - ans) <= tol * Math.abs(ans);
+    fb.className = 'fb ' + (ok ? 'ok' : 'ko');
+    fb.textContent = ok ? '✓ Correct.' : '✗ Ce n’est pas ça : revois l’expression littérale et les unités.';
+  };
+  btn.addEventListener('click', check);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+});
+
+readColors();
+setScenario('lancer');
+resize();
+})();
+</script>
+</body>
+</html>
