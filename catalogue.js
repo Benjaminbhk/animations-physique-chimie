@@ -75,6 +75,15 @@ window.CATALOGUE = [
     statut: "en-ligne"
   },
   {
+    dossier: "refraction",
+    titre: "Réfraction et réflexion totale",
+    resume: "Orienter un laser vers la surface entre deux milieux : rayons réfléchi et réfracté, angle limite, réflexion totale et dispersion de la lumière blanche. Mesures, graphique sin i₁ = f(sin i₂) et exercices corrigés.",
+    theme: "ondes",
+    chapitre: "Lumière : réfraction",
+    mots: ["Snell-Descartes", "indice de réfraction", "angle limite", "réflexion totale", "dispersion", "normale"],
+    statut: "en-ligne"
+  },
+  {
     dossier: "lentille-convergente",
     titre: "Lentille convergente, œil et appareil photo",
     resume: "Construire l'image d'un objet avec les trois rayons particuliers, calculer le grandissement, puis comprendre l'accommodation de l'œil et la mise au point de l'appareil photo. Exercices corrigés.",
