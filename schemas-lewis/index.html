@@ -104,6 +104,7 @@ footer strong{color:var(--text)}
   .seg button{padding:.45rem .55rem;font-size:.9rem}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -183,6 +184,13 @@ footer strong{color:var(--text)}
     </div>
     <p class="small">Un électron célibataire est représenté par un point, un doublet par un trait. Une liaison covalente est un doublet liant mis en commun par deux atomes :
       chaque atome y apporte un électron célibataire. Dans une molécule, chaque atome d'hydrogène est entouré de 2 électrons (<strong>règle du duet</strong>) et les autres atomes de 8 électrons (<strong>règle de l'octet</strong>), en comptant les doublets liants et les doublets non liants.</p>
+  </section>
+
+  <!-- ============ EXERCICES ============ -->
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Compte les électrons et les doublets sur ta feuille, puis vérifie. Une molécule ou un atome est tiré au hasard à chaque nouvel exercice.</p>
+    <div id="exo-lewis"></div>
   </section>
 </div>
 <footer>
@@ -627,6 +635,85 @@ resize();
 $('defi').value = q && DEFIS.some(d => d.id === q) ? q : 'H2O';
 setDefi($('defi').value);
 hist.length = 0; $('bUndo').disabled = true;
+})();
+</script>
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const { pick, etape, texte } = Exo;
+const AT = {
+  H: { Z: 1, nom: "l'hydrogène" }, C: { Z: 6, nom: 'le carbone' }, N: { Z: 7, nom: "l'azote" }, O: { Z: 8, nom: "l'oxygène" },
+  F: { Z: 9, nom: 'le fluor' }, Si: { Z: 14, nom: 'le silicium' }, P: { Z: 15, nom: 'le phosphore' }, S: { Z: 16, nom: 'le soufre' },
+  Cl: { Z: 17, nom: 'le chlore' }
+};
+function config(Z) {
+  const sc = [['1s', 2], ['2s', 2], ['2p', 6], ['3s', 2], ['3p', 6]]; let r = Z; const out = [];
+  for (const [s, c] of sc) { if (r <= 0) break; const k = Math.min(r, c); out.push(`${s}<sup>${k}</sup>`); r -= k; }
+  return out.join(' ');
+}
+const val = Z => Z <= 2 ? Z : Z <= 10 ? Z - 2 : Z - 10;
+const liaisons = el => el === 'H' ? 1 : 8 - val(AT[el].Z);
+const sub = f => f.replace(/(\d+)/g, '<sub>$1</sub>');
+/* id (atelier), formule, nom, atomes, nombre de doublets liants */
+const MOL = [
+  ['H2', 'H2', 'dihydrogène', { H: 2 }, 1], ['Cl2', 'Cl2', 'dichlore', { Cl: 2 }, 1], ['HCl', 'HCl', "chlorure d'hydrogène", { H: 1, Cl: 1 }, 1],
+  ['H2O', 'H2O', 'eau', { H: 2, O: 1 }, 2], ['NH3', 'NH3', 'ammoniac', { N: 1, H: 3 }, 3], ['CH4', 'CH4', 'méthane', { C: 1, H: 4 }, 4],
+  ['O2', 'O2', 'dioxygène', { O: 2 }, 2], ['N2', 'N2', 'diazote', { N: 2 }, 3], ['CO2', 'CO2', 'dioxyde de carbone', { C: 1, O: 2 }, 4],
+  ['HCN', 'HCN', "cyanure d'hydrogène", { H: 1, C: 1, N: 1 }, 4], ['CH2O', 'CH2O', 'méthanal', { C: 1, H: 2, O: 1 }, 4],
+  ['C2H2', 'C2H2', 'éthyne', { C: 2, H: 2 }, 5], ['C2H4', 'C2H4', 'éthène', { C: 2, H: 4 }, 6], ['C2H6', 'C2H6', 'éthane', { C: 2, H: 6 }, 7],
+  ['CH3Cl', 'CH3Cl', 'chlorométhane', { C: 1, H: 3, Cl: 1 }, 4], ['CH4O', 'CH4O', 'méthanol', { C: 1, H: 4, O: 1 }, 5],
+  ['C2H6O', 'C2H6O', 'éthanol', { C: 2, H: 6, O: 1 }, 8]
+];
+const RAPPEL = `<p>Les électrons de valence sont ceux de la dernière couche occupée. Dans une molécule, ils sont mis en commun ou restent sur l'atome, toujours par paires (doublets) :
+  nombre de doublets = (nombre total d'électrons de valence) / 2.</p>
+  <p>Pour respecter la règle du duet (H) ou de l'octet (C, N, O, Cl…), H forme 1 liaison, C en forme 4, N 3, O 2 et Cl 1.
+  Une liaison simple = 1 doublet liant, double = 2, triple = 3.</p>`;
+
+Exo.monter('exo-lewis', [
+  { id: 'mol', label: 'Doublets d’une molécule', rappel: RAPPEL, gen() {
+    const [id, f, nom, at, L] = pick(MOL);
+    const els = Object.keys(at), tot = els.reduce((s, e) => s + at[e] * val(AT[e].Z), 0), D = tot / 2, NL = D - L;
+    return {
+      enonce: `<p>On étudie la molécule ${/^[aeéiouy]/i.test(nom) ? "d'" : 'de '}<strong>${nom}</strong>, de formule brute <strong>${sub(f)}</strong>.</p>
+        <p>Données : ${els.map(e => `Z(${e}) = ${AT[e].Z}`).join(' ; ')}.</p>`,
+      questions: [
+        { label: '1. Combien d’électrons de valence cette molécule possède-t-elle au total ?', rep: tot, entier: true },
+        { label: '2. Combien de doublets liants contient son schéma de Lewis ?', rep: L, entier: true },
+        { label: '3. Combien de doublets non liants contient son schéma de Lewis ?', rep: NL, entier: true }
+      ],
+      correction: texte('1.', els.map(e => `${e} (Z = ${AT[e].Z}) : ${config(AT[e].Z)}, donc ${val(AT[e].Z)} électron${val(AT[e].Z) > 1 ? 's' : ''} de valence`).join('<br>') +
+          `<br>Total : ${els.map(e => `${at[e]} × ${val(AT[e].Z)}`).join(' + ')} = <strong>${tot} électrons de valence</strong>, soit ${tot} / 2 = ${D} doublets.`) +
+        texte('2.', `Chaque atome forme ses liaisons (${els.map(e => `${e} : ${liaisons(e)}`).join(', ')}). Le schéma de Lewis de ${sub(f)} contient
+          <strong>${L} doublet${L > 1 ? 's' : ''} liant${L > 1 ? 's' : ''}</strong>.`) +
+        texte('3.', `Doublets non liants = ${D} − ${L} = <strong>${NL}</strong>.
+          <button type="button" class="ghost" data-lewis="${id}" style="margin-top:6px">Construire ce schéma dans l'atelier</button>`)
+    };
+  } },
+  { id: 'at', label: 'Un atome dans une molécule', rappel: RAPPEL, gen() {
+    const el = pick(Object.keys(AT)), Z = AT[el].Z, v = val(Z), l = liaisons(el), nl = (v - l) / 2;
+    const regle = el === 'H' ? 'duet (2 électrons autour de lui)' : 'octet (8 électrons autour de lui)';
+    return {
+      enonce: `<p>On s'intéresse à un atome ${AT[el].nom.replace(/^le /, 'de ').replace(/^l'/, "d'")} (symbole <strong>${el}</strong>, numéro atomique <strong>Z = ${Z}</strong>) engagé dans une molécule.</p>`,
+      questions: [
+        { label: '1. Combien d’électrons de valence possède cet atome ?', rep: v, entier: true },
+        { label: '2. Combien de liaisons covalentes forme-t-il pour respecter la règle du duet ou de l’octet ?', rep: l, entier: true },
+        { label: '3. Combien de doublets non liants porte-t-il dans la molécule ?', rep: nl, entier: true }
+      ],
+      correction: texte('1.', `Configuration électronique : ${config(Z)}. La dernière couche contient <strong>${v} électron${v > 1 ? 's' : ''} de valence</strong>.`) +
+        texte('2.', `Il doit respecter la règle du ${regle} : il lui manque ${el === 'H' ? '2' : '8'} − ${v} = ${l} électron${l > 1 ? 's' : ''},
+          il forme donc <strong>${l} liaison${l > 1 ? 's' : ''} covalente${l > 1 ? 's' : ''}</strong>.`) +
+        texte('3.', `Il reste ${v} − ${l} = ${v - l} électron${v - l > 1 ? 's' : ''} de valence non engagé${v - l > 1 ? 's' : ''} dans des liaisons, soit <strong>${nl} doublet${nl > 1 ? 's' : ''} non liant${nl > 1 ? 's' : ''}</strong>.`)
+    };
+  } }
+]);
+document.getElementById('exo-lewis').addEventListener('click', e => {
+  const b = e.target.closest('[data-lewis]'); if (!b) return;
+  const s = document.getElementById('defi');
+  if (!s || ![...s.options].some(o => o.value === b.dataset.lewis)) return;
+  s.value = b.dataset.lewis; s.dispatchEvent(new Event('change'));
+  document.getElementById('atelier').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 })();
 </script>
 </body>

@@ -21,4 +21,11 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/
 
 Pour ajouter une simulation : créer `nom-de-la-simulation/index.html` (avec le pied de page « Réalisé par Benjamin Barre ») et `apercu.jpg`, puis ajouter son entrée dans `catalogue.js` et une ligne dans ce tableau.
 
+## Exercices (style commun)
+
+Chaque simulation se termine par une section d'exercices courts, sur **fond bleu ciel** (la modélisation reste sur fond blanc), compatible avec le mode sombre.
+
+- `commun/exercices.css` : le style de la section. Ajouter `<link rel="stylesheet" href="../commun/exercices.css">` après le `<style>` de la page et donner la classe `exercices` à la section (`<section class="scene exercices">`), avec le badge `<span class="ex-badge">✎ Exercices</span>` dans le titre.
+- `commun/exercices.js` : un moteur d'exercices à valeurs aléatoires (`Exo.monter(id, types)`), avec vérification immédiate (valeur juste, chiffres significatifs), score et correction rédigée (expression littérale, application numérique, résultat en écriture scientifique). Le mode d'emploi est en tête du fichier ; `dissolution-dilution/index.html` sert d'exemple.
+
 Le site est publié avec GitHub Pages depuis la branche `main`.
