@@ -62,5 +62,15 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "chronophotographie",
+    titre: "Chronophotographie et référentiels",
+    resume: "Enregistrer les positions d'un palet, mesurer une vitesse moyenne en cliquant sur deux points, reconnaître la nature du mouvement, puis voir le même mouvement depuis le sol, un train, un manège ou un vélo. Exercices corrigés.",
+    theme: "mouvement",
+    niveau: "seconde",
+    chapitre: "Décrire un mouvement",
+    mots: ["chronophotographie", "trajectoire", "vitesse moyenne", "référentiel", "mouvement rectiligne", "mouvement circulaire", "uniforme", "accéléré", "ralenti", "exercices"],
+    statut: "en-ligne"
   }
 ];

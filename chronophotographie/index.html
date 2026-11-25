@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chronophotographie et référentiels</title>
+<meta name="description" content="Chronophotographie, trajectoire, vitesse moyenne et choix du référentiel : simulation interactive et exercices corrigés (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f7fbf; --accent-soft:#e4f1fa; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --grid:rgba(30,60,100,.08); --grid2:rgba(30,60,100,.17);
+  --obj:#d9822b; --obj2:#c8423a; --vec:#2f8f6b; --sel:#7a3fd0; --step:#1f7fbf;
+  --sky:#e8f3fb; --ground:#d9cfbd; --ground2:#bfb39c; --wagon:#3f6fa8; --wagon2:#cfe0f2; --tree:#4c9a5b; --trunk:#8a6440;
+  --disk:#f0c94a; --disk2:#e07a5f; --metal:#6c7686;
+  --ok:#2f8f6b; --ok-soft:#e3f5ec; --ko:#c8423a; --ko-soft:#fbe7e5;
+  --exo-bg:#e6f3fc; --exo-border:#b7dbf3; --exo-card:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#5fb3ea; --accent-soft:#162a3a; --accent-ink:#0c1620;
+    --canvas:#141821; --grid:rgba(180,200,230,.07); --grid2:rgba(180,200,230,.16);
+    --obj:#f0a04b; --obj2:#ef6b62; --vec:#4cc597; --sel:#b48cff; --step:#5fb3ea;
+    --sky:#16212e; --ground:#3a342b; --ground2:#4a4236; --wagon:#5b8fd0; --wagon2:#24364d; --tree:#5fb070; --trunk:#9a7550;
+    --disk:#b8962e; --disk2:#c2604a; --metal:#8e98a8;
+    --ok:#4cc597; --ok-soft:#173328; --ko:#ef6b62; --ko-soft:#3a1d1b;
+    --exo-bg:#13222f; --exo-border:#24435a; --exo-card:#18212c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#5fb3ea; --accent-soft:#162a3a; --accent-ink:#0c1620;
+  --canvas:#141821; --grid:rgba(180,200,230,.07); --grid2:rgba(180,200,230,.16);
+  --obj:#f0a04b; --obj2:#ef6b62; --vec:#4cc597; --sel:#b48cff; --step:#5fb3ea;
+  --sky:#16212e; --ground:#3a342b; --ground2:#4a4236; --wagon:#5b8fd0; --wagon2:#24364d; --tree:#5fb070; --trunk:#9a7550;
+  --disk:#b8962e; --disk2:#c2604a; --metal:#8e98a8;
+  --ok:#4cc597; --ok-soft:#173328; --ko:#ef6b62; --ko-soft:#3a1d1b;
+  --exo-bg:#13222f; --exo-border:#24435a; --exo-card:#18212c;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1rem;max-width:72ch}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+nav.toc a{font-size:.9rem;font-weight:600;text-decoration:none;padding:.35rem .75rem;border-radius:999px;border:1px solid var(--border);background:var(--surface)}
+nav.toc a.exo-link{background:var(--exo-bg);border-color:var(--exo-border)}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene h2{margin:0;font-size:1.35rem;display:flex;align-items:center;gap:.5rem}
+.num{display:inline-flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border-radius:50%;
+  font-size:.9rem;font-weight:700;color:#fff;background:var(--step);flex:none}
+.scene .sub{color:var(--muted);margin:.25rem 0 .8rem}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+#cv1,#cv2{aspect-ratio:900/540}
+#cvx{aspect-ratio:900/320}
+#cv1{cursor:crosshair}
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+.modes button{background:var(--surface);color:var(--muted);border-color:var(--border);border-radius:999px;font-size:.9rem;min-height:38px;padding:.35rem .85rem}
+.modes button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:12px 0 6px}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl label{font-weight:600;font-size:.95rem}
+select,input[type=text]{font:inherit;padding:.35rem .55rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px;align-items:center}
+button{font:inherit;font-weight:600;padding:.55rem .9rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,canvas:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;color:var(--muted)}
+.explain{border-left:4px solid var(--step);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;margin:10px 0 0}
+.explain h3{margin:0 0 .2rem;font-size:1rem}
+.explain p{margin:.15rem 0}
+.mesure{font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 0;font-size:.85rem;font-variant-numeric:tabular-nums}
+.chips span{padding:.1rem .5rem;border-radius:999px;border:1px solid var(--border);background:var(--bg)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.duo .explain{margin:0}
+.small{font-size:.85rem;color:var(--muted)}
+details.rappel{margin-top:10px;font-size:.93rem;color:var(--muted)}
+details.rappel summary{cursor:pointer;font-weight:600;color:var(--accent)}
+/* ---------- exercices (fond bleu ciel) ---------- */
+.exercices{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:16px;margin:0 0 22px}
+.exercices h2{margin:0;font-size:1.35rem;display:flex;align-items:center;gap:.5rem}
+.exercices .sub{color:var(--muted);margin:.25rem 0 .8rem}
+.exercices .modes button{background:var(--exo-card);border-color:var(--exo-border)}
+.exercices .modes button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.exo{background:var(--exo-card);border:1px solid var(--exo-border);border-radius:12px;padding:.8rem 1rem}
+.enonce p{margin:.25rem 0}
+.q{margin:.6rem 0 .2rem;font-weight:600}
+.rep{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:.3rem 0}
+.rep input{width:10ch;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:.3rem 0}
+.opts button{background:var(--exo-card);color:var(--text);border-color:var(--exo-border);font-weight:500}
+.opts button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.opts button.good{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.bad{border-color:var(--ko);background:var(--ko-soft)}
+.fb{border-radius:10px;padding:.5rem .8rem;margin:8px 0 0;border:1px solid var(--border)}
+.fb.ok{border-color:var(--ok);background:var(--ok-soft)}
+.fb.ko{border-color:var(--ko);background:var(--ko-soft)}
+.fb:empty{display:none}
+.corr{border:2px solid var(--ok);border-radius:10px;padding:.6rem .8rem;margin-top:10px;background:var(--exo-card)}
+.corr h3{margin:0 0 .3rem;font-size:1rem;color:var(--ok)}
+.corr p{margin:.25rem 0;font-variant-numeric:tabular-nums}
+.corr:empty{display:none}
+.score{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.95rem}
+.score strong{color:var(--text)}
+#cvx{margin:.4rem 0}
+footer{max-width:1040px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen,.exercices:fullscreen{overflow:auto;border-radius:0;padding:18px 28px}
+.scene:fullscreen canvas{max-height:70vh;width:auto;max-width:100%;margin:0 auto}
+@media (max-width:760px){
+  .duo{grid-template-columns:1fr}
+  .scene,.exercices{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Chronophotographie et référentiels</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Une chronophotographie montre les positions successives d'un objet, photographiées à intervalles de temps égaux.
+    On y lit la trajectoire, on calcule une vitesse moyenne et on reconnaît la nature du mouvement. Puis on voit que la description
+    d'un mouvement dépend du référentiel choisi.</p>
+  <nav class="toc" aria-label="Parties de la page">
+    <a href="#sc-chrono">1. Chronophotographie</a>
+    <a href="#sc-ref">2. Choix du référentiel</a>
+    <a href="#sc-exo" class="exo-link">3. Exercices corrigés</a>
+  </nav>
+
+  <!-- ============ 1. CHRONOPHOTOGRAPHIE ============ -->
+  <section class="scene" id="sc-chrono" aria-labelledby="t-chrono">
+    <div class="head">
+      <div>
+        <h2 id="t-chrono"><span class="num">1</span> Réaliser une chronophotographie</h2>
+        <p class="sub">Un palet glisse sur une table vue de dessus. Une position est enregistrée toutes les <strong>τ</strong> secondes.
+          Clique sur deux positions pour mesurer une vitesse moyenne.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-chrono" type="button">Plein écran</button>
+    </div>
+    <div class="modes" id="m1" role="group" aria-label="Mouvement étudié"></div>
+    <canvas id="cv1" tabindex="0" role="img" aria-label="Chronophotographie du mouvement d'un palet"></canvas>
+    <div class="btns">
+      <button id="b1-play" type="button">▶ Lancer</button>
+      <button id="b1-all" class="ghost" type="button">Tout afficher</button>
+      <button id="b1-reset" class="ghost" type="button">Effacer</button>
+    </div>
+    <div class="controls">
+      <div class="ctrl"><label for="o1-speed">Vitesse de l'animation</label>
+        <select id="o1-speed"><option value="1">temps réel</option><option value="0.25" selected>ralenti × 4</option><option value="0.1">ralenti × 10</option></select></div>
+      <label class="check"><input type="checkbox" id="o1-traj" checked> Trajectoire</label>
+      <label class="check"><input type="checkbox" id="o1-lab" checked> Noms des positions</label>
+      <label class="check"><input type="checkbox" id="o1-grid" checked> Quadrillage (10 cm)</label>
+      <label class="check"><input type="checkbox" id="o1-vec"> Vecteurs vitesse</label>
+    </div>
+    <div class="explain mesure" id="mes1" aria-live="polite"></div>
+    <div class="chips" id="dist1" aria-label="Distances entre positions successives"></div>
+    <div class="btns"><button id="b1-nat" class="ghost" type="button">Afficher la nature du mouvement</button></div>
+    <div class="explain" id="nat1" hidden></div>
+    <details class="rappel">
+      <summary>Rappel</summary>
+      <p>Vitesse moyenne : <strong>v = d / Δt</strong>, avec d la distance parcourue en m, Δt la durée en s et v en m·s<sup>−1</sup>.
+        Entre M<sub>i</sub> et M<sub>j</sub>, la durée est Δt = (j − i) × τ. Pour passer en km·h<sup>−1</sup>, on multiplie par 3,6.</p>
+      <p>Trajectoire : <strong>rectiligne</strong> (droite), <strong>circulaire</strong> (cercle) ou <strong>curviligne</strong> (courbe quelconque).
+        Vitesse : <strong>uniforme</strong> si les points sont également espacés, <strong>accélérée</strong> si l'écart augmente, <strong>ralentie</strong> s'il diminue.</p>
+    </details>
+  </section>
+
+  <!-- ============ 2. RÉFÉRENTIEL ============ -->
+  <section class="scene" id="sc-ref" aria-labelledby="t-ref">
+    <div class="head">
+      <div>
+        <h2 id="t-ref"><span class="num">2</span> Le même mouvement vu par deux observateurs</h2>
+        <p class="sub">En haut, l'observateur est immobile sur le sol (référentiel terrestre). En bas, il se déplace avec le véhicule.
+          Les points sont les positions de l'objet étudié, toujours aux mêmes dates.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-ref" type="button">Plein écran</button>
+    </div>
+    <div class="modes" id="m2" role="group" aria-label="Situation étudiée"></div>
+    <canvas id="cv2" role="img" aria-label="Le même mouvement vu dans deux référentiels"></canvas>
+    <div class="btns">
+      <button id="b2-play" type="button">⏸ Pause</button>
+      <button id="b2-reset" class="ghost" type="button">Recommencer</button>
+      <label class="check"><input type="checkbox" id="o2-traj" checked> Trajectoire</label>
+    </div>
+    <div class="duo">
+      <div class="explain" id="c2-sol"></div>
+      <div class="explain" id="c2-mob"></div>
+    </div>
+    <p class="small">À retenir : la trajectoire et la vitesse d'un objet dépendent du référentiel. Avant de décrire un mouvement, on précise toujours par rapport à quoi on l'étudie.</p>
+  </section>
+
+  <!-- ============ 3. EXERCICES ============ -->
+  <section class="exercices" id="sc-exo" aria-labelledby="t-exo">
+    <div class="head">
+      <div>
+        <h2 id="t-exo"><span class="num">3</span> Exercices d'application directe</h2>
+        <p class="sub">Cherche sur ta feuille (expression littérale, application numérique, résultat), réponds, puis regarde la correction.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-exo" type="button">Plein écran</button>
+    </div>
+    <div class="modes" id="m3" role="group" aria-label="Type d'exercice">
+      <button type="button" data-mode="vitesse" aria-pressed="true">Calculer une vitesse moyenne</button>
+      <button type="button" data-mode="nature" aria-pressed="false">Nature du mouvement</button>
+      <button type="button" data-mode="ref" aria-pressed="false">Référentiel</button>
+    </div>
+    <div class="exo">
+      <div class="enonce" id="x-enonce"></div>
+      <canvas id="cvx" role="img" aria-label="Chronophotographie de l'exercice"></canvas>
+      <div id="x-rep"></div>
+      <div class="fb" id="x-fb" aria-live="polite"></div>
+      <div class="corr" id="x-corr"></div>
+      <div class="btns">
+        <button id="x-check" type="button">Vérifier</button>
+        <button id="x-sol" class="ghost" type="button">Voir la correction</button>
+        <button id="x-new" class="ghost" type="button">Nouvel exercice</button>
+        <span class="score" id="x-score"></span>
+      </div>
+    </div>
+  </section>
+</div>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Animation libre d'utilisation en classe</span>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- nombres : virgule, chiffres significatifs, écriture scientifique ---------- */
+const fr = s => s.replace('.', ',').replace('-', '−');
+const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+const sup = n => String(n).split('').map(c => SUP[c]).join('');
+function sfStr(x, n = 3) {
+  if (!isFinite(x)) return '—';
+  if (x === 0) return '0';
+  const r = Number(x.toPrecision(n)), e = Math.floor(Math.log10(Math.abs(r))), d = n - 1 - e;
+  return d < 0 ? sciStr(x, n) : fr(r.toFixed(d));
+}
+function sciStr(x, n = 3) {
+  let e = Math.floor(Math.log10(Math.abs(x))), ms = (x / 10 ** e).toFixed(n - 1);
+  if (Math.abs(parseFloat(ms)) >= 10) { e++; ms = (x / 10 ** e).toFixed(n - 1); }
+  return fr(ms) + ' × 10' + sup(e);
+}
+const expo = (x, n = 3) => Math.floor(Math.log10(Math.abs(Number(x.toPrecision(n)))));
+// « 0,486 m = 4,86 × 10⁻¹ m » ; si l'exposant vaut 0, une seule écriture suffit
+function both(x, n, unit) {
+  const a = sfStr(x, n), b = sciStr(x, n);
+  if (expo(x, n) === 0 || a === b) return `${a} ${unit}`;
+  return `${a} ${unit} = ${b} ${unit}`;
+}
+const parseNum = s => { const v = parseFloat(String(s).replace(/\s/g, '').replace(',', '.').replace('−', '-')); return isFinite(v) ? v : NaN; };
+const Msub = i => `M<sub>${i}</sub>`;
+
+/* ---------- couleurs du thème ---------- */
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = {};
+  ['canvas', 'grid', 'grid2', 'text', 'muted', 'border', 'accent', 'obj', 'obj2', 'vec', 'sel', 'sky', 'ground', 'ground2', 'wagon', 'wagon2',
+   'tree', 'trunk', 'disk', 'disk2', 'metal', 'surface'].forEach(n => C[n.replace(/-(.)/g, (_, c) => c.toUpperCase())] = g('--' + n));
+}
+readTheme();
+
+/* ---------- canevas haute définition ---------- */
+function hiDPI(cv, W, H) {
+  const o = { cv, ctx: cv.getContext('2d'), W, H, K: 1 };
+  o.resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5), r = cv.getBoundingClientRect();
+    const w = Math.max(300, r.width || W);
+    cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr * H / W); o.K = cv.width / W;
+  };
+  o.base = () => o.ctx.setTransform(o.K, 0, 0, o.K, 0, 0);
+  o.resize();
+  return o;
+}
+
+/* ---------- dessin commun d'une chronophotographie ---------- */
+function labelM(c, x, y, i, col) {
+  c.fillStyle = col || C.text;
+  c.font = '600 15px system-ui,sans-serif'; c.textAlign = 'right'; c.textBaseline = 'middle';
+  c.fillText('M', x, y);
+  c.font = '600 11px system-ui,sans-serif'; c.textAlign = 'left';
+  c.fillText(String(i), x + 0.5, y + 5);
+}
+function arrow(c, x1, y1, x2, y2, col, w = 2.2) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1), h = Math.min(10, L * .45);
+  c.strokeStyle = col; c.fillStyle = col; c.lineWidth = w;
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - h * .7 * Math.cos(a), y2 - h * .7 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2);
+  c.lineTo(x2 - h * Math.cos(a - .42), y2 - h * Math.sin(a - .42));
+  c.lineTo(x2 - h * Math.cos(a + .42), y2 - h * Math.sin(a + .42)); c.closePath(); c.fill();
+}
+// pts : positions en pixels. o : { traj, labels, r, ghost, sel:[i,j], skipLabel:Set, labelFrom }
+function drawChrono(c, pts, o = {}) {
+  if (!pts.length) return;
+  const r = o.r || 11;
+  if (o.traj && pts.length > 1) {
+    c.save(); c.setLineDash([5, 5]); c.strokeStyle = C.muted; c.lineWidth = 1.3;
+    c.beginPath(); pts.forEach((p, k) => k ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.stroke(); c.restore();
+  }
+  let cx = 0, cy = 0; pts.forEach(p => { cx += p.x; cy += p.y; }); cx /= pts.length; cy /= pts.length;
+  const placed = [];
+  pts.forEach((p, k) => {
+    const sel = o.sel && o.sel.includes(k);
+    if (o.ghost !== false) {
+      c.globalAlpha = .28; c.fillStyle = sel ? C.sel : (o.color || C.obj);
+      c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.fill(); c.globalAlpha = 1;
+      c.strokeStyle = sel ? C.sel : (o.color || C.obj); c.lineWidth = sel ? 2.5 : 1.2;
+      c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.stroke();
+    }
+    c.fillStyle = sel ? C.sel : C.text;
+    c.beginPath(); c.arc(p.x, p.y, 2.6, 0, TAU); c.fill();
+    if (o.labels && !(o.skipLabel && o.skipLabel.has(k))) {
+      const a = pts[Math.max(0, k - 1)], b = pts[Math.min(pts.length - 1, k + 1)];
+      let dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy);
+      let nx = 0, ny = -1;
+      if (L > 1e-6) { nx = -dy / L; ny = dx / L; }
+      const ox = p.x - cx, oy = p.y - cy;
+      if (nx * ox + ny * oy < -1e-3 || (Math.abs(nx * ox + ny * oy) <= 1e-3 && ny > 0)) { nx = -nx; ny = -ny; }
+      const d = r + 13, lx = p.x + nx * d + 4, ly = p.y + ny * d - 2;
+      if (!sel && placed.some(q => Math.hypot(q.x - lx, q.y - ly) < 17)) return;   // évite les étiquettes qui se chevauchent
+      placed.push({ x: lx, y: ly });
+      labelM(c, lx, ly, (o.labelFrom || 0) + k, sel ? C.sel : C.text);
+    }
+  });
+}
+
+/* =====================================================================
+   1. CHRONOPHOTOGRAPHIE
+   ===================================================================== */
+const S1 = hiDPI($('cv1'), 900, 540);
+const PXM = 300;                   // 300 px pour 1 m (1 carreau = 10 cm = 30 px)
+const toPx1 = p => ({ x: 15 + p.x * PXM, y: 540 - 0 - p.y * PXM });
+const MOV = [
+  { id: 'ru', nom: 'Rectiligne uniforme', T: 1.6, tau: 0.1, pos: t => ({ x: 0.25 + 1.6 * t, y: 0.9 }),
+    nat: ['Rectiligne uniforme', 'Les positions sont alignées : la trajectoire est une <strong>droite</strong>, le mouvement est <strong>rectiligne</strong>.',
+      'Les positions sont <strong>également espacées</strong> pour une même durée τ : la vitesse est constante, le mouvement est <strong>uniforme</strong>.'] },
+  { id: 'racc', nom: 'Rectiligne accéléré', T: 1.6, tau: 0.1, pos: t => ({ x: 0.2 + 0.25 * t + 0.85 * t * t, y: 0.9 }),
+    nat: ['Rectiligne accéléré', 'Les positions sont alignées : le mouvement est <strong>rectiligne</strong>.',
+      'L\'écart entre deux positions successives <strong>augmente</strong> alors que la durée τ est la même : la vitesse augmente, le mouvement est <strong>accéléré</strong>.'] },
+  { id: 'rral', nom: 'Rectiligne ralenti', T: 1.6, tau: 0.1, pos: t => ({ x: 0.2 + 3.0 * t - 0.85 * t * t, y: 0.9 }),
+    nat: ['Rectiligne ralenti', 'Les positions sont alignées : le mouvement est <strong>rectiligne</strong>.',
+      'L\'écart entre deux positions successives <strong>diminue</strong> : la vitesse diminue, le mouvement est <strong>ralenti</strong>.'] },
+  { id: 'cu', nom: 'Circulaire uniforme', T: 1.5, tau: 0.1, pos: t => { const a = TAU / 1.6 * t; return { x: 1.5 + 0.72 * Math.cos(a), y: 0.9 + 0.72 * Math.sin(a) }; },
+    nat: ['Circulaire uniforme', 'Les positions sont sur un <strong>cercle</strong> : le mouvement est <strong>circulaire</strong>.',
+      'Les positions sont également espacées : la valeur de la vitesse est constante, le mouvement est <strong>uniforme</strong>. Attention : la <em>direction</em> de la vitesse change sans arrêt (regarde les vecteurs vitesse).'] },
+  { id: 'cacc', nom: 'Circulaire accéléré', T: 1.5, tau: 0.1, pos: t => { const a = 1.2 * t + 0.5 * 3.636 * t * t; return { x: 1.5 + 0.72 * Math.cos(a), y: 0.9 + 0.72 * Math.sin(a) }; },
+    nat: ['Circulaire accéléré', 'Les positions sont sur un cercle : le mouvement est <strong>circulaire</strong>.',
+      'L\'écart entre deux positions successives augmente : le mouvement est <strong>accéléré</strong>.'] },
+  { id: 'lancer', nom: 'Balle lancée (vue de côté)', T: 0.75, tau: 0.05, pos: t => ({ x: 0.25 + 3.2 * t, y: 0.25 + 3.8 * t - 4.905 * t * t }),
+    nat: ['Curviligne, ralenti puis accéléré', 'Les positions dessinent une courbe en cloche (une parabole) : le mouvement est <strong>curviligne</strong>.',
+      'L\'écart entre les positions diminue pendant la montée (mouvement <strong>ralenti</strong>), puis augmente pendant la descente (mouvement <strong>accéléré</strong>).'] }
+];
+const st1 = { m: MOV[0], t: 0, play: false, sel: [], natShown: false };
+const nMarks = m => Math.round(m.T / m.tau);
+const marks1 = () => { const m = st1.m, n = nMarks(m), out = []; for (let k = 0; k <= n; k++) if (k * m.tau <= st1.t + 1e-9) out.push(m.pos(k * m.tau)); return out; };
+
+$('m1').innerHTML = MOV.map((m, k) => `<button type="button" data-k="${k}" aria-pressed="${k === 0}">${m.nom}</button>`).join('');
+$('m1').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  st1.m = MOV[+b.dataset.k];
+  $('m1').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  st1.t = 0; st1.sel = []; st1.play = true; hideNat(); upd1(); draw1();
+});
+function hideNat() { $('nat1').hidden = true; $('b1-nat').textContent = 'Afficher la nature du mouvement'; }
+
+function draw1() {
+  const { ctx: c, base } = S1; base();
+  c.clearRect(0, 0, 900, 540); c.fillStyle = C.canvas; c.fillRect(0, 0, 900, 540);
+  const m = st1.m;
+  if ($('o1-grid').checked) {
+    for (let k = 0; k * 30 <= 900; k++) { c.strokeStyle = k % 5 ? C.grid : C.grid2; c.lineWidth = 1; c.beginPath(); c.moveTo(15 + k * 30, 0); c.lineTo(15 + k * 30, 540); c.stroke(); }
+    for (let k = 0; k * 30 <= 540; k++) { c.strokeStyle = k % 5 ? C.grid : C.grid2; c.beginPath(); c.moveTo(0, 540 - k * 30); c.lineTo(900, 540 - k * 30); c.stroke(); }
+  }
+  if (m.id === 'lancer') { c.fillStyle = C.ground; c.fillRect(0, 540 - 0.25 * PXM + 12, 900, 540); }
+  // échelle
+  c.fillStyle = C.surface; c.globalAlpha = .85; c.fillRect(20, 500, 182, 32); c.globalAlpha = 1;
+  c.strokeStyle = C.text; c.lineWidth = 2; c.beginPath(); c.moveTo(30, 520); c.lineTo(30 + 0.5 * PXM, 520); c.moveTo(30, 513); c.lineTo(30, 527); c.moveTo(180, 513); c.lineTo(180, 527); c.stroke();
+  c.fillStyle = C.text; c.font = '600 13px system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillText('50 cm', 105, 516);
+  c.textAlign = 'right'; c.textBaseline = 'top'; c.fillStyle = C.muted; c.font = '14px system-ui,sans-serif';
+  c.fillText(`τ = ${sfStr(m.tau * 1000, 3)} ms entre deux positions`, 885, 10);
+  const pts = marks1().map(toPx1);
+  drawChrono(c, pts, { traj: $('o1-traj').checked, labels: $('o1-lab').checked, sel: st1.sel });
+  // segment de mesure
+  if (st1.sel.length === 2) {
+    const [i, j] = st1.sel; c.strokeStyle = C.sel; c.lineWidth = 3; c.globalAlpha = .55;
+    c.beginPath(); for (let k = i; k <= j; k++) { const p = pts[k]; k === i ? c.moveTo(p.x, p.y) : c.lineTo(p.x, p.y); } c.stroke(); c.globalAlpha = 1;
+  }
+  // vecteurs vitesse moyenne v_i = MiMi+1 / τ (1 m/s représenté par 20 px)
+  if ($('o1-vec').checked) {
+    const all = marks1();
+    for (let k = 0; k < all.length - 1; k++) {
+      const a = all[k], b = all[k + 1], vx = (b.x - a.x) / m.tau, vy = (b.y - a.y) / m.tau, p = toPx1(a);
+      arrow(c, p.x, p.y, p.x + vx * 20, p.y - vy * 20, C.vec);
+    }
+    c.fillStyle = C.vec; c.font = '600 13px system-ui,sans-serif'; c.textAlign = 'left'; c.textBaseline = 'top';
+    c.fillText('Vecteurs vitesse, échelle :', 20, 10); const w0 = c.measureText('Vecteurs vitesse, échelle :').width + 28;
+    arrow(c, w0, 19, w0 + 40, 19, C.vec); c.fillStyle = C.vec; c.fillText('2 m·s⁻¹', w0 + 48, 10);
+  }
+  // objet en mouvement
+  if (st1.t < m.T - 1e-9 || st1.play) {
+    const p = toPx1(m.pos(Math.min(st1.t, m.T)));
+    c.fillStyle = C.obj; c.beginPath(); c.arc(p.x, p.y, 11, 0, TAU); c.fill();
+    c.strokeStyle = C.text; c.lineWidth = 1.5; c.stroke();
+  }
+}
+function upd1() {
+  const m = st1.m, all = marks1(), n = all.length;
+  const d = []; for (let k = 0; k < n - 1; k++) d.push(Math.hypot(all[k + 1].x - all[k].x, all[k + 1].y - all[k].y));
+  $('dist1').innerHTML = n > 1 ? '<span style="border:none;background:none;padding-left:0">Distances successives :</span>' +
+    d.map((x, k) => `<span>${Msub(k)}${Msub(k + 1)} = ${sfStr(x * 100, 3)} cm</span>`).join('') : '';
+  const el = $('mes1');
+  if (st1.sel.length === 0) el.innerHTML = n > 1 ? '<p><strong>Mesure :</strong> clique sur une première position, puis sur une deuxième.</p>' : '<p>Clique sur « Lancer » pour enregistrer les positions.</p>';
+  else if (st1.sel.length === 1) el.innerHTML = `<p><strong>Mesure :</strong> départ ${Msub(st1.sel[0])}. Clique maintenant sur une position d'arrivée.</p>`;
+  else {
+    const [i, j] = st1.sel; let L = 0; for (let k = i; k < j; k++) L += d[k];
+    const dt = (j - i) * m.tau, v = L / dt, curved = !['ru', 'racc', 'rral'].includes(m.id) && j - i > 1;
+    el.innerHTML = `<p><strong>De ${Msub(i)} à ${Msub(j)} :</strong> durée Δt = ${j - i} × τ = ${j - i} × ${sfStr(m.tau, 3)} s = ${both(dt, 3, 's')}</p>
+      <p>Distance parcourue d ${curved ? '≈ somme des segments' : '='} ${Msub(i)}${Msub(j)} = ${both(L, 3, 'm')}</p>
+      <p>Vitesse moyenne : v = d / Δt = ${sfStr(L, 3)} / ${sfStr(dt, 3)} = <strong>${both(v, 3, 'm·s<sup>−1</sup>')}</strong> (soit ${sfStr(v * 3.6, 3)} km·h<sup>−1</sup>)</p>`;
+  }
+}
+$('cv1').addEventListener('click', e => {
+  const r = $('cv1').getBoundingClientRect(), x = (e.clientX - r.left) * 900 / r.width, y = (e.clientY - r.top) * 540 / r.height;
+  const pts = marks1().map(toPx1); let best = -1, bd = Math.max(22, 16 * 900 / r.width);
+  pts.forEach((p, k) => { const dd = Math.hypot(p.x - x, p.y - y); if (dd < bd) { bd = dd; best = k; } });
+  if (best < 0) return;
+  if (st1.sel.length !== 1) st1.sel = [best];
+  else if (best !== st1.sel[0]) st1.sel = [Math.min(best, st1.sel[0]), Math.max(best, st1.sel[0])];
+  upd1(); draw1();
+});
+$('b1-play').addEventListener('click', () => { st1.t = 0; st1.sel = []; st1.play = true; upd1(); });
+$('b1-all').addEventListener('click', () => { st1.t = st1.m.T; st1.play = false; upd1(); draw1(); });
+$('b1-reset').addEventListener('click', () => { st1.t = 0; st1.play = false; st1.sel = []; hideNat(); upd1(); draw1(); });
+$('b1-nat').addEventListener('click', () => {
+  const el = $('nat1'), m = st1.m;
+  if (!el.hidden) { hideNat(); return; }
+  el.innerHTML = `<h3>${m.nat[0]}</h3><p>${m.nat[1]}</p><p>${m.nat[2]}</p>`; el.hidden = false;
+  $('b1-nat').textContent = 'Masquer la nature du mouvement';
+});
+['o1-traj', 'o1-lab', 'o1-grid', 'o1-vec'].forEach(id => $(id).addEventListener('change', draw1));
+
+/* =====================================================================
+   2. RÉFÉRENTIELS
+   ===================================================================== */
+const S2 = hiDPI($('cv2'), 900, 540);
+const PH = 270; // hauteur d'un panneau
+const rotv = (x, y, a) => ({ x: x * Math.cos(a) - y * Math.sin(a), y: x * Math.sin(a) + y * Math.cos(a) });
+
+function drawPost(c, P, x) { // poteau + buisson (décor fixé au sol)
+  const a = P({ x, y: 0 }), b = P({ x, y: 1.05 });
+  c.strokeStyle = C.metal; c.lineWidth = 4; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke();
+  c.fillStyle = C.metal; c.fillRect(b.x - 9, b.y - 4, 18, 5);
+}
+function drawTree(c, P, x, y, s = 1) {
+  const p = P({ x, y });
+  c.fillStyle = C.trunk; c.fillRect(p.x - 4 * s, p.y - 4 * s, 8 * s, 8 * s);
+  c.fillStyle = C.tree; c.beginPath(); c.arc(p.x, p.y, 15 * s, 0, TAU); c.fill();
+  c.globalAlpha = .35; c.fillStyle = '#fff'; c.beginPath(); c.arc(p.x - 5 * s, p.y - 5 * s, 6 * s, 0, TAU); c.fill(); c.globalAlpha = 1;
+}
+function poly(c, P, pts, fill, stroke, w = 2) {
+  c.beginPath(); pts.forEach((q, k) => { const p = P(q); k ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y); }); c.closePath();
+  if (fill) { c.fillStyle = fill; c.fill(); }
+  if (stroke) { c.strokeStyle = stroke; c.lineWidth = w; c.stroke(); }
+}
+
+const SCEN = [
+  {
+    id: 'train', nom: 'Balle lâchée dans un train', obsMob: 'un passager du train', refMob: 'référentiel du train',
+    T: 0.5, tau: 0.05, slow: 0.16, hold: 1.6, scale: 130, ox: 40, oy: 252, oxMob: 40,
+    frame: t => ({ x: 1.7 + 4.0 * t, y: 0, a: 0 }),
+    obj: t => ({ x: 1.7 + 4.0 * t + 0.35, y: 1.32 - 4.905 * t * t }),
+    ground(c, P) {
+      const g0 = P({ x: -50, y: 0 }), g1 = P({ x: 50, y: 0 });
+      c.fillStyle = C.ground; c.fillRect(0, g0.y, 900, 40);
+      c.strokeStyle = C.ground2; c.lineWidth = 3; c.beginPath(); c.moveTo(0, g0.y + 2); c.lineTo(900, g1.y + 2); c.stroke();
+      for (let x = -12; x <= 24; x += 0.6) { const p = P({ x, y: 0 }); if (p.x > -10 && p.x < 910) { c.fillStyle = C.ground2; c.fillRect(p.x - 6, p.y + 5, 12, 4); } }
+      for (let x = -12; x <= 24; x += 1.8) drawPost(c, P, x + 0.9);
+    },
+    mobile(c, Pf, t) {
+      poly(c, Pf, [{ x: -1.35, y: 0.08 }, { x: 1.35, y: 0.08 }, { x: 1.35, y: 1.62 }, { x: -1.35, y: 1.62 }], C.wagon2, C.wagon, 3);
+      poly(c, Pf, [{ x: -1.35, y: 0.08 }, { x: 1.35, y: 0.08 }, { x: 1.35, y: 0.16 }, { x: -1.35, y: 0.16 }], C.wagon);
+      [-0.9, 0.9].forEach(x => { const p = Pf({ x, y: 0.04 }); c.fillStyle = C.metal; c.beginPath(); c.arc(p.x, p.y, 7, 0, TAU); c.fill(); });
+      // passager (bonhomme) qui tient la balle
+      const h = Pf({ x: 0.75, y: 1.47 }), sh = Pf({ x: 0.75, y: 1.28 }), hip = Pf({ x: 0.75, y: 0.78 }), hand = Pf({ x: 0.42, y: 1.34 });
+      c.strokeStyle = C.text; c.lineWidth = 3; c.lineCap = 'round';
+      c.beginPath(); c.arc(h.x, h.y, 9, 0, TAU); c.stroke();
+      c.beginPath(); c.moveTo(sh.x, sh.y - 6); c.lineTo(hip.x, hip.y);
+      const f1 = Pf({ x: 0.62, y: 0.17 }), f2 = Pf({ x: 0.88, y: 0.17 });
+      c.moveTo(hip.x, hip.y); c.lineTo(f1.x, f1.y); c.moveTo(hip.x, hip.y); c.lineTo(f2.x, f2.y);
+      c.moveTo(sh.x, sh.y); c.lineTo(hand.x, hand.y); c.stroke(); c.lineCap = 'butt';
+      const lab = Pf({ x: 0.85, y: 1.72 }); c.fillStyle = C.wagon; c.font = '700 13px system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'bottom';
+      c.fillText('TRAIN →', lab.x, lab.y);
+    },
+    sol: ['Vu du sol (référentiel terrestre)', 'La balle avance avec le train tout en tombant : la trajectoire est <strong>courbe</strong> (une parabole). Le mouvement est <strong>curviligne et accéléré</strong>.'],
+    mob: ['Vu du train (référentiel du train)', 'La balle tombe <strong>verticalement</strong>, au pied du passager : le mouvement est <strong>rectiligne et accéléré</strong> (les écarts augmentent).']
+  },
+  {
+    id: 'manege', nom: 'Enfant sur un manège (vu de dessus)', obsMob: 'un enfant assis sur le manège', refMob: 'référentiel du manège',
+    T: 3.75, tau: 0.25, slow: 1, hold: 1.2, scale: 100, ox: 450, oy: 137, oxMob: 450,
+    frame: t => ({ x: 0, y: 0, a: TAU / 4 * t }),
+    obj: t => { const a = TAU / 4 * t; return { x: 0.8 * Math.cos(a), y: 0.8 * Math.sin(a) }; },
+    ground(c, P) {
+      [[1.25, 30], [1.3, 150], [1.22, 255], [2.6, 10], [-2.7, -12], [3.4, -40], [-3.5, 30]].forEach(([r, d]) => {
+        const a = d * Math.PI / 180; drawTree(c, P, r * Math.cos(a), r * Math.sin(a), Math.abs(r) > 2 ? 1 : 0.8);
+      });
+      const b = P({ x: 1.2, y: -0.75 }); c.fillStyle = C.trunk; c.fillRect(b.x - 16, b.y - 5, 32, 10);
+    },
+    mobile(c, Pf) {
+      const o = Pf({ x: 0, y: 0 });
+      c.fillStyle = C.disk; c.beginPath(); c.arc(o.x, o.y, 100, 0, TAU); c.fill();
+      for (let k = 0; k < 8; k++) {
+        const a0 = k * TAU / 8, a1 = a0 + TAU / 16;
+        c.beginPath(); c.moveTo(o.x, o.y);
+        for (let u = 0; u <= 6; u++) { const p = Pf({ x: Math.cos(lerp(a0, a1, u / 6)), y: Math.sin(lerp(a0, a1, u / 6)) }); c.lineTo(p.x, p.y); }
+        c.closePath(); c.fillStyle = C.disk2; c.globalAlpha = .55; c.fill(); c.globalAlpha = 1;
+      }
+      c.strokeStyle = C.text; c.lineWidth = 2; c.beginPath(); c.arc(o.x, o.y, 100, 0, TAU); c.stroke();
+      c.fillStyle = C.metal; c.beginPath(); c.arc(o.x, o.y, 9, 0, TAU); c.fill();
+      // sièges
+      [Math.PI / 2, Math.PI, 3 * Math.PI / 2].forEach(a => { const p = Pf({ x: 0.8 * Math.cos(a), y: 0.8 * Math.sin(a) }); c.fillStyle = C.surface; c.globalAlpha = .7; c.beginPath(); c.arc(p.x, p.y, 9, 0, TAU); c.fill(); c.globalAlpha = 1; });
+    },
+    sol: ['Vu du sol (référentiel terrestre)', 'L\'enfant tourne autour de l\'axe du manège : la trajectoire est un <strong>cercle</strong>, les positions sont également espacées. Le mouvement est <strong>circulaire uniforme</strong>.'],
+    mob: ['Vu du manège (référentiel du manège)', 'L\'enfant reste toujours à la même place sur le manège : il est <strong>immobile</strong>. Toutes ses positions sont confondues. C\'est le décor qui semble tourner.']
+  },
+  {
+    id: 'velo', nom: 'Valve d\'une roue de vélo', obsMob: 'le cycliste', refMob: 'référentiel du vélo',
+    T: 15 * (TAU * 0.35 / 1.5) / 16, tau: (TAU * 0.35 / 1.5) / 16, slow: 0.4, hold: 1.4, scale: 130, ox: 40, oy: 252, oxMob: 40,
+    frame: t => ({ x: 2.2 + 1.5 * t, y: 0.35, a: 0 }),
+    obj: t => { const ph = 1.5 * t / 0.35; return { x: 2.2 + 1.5 * t - 0.33 * Math.sin(ph), y: 0.35 - 0.33 * Math.cos(ph) }; },
+    ground(c, P) {
+      const g0 = P({ x: 0, y: 0 });
+      c.fillStyle = C.ground; c.fillRect(0, g0.y, 900, 40);
+      for (let x = -12; x <= 24; x += 0.5) { const p = P({ x, y: 0 }); if (p.x > -30 && p.x < 930) { c.fillStyle = C.ground2; c.fillRect(p.x - 10, p.y + 8, 20, 4); } }
+      for (let x = -12; x <= 24; x += 2.4) drawTree(c, P, x + 1.1, 1.35, 1.2);
+    },
+    mobile(c, Pf, t) {
+      const ph = 1.5 * t / 0.35;
+      [{ x: 0, y: 0 }, { x: -1.05, y: 0 }].forEach(h => {
+        const o = Pf(h);
+        c.strokeStyle = C.text; c.lineWidth = 4; c.beginPath(); c.arc(o.x, o.y, 0.35 * 130 - 2, 0, TAU); c.stroke();
+        c.lineWidth = 1; c.strokeStyle = C.muted;
+        for (let k = 0; k < 8; k++) { const a = -ph + k * TAU / 8, p = Pf({ x: h.x + 0.33 * Math.cos(a), y: h.y + 0.33 * Math.sin(a) }); c.beginPath(); c.moveTo(o.x, o.y); c.lineTo(p.x, p.y); c.stroke(); }
+      });
+      c.strokeStyle = C.wagon; c.lineWidth = 4; c.lineJoin = 'round';
+      const A = Pf({ x: -1.05, y: 0 }), B = Pf({ x: -0.5, y: 0 }), Cc = Pf({ x: -0.62, y: 0.62 }), D = Pf({ x: -0.08, y: 0.62 }), E = Pf({ x: 0, y: 0 }), Sd = Pf({ x: -0.68, y: 0.74 }), Hb = Pf({ x: -0.04, y: 0.82 });
+      c.beginPath(); c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.lineTo(Cc.x, Cc.y); c.lineTo(A.x, A.y);
+      c.moveTo(B.x, B.y); c.lineTo(D.x, D.y); c.lineTo(Cc.x, Cc.y); c.moveTo(D.x, D.y); c.lineTo(E.x, E.y);
+      c.moveTo(Cc.x, Cc.y); c.lineTo(Sd.x, Sd.y); c.moveTo(D.x, D.y); c.lineTo(Hb.x, Hb.y); c.stroke();
+      c.fillStyle = C.text; c.fillRect(Sd.x - 10, Sd.y - 3, 20, 5);
+      c.lineJoin = 'miter';
+    },
+    sol: ['Vu du sol (référentiel terrestre)', 'La valve dessine des <strong>arches</strong> (une cycloïde) : le mouvement est <strong>curviligne et non uniforme</strong>. En bas, au contact du sol, la valve est presque arrêtée ; en haut, elle va deux fois plus vite que le vélo.'],
+    mob: ['Vu du vélo (référentiel du vélo)', 'La valve tourne autour de l\'axe de la roue : le mouvement est <strong>circulaire uniforme</strong>.']
+  }
+];
+const st2 = { s: SCEN[0], clock: 0, play: true };
+$('m2').innerHTML = SCEN.map((s, k) => `<button type="button" data-k="${k}" aria-pressed="${k === 0}">${s.nom}</button>`).join('');
+$('m2').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  st2.s = SCEN[+b.dataset.k]; st2.clock = 0; st2.play = true; $('b2-play').textContent = '⏸ Pause';
+  $('m2').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  upd2(); draw2();
+});
+function upd2() {
+  const s = st2.s;
+  $('c2-sol').innerHTML = `<h3>${s.sol[0]}</h3><p>${s.sol[1]}</p>`;
+  $('c2-mob').innerHTML = `<h3>${s.mob[0]}</h3><p>${s.mob[1]}</p>`;
+}
+function draw2() {
+  const { ctx: c, base } = S2; base();
+  const s = st2.s, t = Math.min(st2.clock, s.T);
+  c.clearRect(0, 0, 900, 540);
+  for (let pnl = 0; pnl < 2; pnl++) {
+    const top = pnl * PH, mob = pnl === 1;
+    c.save(); c.beginPath(); c.rect(0, top, 900, PH); c.clip();
+    c.fillStyle = s.id === 'manege' ? C.canvas : C.sky; c.fillRect(0, top, 900, PH);
+    const toPx = v => ({ x: (mob ? s.oxMob : s.ox) + v.x * s.scale, y: top + s.oy - v.y * s.scale });
+    // changement de référentiel : coordonnées au sol -> coordonnées dans le référentiel mobile
+    const f0 = s.frame(0);
+    const g2f = (g, tt) => { const f = s.frame(tt), r = rotv(g.x - f.x, g.y - f.y, -f.a); return { x: r.x + f0.x, y: r.y + f0.y }; };
+    const f2g = (q, tt) => { const f = s.frame(tt), r = rotv(q.x - f0.x, q.y - f0.y, f.a); return { x: r.x + f.x, y: r.y + f.y }; };
+    const P = g => toPx(mob ? g2f(g, t) : g);              // point fixé au sol
+    const Pf = q => toPx(mob ? q : f2g(q, t));             // point fixé au véhicule (coordonnées à t = 0)
+    // le décor mobile est décrit dans ses coordonnées à t = 0 : on le ramène via f0
+    const PfLocal = q => Pf({ x: q.x + f0.x, y: q.y + f0.y });
+    const PfRot = s.id === 'manege' ? (q => Pf(q)) : PfLocal;
+    s.ground(c, P);
+    s.mobile(c, PfRot, t);
+    // positions de l'objet aux dates k·τ
+    const n = Math.round(s.T / s.tau), pts = [];
+    for (let k = 0; k <= n; k++) if (k * s.tau <= t + 1e-9) { const g = s.obj(k * s.tau); pts.push(toPx(mob ? g2f(g, k * s.tau) : g)); }
+    const skip = new Set();
+    if (mob && s.id === 'manege') pts.forEach((p, k) => { if (k) skip.add(k); });
+    drawChrono(c, pts, { traj: $('o2-traj').checked && !(mob && s.id === 'manege'), labels: true, r: 8, skipLabel: skip, color: C.obj2 });
+    if (mob && s.id === 'manege' && pts.length > 1) {
+      const p = pts[0]; c.fillStyle = C.obj2; c.font = '600 13px system-ui,sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+      c.fillText('toutes les positions sont confondues', p.x + 30, p.y - 26);
+    }
+    // l'objet
+    const o = P(s.obj(t)); c.fillStyle = C.obj2; c.beginPath(); c.arc(o.x, o.y, s.id === 'train' ? 8 : 6, 0, TAU); c.fill();
+    c.strokeStyle = C.text; c.lineWidth = 1.3; c.stroke();
+    c.restore();
+    // étiquette du panneau
+    const lab = mob ? s.mob[0] : s.sol[0];
+    c.font = '700 14px system-ui,sans-serif'; const w = c.measureText(lab).width + 16;
+    c.fillStyle = C.surface; c.globalAlpha = .9; c.fillRect(8, top + 8, w, 24); c.globalAlpha = 1;
+    c.fillStyle = mob ? C.obj2 : C.accent; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(lab, 16, top + 20);
+  }
+  c.strokeStyle = C.border; c.lineWidth = 2; c.beginPath(); c.moveTo(0, PH); c.lineTo(900, PH); c.stroke();
+}
+$('b2-play').addEventListener('click', () => { st2.play = !st2.play; $('b2-play').textContent = st2.play ? '⏸ Pause' : '▶ Lecture'; });
+$('b2-reset').addEventListener('click', () => { st2.clock = 0; st2.play = true; $('b2-play').textContent = '⏸ Pause'; draw2(); });
+$('o2-traj').addEventListener('change', draw2);
+
+/* =====================================================================
+   3. EXERCICES
+   ===================================================================== */
+const SX = hiDPI($('cvx'), 900, 320);
+const score = { ok: 0, tot: 0 };
+let mode = 'vitesse', EX = null;
+function showScore() { $('x-score').innerHTML = score.tot ? `Réussis : <strong>${score.ok}</strong> / ${score.tot}` : ''; }
+
+// courbe paramétrée échantillonnée -> points à abscisses curvilignes données
+function alongPath(fn, sList) {
+  const N = 600, P = [], L = [0];
+  for (let k = 0; k <= N; k++) P.push(fn(k / N));
+  for (let k = 1; k <= N; k++) L.push(L[k - 1] + Math.hypot(P[k].x - P[k - 1].x, P[k].y - P[k - 1].y));
+  const tot = L[N];
+  return sList.map(s => {
+    const d = s * tot; let k = 1; while (k < N && L[k] < d) k++;
+    const u = (d - L[k - 1]) / ((L[k] - L[k - 1]) || 1);
+    return { x: lerp(P[k - 1].x, P[k].x, u), y: lerp(P[k - 1].y, P[k].y, u) };
+  });
+}
+// lois d'avancement normalisées (0 -> 1) pour n intervalles
+function law(kind, n) {
+  const out = [];
+  for (let k = 0; k <= n; k++) {
+    const u = k / n;
+    out.push(kind === 'uniforme' ? u : kind === 'accéléré' ? 0.25 * u + 0.75 * u * u : 1.75 * u - 0.75 * u * u);
+  }
+  return out;
+}
+function drawEx(pts, opt = {}) {
+  const { ctx: c, base } = SX; base();
+  c.clearRect(0, 0, 900, 320); c.fillStyle = C.canvas; c.fillRect(0, 0, 900, 320);
+  drawChrono(c, pts, { labels: true, r: 9, traj: false, ...opt });
+}
+
+const OBJETS = [
+  { nom: 'un palet glissant sur une table à coussin d\'air', L: [0.45, 0.75], tau: [0.040, 0.050] },
+  { nom: 'une bille qui roule sur une table', L: [0.30, 0.55], tau: [0.040, 0.050, 0.060] },
+  { nom: 'une voiture miniature', L: [0.9, 1.6], tau: [0.100, 0.080] },
+  { nom: 'un skateur filmé depuis le bord de la piste', L: [8, 14], tau: [0.20, 0.25] },
+  { nom: 'un cycliste', L: [18, 30], tau: [0.40, 0.50] }
+];
+const N_INT = 8;
+
+function newVitesse() {
+  const ob = pick(OBJETS), kind = pick(['uniforme', 'uniforme', 'accéléré', 'ralenti']);
+  const Lr = Number(rnd(ob.L[0], ob.L[1]).toPrecision(2)), tau = pick(ob.tau);
+  const s = law(kind, N_INT), pts = s.map(u => ({ x: 60 + u * 780, y: 170 }));
+  let i = Math.floor(rnd(0, 4)), j = i + 2 + Math.floor(rnd(0, Math.min(4, N_INT - i - 1)));
+  j = Math.min(j, N_INT);
+  const dReal = (s[j] - s[i]) * Lr, dShow = Number(dReal.toPrecision(3));
+  const useCm = dShow < 1 && Math.random() < 0.6;
+  const tauMs = Math.round(tau * 1000);
+  const v = dShow / ((j - i) * tau);
+  EX = { kind: 'vitesse', i, j, d: dShow, tau, v, pts, useCm, tauMs, ob };
+  const dTxt = useCm ? `${sfStr(dShow * 100, 3)} cm` : `${sfStr(dShow, 3)} m`;
+  $('x-enonce').innerHTML = `<p>La chronophotographie ci-dessous montre les positions successives de ${ob.nom}.
+    Les positions sont enregistrées toutes les <strong>τ = ${tauMs < 1000 ? sfStr(tauMs, 3) + ' ms' : sfStr(tau, 3) + ' s'}</strong>.</p>
+    <p>Grâce à l'échelle de la photo, on trouve la distance réelle ${Msub(i)}${Msub(j)} = <strong>${dTxt}</strong>.</p>`;
+  $('x-rep').innerHTML = `<p class="q">a) Calcule la vitesse moyenne v entre ${Msub(i)} et ${Msub(j)}, en m·s<sup>−1</sup>.</p>
+    <div class="rep"><label for="x-v">v =</label><input id="x-v" type="text" inputmode="decimal" autocomplete="off"><span>m·s<sup>−1</sup></span></div>
+    <p class="q">b) Convertis cette vitesse en km·h<sup>−1</sup>.</p>
+    <div class="rep"><label for="x-k">v =</label><input id="x-k" type="text" inputmode="decimal" autocomplete="off"><span>km·h<sup>−1</sup></span></div>`;
+  drawEx(pts, { sel: [i, j] });
+  $('cvx').hidden = false;
+}
+function corrVitesse() {
+  const e = EX, n = e.j - e.i, dt = n * e.tau;
+  const dLine = e.useCm ? `${Msub(e.i)}${Msub(e.j)} = ${sfStr(e.d * 100, 3)} cm = ${both(e.d, 3, 'm')}` : `${Msub(e.i)}${Msub(e.j)} = ${both(e.d, 3, 'm')}`;
+  const tauLine = e.tauMs < 1000 ? `τ = ${sfStr(e.tauMs, 3)} ms = ${both(e.tau, 3, 's')}` : `τ = ${both(e.tau, 3, 's')}`;
+  return `<h3>Correction</h3>
+    <p><strong>Conversions :</strong> ${dLine} ; ${tauLine}.</p>
+    <p><strong>Durée :</strong> entre ${Msub(e.i)} et ${Msub(e.j)} il y a ${n} intervalles, donc Δt = ${n} × τ = ${n} × ${sfStr(e.tau, 3)} = ${both(dt, 3, 's')}.</p>
+    <p><strong>Expression littérale :</strong> v = ${Msub(e.i)}${Msub(e.j)} / Δt = ${Msub(e.i)}${Msub(e.j)} / (${n} × τ)</p>
+    <p><strong>Application numérique :</strong> v = ${sfStr(e.d, 3)} / (${n} × ${sfStr(e.tau, 3)})</p>
+    <p><strong>Résultat :</strong> v = ${both(e.v, 3, 'm·s<sup>−1</sup>')}</p>
+    <p><strong>b)</strong> v = ${sfStr(e.v, 3)} × 3,6 = ${both(e.v * 3.6, 3, 'km·h<sup>−1</sup>')} &nbsp;(1 m·s<sup>−1</sup> = 3,6 km·h<sup>−1</sup>)</p>
+    <p class="small">Les données ont 3 chiffres significatifs : on donne le résultat avec 3 chiffres significatifs.</p>`;
+}
+function checkVitesse() {
+  const a = parseNum($('x-v').value), b = parseNum($('x-k').value), e = EX;
+  const okA = Math.abs(a - e.v) <= 0.015 * e.v, okB = Math.abs(b - e.v * 3.6) <= 0.015 * e.v * 3.6;
+  let msg;
+  if (okA && okB) msg = '<p><strong>Bravo !</strong> Les deux réponses sont justes.</p>';
+  else {
+    msg = `<p>${okA ? 'a) juste.' : isNaN(a) ? 'a) pas de réponse.' : 'a) pas encore. Vérifie les conversions (cm → m, ms → s) et le nombre d\'intervalles entre les deux positions.'}</p>`;
+    msg += `<p>${okB ? 'b) juste.' : isNaN(b) ? 'b) pas de réponse.' : 'b) pas encore : pour passer des m·s⁻¹ aux km·h⁻¹, on multiplie par 3,6.'}</p>`;
+  }
+  return { ok: okA && okB, msg };
+}
+
+const SHAPES = {
+  rectiligne: () => { const a = rnd(-0.35, 0.35), L = 760, cx = 450, cy = 160, dx = Math.cos(a) * L / 2, dy = Math.sin(a) * L / 2 * 0.6;
+    return u => ({ x: cx - dx + 2 * dx * u, y: cy - dy + 2 * dy * u }); },
+  circulaire: () => { const a0 = rnd(0, TAU), sg = Math.random() < .5 ? 1 : -1, span = rnd(4.2, 5.2);
+    return u => ({ x: 450 + 125 * Math.cos(a0 + sg * span * u), y: 160 + 125 * Math.sin(a0 + sg * span * u) }); },
+  curviligne: () => { const ph = rnd(0, TAU), amp = rnd(60, 95);
+    return u => ({ x: 70 + 760 * u, y: 160 + amp * Math.sin(ph + 1.6 * Math.PI * u) }); }
+};
+function newNature() {
+  const traj = pick(['rectiligne', 'rectiligne', 'circulaire', 'curviligne']);
+  const vit = pick(['uniforme', 'accéléré', 'ralenti']);
+  const fn = SHAPES[traj](), rev = Math.random() < .4;
+  const f = rev ? (u => fn(1 - u)) : fn;
+  const n = traj === 'circulaire' ? 11 : 9;
+  const pts = alongPath(f, law(vit, n));
+  EX = { kind: 'nature', traj, vit, pts, a: { traj: null, vit: null } };
+  $('x-enonce').innerHTML = `<p>Voici la chronophotographie d'un objet. Les positions sont enregistrées à intervalles de temps égaux, dans l'ordre ${Msub(0)}, ${Msub(1)}, ${Msub(2)}…</p>`;
+  $('x-rep').innerHTML = `<p class="q">a) La trajectoire est :</p>
+    <div class="opts" data-q="traj">${['rectiligne', 'circulaire', 'curviligne'].map(x => `<button type="button" data-v="${x}" aria-pressed="false">${x}</button>`).join('')}</div>
+    <p class="q">b) La valeur de la vitesse est :</p>
+    <div class="opts" data-q="vit">${['uniforme', 'accéléré', 'ralenti'].map(x => `<button type="button" data-v="${x}" aria-pressed="false">${x === 'uniforme' ? 'constante (uniforme)' : x === 'accéléré' ? 'croissante (accéléré)' : 'décroissante (ralenti)'}</button>`).join('')}</div>`;
+  drawEx(pts);
+  $('cvx').hidden = false;
+}
+function corrNature() {
+  const e = EX;
+  const t = { rectiligne: 'les positions sont <strong>alignées</strong> : la trajectoire est une droite, le mouvement est <strong>rectiligne</strong>.',
+    circulaire: 'les positions sont sur un <strong>cercle</strong> : le mouvement est <strong>circulaire</strong>.',
+    curviligne: 'les positions forment une <strong>courbe</strong> qui n\'est ni une droite ni un cercle : le mouvement est <strong>curviligne</strong>.' }[e.traj];
+  const v = { uniforme: 'les positions sont <strong>également espacées</strong> pendant des durées égales : la vitesse est constante, le mouvement est <strong>uniforme</strong>.',
+    'accéléré': `la distance entre deux positions successives <strong>augmente</strong> (${Msub(0)}${Msub(1)} &lt; ${Msub(1)}${Msub(2)} &lt; …) pendant des durées égales : la vitesse augmente, le mouvement est <strong>accéléré</strong>.`,
+    ralenti: `la distance entre deux positions successives <strong>diminue</strong> (${Msub(0)}${Msub(1)} &gt; ${Msub(1)}${Msub(2)} &gt; …) pendant des durées égales : la vitesse diminue, le mouvement est <strong>ralenti</strong>.` }[e.vit];
+  const nom = `${e.traj} ${e.vit === 'uniforme' ? 'uniforme' : e.vit}`;
+  return `<h3>Correction : mouvement ${nom}</h3><p><strong>a)</strong> ${t[0].toUpperCase() + t.slice(1)}</p><p><strong>b)</strong> ${v[0].toUpperCase() + v.slice(1)}</p>`;
+}
+function checkNature() {
+  const a = EX.a;
+  if (!a.traj || !a.vit) return { ok: false, msg: '<p>Réponds aux deux questions avant de vérifier.</p>', incomplete: true };
+  const ok1 = a.traj === EX.traj, ok2 = a.vit === EX.vit;
+  $('x-rep').querySelectorAll('.opts').forEach(g => g.querySelectorAll('button').forEach(b => {
+    b.classList.remove('good', 'bad');
+    if (b.getAttribute('aria-pressed') === 'true') b.classList.add(b.dataset.v === EX[g.dataset.q] ? 'good' : 'bad');
+  }));
+  return { ok: ok1 && ok2, msg: ok1 && ok2 ? '<p><strong>Bravo !</strong> Bonne description du mouvement.</p>' :
+    `<p>${ok1 ? 'a) juste.' : 'a) pas encore : regarde la forme dessinée par l\'ensemble des points.'} ${ok2 ? 'b) juste.' : 'b) pas encore : compare les distances entre deux positions successives.'}</p>` };
+}
+
+const QREF = [
+  { q: 'Léa est assise dans un bus qui roule. Dans le <strong>référentiel du bus</strong>, Léa est :', o: ['immobile', 'en mouvement'], a: 0,
+    c: 'Par rapport au bus, la position de Léa ne change pas : elle est <strong>immobile</strong> dans le référentiel du bus.' },
+  { q: 'Léa est assise dans un bus qui roule. Dans le <strong>référentiel terrestre</strong>, Léa est :', o: ['immobile', 'en mouvement'], a: 1,
+    c: 'Par rapport au sol, Léa avance avec le bus : elle est <strong>en mouvement</strong> dans le référentiel terrestre.' },
+  { q: 'Un enfant est assis sur un manège qui tourne. Dans le <strong>référentiel terrestre</strong>, sa trajectoire est :', o: ['un cercle', 'une droite', 'un point (il est immobile)'], a: 0,
+    c: 'Vu du sol, l\'enfant tourne autour de l\'axe du manège : sa trajectoire est un <strong>cercle</strong>.' },
+  { q: 'Un enfant est assis sur un manège qui tourne. Dans le <strong>référentiel du manège</strong>, l\'enfant est :', o: ['immobile', 'en mouvement circulaire'], a: 0,
+    c: 'Par rapport au manège, l\'enfant reste à la même place : il est <strong>immobile</strong>.' },
+  { q: 'Un passager lâche une balle dans un train qui roule en ligne droite à vitesse constante. Dans le <strong>référentiel du train</strong>, la trajectoire de la balle est :', o: ['une droite verticale', 'une courbe'], a: 0,
+    c: 'Pour le passager, la balle tombe verticalement à ses pieds : la trajectoire est une <strong>droite verticale</strong>.' },
+  { q: 'Un passager lâche une balle dans un train qui roule en ligne droite à vitesse constante. Dans le <strong>référentiel terrestre</strong>, la trajectoire de la balle est :', o: ['une droite verticale', 'une courbe'], a: 1,
+    c: 'Vu du sol, la balle avance avec le train pendant qu\'elle tombe : sa trajectoire est une <strong>courbe</strong> (une parabole).' },
+  { q: 'Dans le <strong>référentiel du vélo</strong>, la trajectoire de la valve d\'une roue est :', o: ['un cercle', 'une suite d\'arches', 'une droite'], a: 0,
+    c: 'Par rapport au vélo, la valve tourne autour de l\'axe de la roue : sa trajectoire est un <strong>cercle</strong>.' },
+  { q: 'Dans le <strong>référentiel terrestre</strong>, la trajectoire de la valve d\'une roue de vélo qui roule est :', o: ['un cercle', 'une suite d\'arches', 'une droite'], a: 1,
+    c: 'Vu du sol, la valve tourne et avance en même temps : elle dessine une <strong>suite d\'arches</strong> (une cycloïde).' },
+  { q: 'Une personne est debout dans un ascenseur qui monte. Dans le <strong>référentiel de l\'ascenseur</strong>, elle est :', o: ['immobile', 'en mouvement rectiligne vers le haut'], a: 0,
+    c: 'Par rapport à la cabine, la personne ne bouge pas : elle est <strong>immobile</strong> dans le référentiel de l\'ascenseur. Dans le référentiel terrestre, elle monte.' },
+  { q: 'Peut-on dire qu\'un objet est « immobile » sans préciser le référentiel ?', o: ['oui', 'non'], a: 1,
+    c: '<strong>Non</strong> : un objet peut être immobile dans un référentiel et en mouvement dans un autre. Le mouvement est <strong>relatif</strong> au référentiel choisi.' },
+  { q: 'Pour étudier le mouvement d\'une voiture sur une route, on choisit le plus souvent :', o: ['le référentiel terrestre', 'le référentiel de la voiture'], a: 0,
+    c: 'Dans le référentiel de la voiture, la voiture est immobile : on ne peut pas étudier son mouvement. On choisit le <strong>référentiel terrestre</strong> (le sol, la route).' },
+  { q: 'Deux voitures roulent côte à côte, à la même vitesse, sur une autoroute. Dans le référentiel de la première voiture, la seconde est :', o: ['immobile', 'en mouvement'], a: 0,
+    c: 'La distance entre les deux voitures ne change pas : dans le référentiel de la première voiture, la seconde est <strong>immobile</strong>.' }
+];
+let refBag = [];
+function newRef() {
+  if (!refBag.length) refBag = shuffle(QREF.map((_, k) => k));
+  const Q = QREF[refBag.pop()], order = shuffle(Q.o.map((_, k) => k));
+  EX = { kind: 'ref', Q, a: null };
+  $('x-enonce').innerHTML = `<p>${Q.q}</p>`;
+  $('x-rep').innerHTML = `<div class="opts" data-q="ref">${order.map(k => `<button type="button" data-v="${k}" aria-pressed="false">${Q.o[k]}</button>`).join('')}</div>`;
+  $('cvx').hidden = true;
+}
+function checkRef() {
+  if (EX.a === null) return { ok: false, msg: '<p>Choisis une réponse.</p>', incomplete: true };
+  const ok = EX.a === EX.Q.a;
+  $('x-rep').querySelectorAll('button').forEach(b => { b.classList.remove('good', 'bad'); if (b.getAttribute('aria-pressed') === 'true') b.classList.add(ok ? 'good' : 'bad'); });
+  return { ok, msg: ok ? '<p><strong>Bravo !</strong></p>' : '<p>Pas encore. Demande-toi : par rapport à <em>quoi</em> la position change-t-elle ?</p>' };
+}
+const corrRef = () => `<h3>Correction</h3><p>Réponse : <strong>${EX.Q.o[EX.Q.a]}</strong>.</p><p>${EX.Q.c}</p>`;
+
+let counted = false;
+function newEx() {
+  $('x-fb').innerHTML = ''; $('x-fb').className = 'fb'; $('x-corr').innerHTML = ''; counted = false;
+  ({ vitesse: newVitesse, nature: newNature, ref: newRef })[mode]();
+}
+$('x-rep').addEventListener('click', e => {
+  const b = e.target.closest('.opts button'); if (!b || !EX) return;
+  const g = b.parentElement;
+  g.querySelectorAll('button').forEach(x => { x.setAttribute('aria-pressed', x === b); x.classList.remove('good', 'bad'); });
+  if (EX.kind === 'nature') EX.a[g.dataset.q] = b.dataset.v;
+  if (EX.kind === 'ref') EX.a = +b.dataset.v;
+});
+$('x-rep').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input')) $('x-check').click(); });
+$('x-check').addEventListener('click', () => {
+  const r = ({ vitesse: checkVitesse, nature: checkNature, ref: checkRef })[EX.kind]();
+  $('x-fb').innerHTML = r.msg; $('x-fb').className = 'fb ' + (r.ok ? 'ok' : 'ko');
+  if (!r.incomplete && !counted) { counted = true; score.tot++; if (r.ok) score.ok++; showScore(); }
+  if (r.ok) $('x-corr').innerHTML = ({ vitesse: corrVitesse, nature: corrNature, ref: corrRef })[EX.kind]();
+});
+$('x-sol').addEventListener('click', () => {
+  $('x-corr').innerHTML = ({ vitesse: corrVitesse, nature: corrNature, ref: corrRef })[EX.kind]();
+  if (EX.kind === 'nature') drawEx(EX.pts, { traj: true });
+});
+$('x-new').addEventListener('click', newEx);
+$('m3').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  mode = b.dataset.mode; $('m3').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); newEx();
+});
+
+/* =====================================================================
+   boucle, thème, plein écran
+   ===================================================================== */
+let last = performance.now(), vis2 = true;
+if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(en => vis2 = en.isIntersecting)).observe($('cv2'));
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (st1.play) {
+    st1.t += dt * parseFloat($('o1-speed').value);
+    const before = marks1().length;
+    if (st1.t >= st1.m.T) { st1.t = st1.m.T; st1.play = false; }
+    upd1Lazy(before);
+    draw1();
+  }
+  if (st2.play && vis2) {
+    const s = st2.s; st2.clock += dt * s.slow;
+    if (st2.clock > s.T + s.hold * s.slow) st2.clock = 0;
+    draw2();
+  }
+  requestAnimationFrame(loop);
+}
+let lastCount = -1;
+function upd1Lazy() { const n = marks1().length; if (n !== lastCount) { lastCount = n; upd1(); } }
+function redrawAll() { readTheme(); draw1(); draw2(); if (EX && EX.pts) drawEx(EX.pts, EX.kind === 'vitesse' ? { sel: [EX.i, EX.j] } : {}); }
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawAll);
+function resizeAll() { S1.resize(); S2.resize(); SX.resize(); redrawAll(); }
+window.addEventListener('resize', resizeAll);
+document.querySelectorAll('button.fs').forEach(btn => {
+  const el = $(btn.dataset.target);
+  if (!el.requestFullscreen) { btn.hidden = true; return; }
+  btn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen());
+});
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('button.fs').forEach(b => b.textContent = document.fullscreenElement === $(b.dataset.target) ? 'Quitter le plein écran' : 'Plein écran');
+  setTimeout(resizeAll, 60);
+});
+
+upd1(); upd2(); newEx(); showScore();
+st1.play = true;
+draw1(); draw2();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
