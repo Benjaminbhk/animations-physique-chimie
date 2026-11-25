@@ -13,7 +13,7 @@
   --obj:#1f63d1; --img:#d0342c; --r1:#d9822b; --r2:#1e9a55; --r3:#8a4fd6; --beam:rgba(230,170,20,.55);
   --eye:#f3ede4; --eye-line:#8a7c6c; --retina:#d0566a; --iris:#3f7d6a;
   --ok:#1e8a4c; --ok-soft:#e5f5ea; --ko:#c0392b; --ko-soft:#fbe9e7;
-  --exo-bg:#e8f4fd; --exo-border:#b7d9f2; --exo-accent:#1d6fa8;
+  --exo-border:var(--ex-edge,#b7d9f2); --exo-accent:var(--ex-chip,#1d6fa8);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -23,7 +23,6 @@
     --obj:#6ea2ff; --img:#ff7a6e; --r1:#f2a65a; --r2:#4fd08a; --r3:#b78cff; --beam:rgba(255,205,80,.45);
     --eye:#2a2621; --eye-line:#b3a593; --retina:#e57a8b; --iris:#6fbfa6;
     --ok:#5fd08e; --ok-soft:#173022; --ko:#ff8a7a; --ko-soft:#3a1f1c;
-    --exo-bg:#11263a; --exo-border:#234a6b; --exo-accent:#7cc0f0;
   }
 }
 :root[data-theme="dark"]{
@@ -33,7 +32,6 @@
   --obj:#6ea2ff; --img:#ff7a6e; --r1:#f2a65a; --r2:#4fd08a; --r3:#b78cff; --beam:rgba(255,205,80,.45);
   --eye:#2a2621; --eye-line:#b3a593; --retina:#e57a8b; --iris:#6fbfa6;
   --ok:#5fd08e; --ok-soft:#173022; --ko:#ff8a7a; --ko-soft:#3a1f1c;
-  --exo-bg:#11263a; --exo-border:#234a6b; --exo-accent:#7cc0f0;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -88,8 +86,7 @@ select,input[type=text]{font:inherit;padding:.3rem .5rem;border-radius:8px;borde
 .memo h3{margin:0 0 .2rem;font-size:.95rem}
 .small{font-size:.85rem;color:var(--muted)}
 /* ---------- exercices : fond bleu ciel ---------- */
-.exercices{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:16px;margin:0 0 22px}
-.exercices > h2{margin:0 0 .2rem;color:var(--exo-accent);font-size:1.35rem}
+.exercices > h2{margin:0 0 .2rem;font-size:1.25rem}
 .exercices button{background:var(--exo-accent);border-color:var(--exo-accent)}
 .exercices button.ghost{background:transparent;color:var(--exo-accent)}
 .exo{background:var(--surface);border:1px solid var(--exo-border);border-radius:12px;padding:12px 14px;margin-top:12px}
@@ -116,9 +113,10 @@ footer strong{color:var(--text)}
 @media (max-width:900px){
   .layout{grid-template-columns:1fr}
   .memo{grid-template-columns:1fr}
-  .scene,.exercices{padding:12px}
+  .scene{padding:12px}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -211,8 +209,8 @@ footer strong{color:var(--text)}
   </section>
 
   <!-- ===================== EXERCICES ===================== -->
-  <section class="exercices" aria-labelledby="h-exo">
-    <h2 id="h-exo">Exercices</h2>
+  <section class="scene exercices" id="sc-exo" aria-labelledby="h-exo">
+    <h2 id="h-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
     <p class="small" style="margin:0">Entraîne-toi, puis vérifie ta réponse ou affiche la correction. « Nouvel énoncé » change les valeurs.</p>
 
     <div class="exo" id="ex1">
@@ -319,7 +317,7 @@ function readTheme() {
     .forEach(k => C[k] = cs.getPropertyValue('--' + k).trim());
   dirty = true;
 }
-let dirty = true;
+let dirty = true, exDirty = true;
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
 
 /* ---------- canvas ---------- */
@@ -328,7 +326,7 @@ function setup(cv, h) {
   const o = { cv, c: cv.getContext('2d'), h, k: 1, dpr: 1 };
   const rs = () => {
     const w = cv.clientWidth || W; o.dpr = Math.min(2.5, window.devicePixelRatio || 1);
-    o.k = w / W; cv.width = Math.round(w * o.dpr); cv.height = Math.round(w * h / W * o.dpr); dirty = true;
+    o.k = w / W; cv.width = Math.round(w * o.dpr); cv.height = Math.round(w * h / W * o.dpr); dirty = true; exDirty = true;
   };
   new ResizeObserver(rs).observe(cv); rs();
   return o;
@@ -919,7 +917,7 @@ fsBtn.addEventListener('click', () => document.fullscreenElement ? document.exit
 /* =========================================================
    EXERCICES
    ========================================================= */
-let exDirty = true;
+exDirty = true;
 const CONF = [[4, 12], [3, 6], [4, 8], [2, 6], [3, 12], [4, 6], [2, 4], [3, 4.5], [5, 10], [6, 12], [6, 9], [4, 20], [5, 15], [2, 3], [3, 9], [5, 7.5], [4, 16], [6, 18]];
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const E1 = { f: 4, oa: 12, ab: 2, guess: null, corr: false, t: 9 };
