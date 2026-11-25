@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modéliser une action par une force</title>
+<meta name="description" content="Simulation interactive : construire le diagramme objet-interactions, puis représenter à l'échelle les forces (poids, réaction du support, tension d'un fil, frottements) sur un livre, une lampe, un skieur et un ballon. Exercices corrigés (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f6fae; --accent-soft:#e4f0fa; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --grid:rgba(40,60,90,.11); --ink:#3a4458; --ink-soft:#8a93a6;
+  --wood:#c89462; --wood-dark:#8f6236; --snow:#eef4fb; --snow-edge:#9fb3c8; --skin:#e8b48c;
+  --vP:#d0352b; --vR:#1f8a4c; --vT:#7b3fc4; --vf:#d97a00; --vv:#7a8499;
+  --exo-bg:var(--ex-bg); --exo-border:var(--ex-line); --exo-card:var(--ex-card);
+  --ok:#1f8a4c; --ok-soft:#e5f5ec; --bad:#c0392b; --bad-soft:#fbe9e7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#6cb4ec; --accent-soft:#16283a; --accent-ink:#0b1622;
+    --canvas:#12151d; --grid:rgba(200,215,240,.10); --ink:#c6cddb; --ink-soft:#6f788c;
+    --wood:#9a7048; --wood-dark:#6b4a2a; --snow:#26303e; --snow-edge:#566a82; --skin:#c99470;
+    --vP:#ff6b5e; --vR:#5ccf8c; --vT:#b88cff; --vf:#ffab40; --vv:#8a93a6;
+    --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b; --bad-soft:#3a1d1a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#6cb4ec; --accent-soft:#16283a; --accent-ink:#0b1622;
+  --canvas:#12151d; --grid:rgba(200,215,240,.10); --ink:#c6cddb; --ink-soft:#6f788c;
+  --wood:#9a7048; --wood-dark:#6b4a2a; --snow:#26303e; --snow-edge:#566a82; --skin:#c99470;
+  --vP:#ff6b5e; --vR:#5ccf8c; --vT:#b88cff; --vf:#ffab40; --vv:#8a93a6;
+  --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b; --bad-soft:#3a1d1a;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:78ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
+svg{display:block;width:100%;height:auto}
+#sv{border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:none;aspect-ratio:640/460;user-select:none;-webkit-user-select:none}
+#sv.draw{cursor:crosshair}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.sm{min-height:36px;padding:.3rem .7rem;font-size:.92rem}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.sit{background:var(--bg);color:var(--text);border-color:var(--border);text-align:left;line-height:1.2;font-size:.92rem}
+button.sit[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.tabs{display:flex;gap:6px}
+.tabs button{flex:1;background:var(--bg);color:var(--muted);border-color:var(--border);font-size:.92rem;line-height:1.2}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row label{font-weight:600;font-size:.92rem}
+select{font:inherit;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:6ch}
+.check{display:flex;align-items:flex-start;gap:6px;font-size:.9rem}
+.check input{margin-top:.25rem}
+.actors{display:flex;flex-direction:column;gap:6px}
+.actor{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;padding:.3rem .45rem;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.actor.ok{border-color:var(--ok);background:var(--ok-soft)}
+.actor.ko{border-color:var(--bad);background:var(--bad-soft)}
+.actor .nm{font-weight:600;font-size:.92rem}
+.seg{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:34px;padding:.2rem .5rem;font-size:.8rem;background:var(--surface);color:var(--muted)}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+#doi{border:1px solid var(--border);border-radius:10px;background:var(--canvas);margin-top:8px}
+.forces{display:flex;flex-direction:column;gap:6px}
+button.fz{display:flex;align-items:center;gap:8px;background:var(--bg);color:var(--text);border-color:var(--border);text-align:left;font-size:.9rem;line-height:1.25;padding:.4rem .55rem}
+button.fz .sw{flex:none;width:14px;height:14px;border-radius:50%}
+button.fz .st{margin-left:auto;font-size:.85rem}
+button.fz[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+button.fz.ok{background:var(--ok-soft)} button.fz.ko{background:var(--bad-soft)}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;margin:12px 0 0;min-height:3.2em}
+.explain.ok{border-color:var(--ok);background:var(--ok-soft)}
+.explain.ko{border-color:var(--bad);background:var(--bad-soft)}
+.tbl{overflow-x:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:620px}
+th,td{border:1px solid var(--border);padding:.35rem .5rem;text-align:left;vertical-align:top}
+th{background:var(--bg);font-weight:700}
+td.q{color:var(--ink-soft)}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+.vec{position:relative;display:inline-block;font-style:italic;font-weight:700}
+.vec::before{content:"";position:absolute;left:0;right:-1px;top:-.08em;border-top:1.5px solid currentColor}
+.vec::after{content:"";position:absolute;right:-3px;top:-.32em;border:solid transparent;border-width:.2em 0 .2em .34em;border-left-color:currentColor}
+/* ---------- exercices (fond bleu ciel, comme les autres simulations) ---------- */
+.exercices{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:16px;margin:0 0 22px}
+.exercices > h2{font-size:1.25rem;margin:0 0 .2rem}
+.exercices > p{margin:0 0 12px;color:var(--muted)}
+.exos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.exo{background:var(--exo-card);border:1px solid var(--exo-border);border-radius:12px;padding:.8rem 1rem}
+.exo h3{margin:0 0 .35rem;font-size:1rem}
+.exo .enonce{margin:0 0 .5rem}
+.exo .rep{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:.3rem 0}
+.exo input[type=text]{font:inherit;width:8.5em;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.exo .qcm{display:flex;flex-direction:column;gap:4px;margin:.3rem 0}
+.exo .qcm label{display:flex;gap:6px;align-items:flex-start;font-size:.95rem}
+.exo .qcm label input{margin-top:.3rem}
+.exo .cls{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;margin:.3rem 0;font-size:.95rem}
+.exo .fb{font-weight:600;min-height:1.4em;margin:.2rem 0}
+.exo .fb.ok{color:var(--ok)} .exo .fb.ko{color:var(--bad)}
+.corr{border:2px solid var(--ok);background:var(--ok-soft);border-radius:10px;padding:.5rem .75rem;margin-top:.5rem}
+.corr strong.t{color:var(--ok);display:block;margin-bottom:.15rem}
+.corr p{margin:.15rem 0}
+.exo svg{max-width:420px;margin:.3rem 0;border:1px solid var(--border);border-radius:8px;background:var(--canvas)}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+.scene:fullscreen .layout{grid-template-columns:auto 380px;justify-content:center}
+.scene:fullscreen #sv{height:calc(100vh - 120px);width:auto;max-width:calc(100vw - 440px)}
+.scene:fullscreen .memo,.scene:fullscreen .tbl{display:none}
+@media (max-width:900px){
+  .layout,.exos{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene,.exercices{padding:12px}
+}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Modéliser une action par une force</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Choisis une situation. <strong>Étape 1</strong> : repère les acteurs qui agissent sur le système et construis le
+    <strong>diagramme objet-interactions</strong>. <strong>Étape 2</strong> : représente chaque force par un vecteur, en partant de son
+    point d'application et en respectant la direction, le sens et la longueur à l'échelle. Un carreau du quadrillage mesure 1 unité de l'échelle.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation : modéliser les actions mécaniques par des forces">
+    <div class="layout">
+      <div>
+        <svg id="sv" viewBox="0 0 640 460" role="img" aria-label="Schéma de la situation, sur lequel on trace les vecteurs forces"></svg>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div>
+          <h2>Situation</h2>
+          <div class="grid2" id="sits"></div>
+        </div>
+        <div>
+          <div class="row">
+            <label for="par" id="par-l">Masse</label>
+            <input id="par" type="range">
+            <output id="par-out" for="par"></output>
+          </div>
+          <div class="row" style="margin-top:6px">
+            <label for="ech">Échelle : 1 carreau ↔</label>
+            <select id="ech"></select>
+          </div>
+        </div>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" id="t1" aria-selected="true">1. Diagramme objet-interactions</button>
+          <button type="button" role="tab" id="t2" aria-selected="false">2. Vecteurs forces</button>
+        </div>
+        <div id="p1" role="tabpanel" aria-labelledby="t1">
+          <h2>Qui agit sur <span id="sys1"></span> ? <small>contact ou à distance</small></h2>
+          <div class="actors" id="actors"></div>
+          <svg id="doi" viewBox="0 0 340 210" role="img" aria-label="Diagramme objet-interactions"></svg>
+          <p class="small" style="margin:.35rem 0 0">Trait plein : interaction de contact. Trait pointillé : interaction à distance.</p>
+          <div class="grid2" style="margin-top:8px">
+            <button type="button" id="doi-chk">Vérifier</button>
+            <button type="button" class="ghost" id="doi-sol">Voir la correction</button>
+          </div>
+        </div>
+        <div id="p2" role="tabpanel" aria-labelledby="t2" hidden>
+          <h2>Forces exercées sur <span id="sys2"></span></h2>
+          <div class="forces" id="forces"></div>
+          <p class="small" style="margin:.4rem 0 0">Choisis une force, puis clique-glisse depuis un point d'application (petit cercle) jusqu'à l'extrémité de la flèche.</p>
+          <label class="check" style="margin-top:6px"><input type="checkbox" id="ptmod"> Modéliser le système par un point : toutes les forces sont appliquées en G.</label>
+          <div class="grid2" style="margin-top:8px">
+            <button type="button" class="ghost" id="f-clear">Effacer mes flèches</button>
+            <button type="button" class="ghost" id="f-sol">Montrer la correction</button>
+          </div>
+        </div>
+        <div class="row"><button id="fs" class="ghost sm" type="button">Plein écran</button></div>
+      </div>
+    </div>
+    <div class="tbl">
+      <table aria-label="Tableau des caractéristiques des forces">
+        <thead><tr><th>Force</th><th>Action exercée</th><th>Point d'application</th><th>Direction</th><th>Sens</th><th>Valeur</th><th>Longueur à l'échelle</th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+    <div class="memo">
+      <div><h3>Caractéristiques d'une force</h3>Une action mécanique est modélisée par une force, représentée par un vecteur : point d'application, direction, sens et valeur (ou norme) en newtons (N).</div>
+      <div><h3>Le poids</h3><span class="vec">P</span> : action à distance de la Terre, appliquée en G, verticale, vers le bas. Sa valeur est P = m × g avec g = 9,81 N/kg à la surface de la Terre.</div>
+      <div><h3>Les forces de contact</h3>Réaction <span class="vec">R</span> d'un support : perpendiculaire au support (sans frottement). Tension <span class="vec">T</span> d'un fil : le long du fil, vers le fil. Frottements <span class="vec">f</span> : opposés au mouvement.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" aria-labelledby="exo-t">
+    <h2 id="exo-t"><span class="ex-badge">✎ Exercices</span> Exercices d'application</h2>
+    <p>De petits exercices pour s'entraîner. Réponds, vérifie, puis lis la correction. Les boutons « Nouvelles valeurs » changent les données. Donne tes résultats avec le bon nombre de chiffres significatifs.</p>
+    <div class="exos" id="exos"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Actions mécaniques et forces, classe de Seconde. g = 9,81 N/kg.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const D2R = Math.PI / 180, R2D = 180 / Math.PI, g = 9.81, CAR = 20; // 1 carreau = 20 unités SVG
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (x, d = 2) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+function sig(x, n) { // écriture décimale, n chiffres significatifs
+  if (x === 0) return fmt(0, n - 1);
+  const e = Math.floor(Math.log10(Math.abs(+x.toPrecision(n))));
+  return fmt(x, Math.max(0, n - 1 - e));
+}
+function sci(x, n) { // écriture scientifique, sauf entre 1 et 10
+  let e = Math.floor(Math.log10(Math.abs(x))), m = x / 10 ** e;
+  if (+m.toFixed(n - 1) >= 10) { m /= 10; e++; }
+  if (e === 0) return fmt(m, n - 1);
+  return fmt(m, n - 1) + ' × 10' + String(e).split('').map(c => SUP[c]).join('');
+}
+const N = (x, n = 2) => sci(x, n) + ' N';
+const vecH = s => `<span class="vec">${s}</span>`;
+const norm180 = a => { a = ((a % 360) + 360) % 360; return a > 180 ? a - 360 : a; };
+const angDiff = (a, b) => Math.abs(norm180(a - b));
+
+/* ---------- situations ---------- */
+// Angles dans le repère de l'écran : 0° vers la droite, 90° vers le bas, -90° vers le haut.
+const ALPHA = 20, TA = Math.tan(ALPHA * D2R);
+// trajectoire du ballon : parabole de sommet (380, 120) ; le ballon est là où la tangente fait 30° avec l'horizontale
+const PK = 320 / 340 ** 2, traj = x => 120 + PK * (x - 380) ** 2, BX = Math.round(380 - Math.tan(30 * D2R) / (2 * PK)), BY = traj(BX);
+const SIT = [
+  {
+    id: 'livre', nom: 'Livre sur une table', sys: 'le livre',
+    intro: 'Un livre est posé sur une table horizontale. Il est immobile.',
+    par: { l: 'Masse du livre', min: 0.20, max: 1.00, step: 0.05, v: 0.50, u: 'kg' },
+    ech: [1, 0.5, 2], e0: 1,
+    pts: { G: [320, 290, 'G', 'centre de gravité du livre'], C: [320, 320, 'C', 'contact livre-table'], H: [320, 260, 'H', 'dessus du livre'] },
+    act: [
+      { id: 'terre', nom: 'Terre', rep: 'dist', why: "La Terre attire le livre à distance : c'est le poids." },
+      { id: 'table', nom: 'Table', rep: 'cont', why: 'La table touche le livre et le soutient.' },
+      { id: 'sol', nom: 'Sol', rep: 'none', why: 'Le sol touche la table, pas le livre.' },
+      { id: 'main', nom: 'Main', rep: 'none', why: 'Personne ne tient le livre : il est simplement posé.' }
+    ],
+    forces(m) {
+      const P = m * g;
+      return [
+        { s: 'P', nom: 'Poids', act: 'Terre sur le livre', pt: ['G'], ang: 90, F: P, dir: 'verticale', sens: 'vers le bas', c: '--vP' },
+        { s: 'R', nom: 'Réaction de la table', act: 'Table sur le livre', pt: ['C'], ang: -90, F: P, dir: 'verticale (perpendiculaire à la table)', sens: 'vers le haut', c: '--vR' }
+      ];
+    },
+    note: m => `Le livre est immobile : la réaction de la table compense le poids, R = P = ${N(m * g)}.`,
+    draw() {
+      return `<rect x="110" y="320" width="420" height="14" rx="3" fill="var(--wood)" stroke="var(--wood-dark)"/>
+        <rect x="140" y="334" width="16" height="106" fill="var(--wood)" stroke="var(--wood-dark)"/>
+        <rect x="484" y="334" width="16" height="106" fill="var(--wood)" stroke="var(--wood-dark)"/>
+        <line x1="40" y1="440" x2="600" y2="440" stroke="var(--ink-soft)" stroke-width="2"/>
+        <rect x="250" y="260" width="140" height="60" rx="3" fill="#2f6fb5" stroke="#1d4a7d"/>
+        <rect x="256" y="300" width="128" height="14" fill="#f7f3e8"/>
+        <text x="352" y="282" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">PHYSIQUE</text>
+        <text x="535" y="314" font-size="13" fill="var(--muted)" text-anchor="end">table</text>`;
+    }
+  },
+  {
+    id: 'lampe', nom: 'Lampe suspendue', sys: 'la lampe',
+    intro: 'Une lampe est suspendue au plafond par un fil. Elle est immobile.',
+    par: { l: 'Masse de la lampe', min: 0.50, max: 2.00, step: 0.10, v: 1.20, u: 'kg' },
+    ech: [2, 1, 5], e0: 2,
+    pts: { G: [320, 246, 'G', 'centre de gravité de la lampe'], A: [320, 200, 'A', 'attache fil-lampe'], B: [320, 50, 'B', 'attache fil-plafond'] },
+    act: [
+      { id: 'terre', nom: 'Terre', rep: 'dist', why: 'La Terre attire la lampe à distance.' },
+      { id: 'fil', nom: 'Fil', rep: 'cont', why: 'Le fil touche la lampe et la retient.' },
+      { id: 'plafond', nom: 'Plafond', rep: 'none', why: "Le plafond touche le fil, pas la lampe : il agit sur le fil, qui agit sur la lampe." },
+      { id: 'table', nom: 'Table', rep: 'none', why: 'La table est en dessous, sans contact avec la lampe.' }
+    ],
+    forces(m) {
+      const P = m * g;
+      return [
+        { s: 'P', nom: 'Poids', act: 'Terre sur la lampe', pt: ['G'], ang: 90, F: P, dir: 'verticale', sens: 'vers le bas', c: '--vP' },
+        { s: 'T', nom: 'Tension du fil', act: 'Fil sur la lampe', pt: ['A'], ang: -90, F: P, dir: 'celle du fil (verticale)', sens: 'vers le haut (vers le fil)', c: '--vT' }
+      ];
+    },
+    note: m => `La lampe est immobile : la tension du fil compense le poids, T = P = ${N(m * g)}.`,
+    draw() {
+      let h = '';
+      for (let x = 160; x < 480; x += 14) h += `<line x1="${x}" y1="30" x2="${x + 12}" y2="18" stroke="var(--ink-soft)"/>`;
+      return `${h}<line x1="150" y1="30" x2="490" y2="30" stroke="var(--ink)" stroke-width="3"/>
+        <rect x="300" y="30" width="40" height="20" rx="3" fill="var(--ink-soft)"/>
+        <line x1="320" y1="50" x2="320" y2="200" stroke="var(--ink)" stroke-width="2.5"/>
+        <rect x="309" y="198" width="22" height="14" rx="3" fill="#555c6b"/>
+        <path d="M302 212 L338 212 L366 268 L274 268 Z" fill="#e2a23b" stroke="#a06a14" stroke-width="2"/>
+        <circle cx="320" cy="270" r="11" fill="#fff4b8" stroke="#c9a640"/>
+        <line x1="60" y1="440" x2="580" y2="440" stroke="var(--ink-soft)" stroke-width="2"/>
+        <text x="495" y="46" font-size="13" fill="var(--muted)">plafond</text>
+        <text x="328" y="130" font-size="13" fill="var(--muted)">fil</text>`;
+    }
+  },
+  {
+    id: 'skieur', nom: 'Skieur sur une piste', sys: 'le skieur',
+    intro: `Un skieur descend une piste inclinée de ${ALPHA}° à vitesse constante. On regroupe les frottements de la neige et de l'air en une seule force f, appliquée en G.`,
+    par: { l: 'Masse du skieur', min: 50, max: 90, step: 5, v: 70, u: 'kg' },
+    ech: [100, 50, 200], e0: 100,
+    pts: { G: [330, 196, 'G', 'centre de gravité du skieur'], C: [330, 140 + 290 * TA, 'C', 'contact skis-neige'], T: [334, 146, 'T', 'tête du skieur'] },
+    act: [
+      { id: 'terre', nom: 'Terre', rep: 'dist', why: 'La Terre attire le skieur à distance.' },
+      { id: 'piste', nom: 'Piste (neige)', rep: 'cont', why: 'La neige touche les skis : elle soutient le skieur et frotte.' },
+      { id: 'air', nom: 'Air', rep: 'cont', why: "L'air touche tout le corps du skieur et le freine." },
+      { id: 'tele', nom: 'Télésiège', rep: 'none', why: 'Le skieur a quitté le télésiège : il ne le touche plus.' }
+    ],
+    forces(m) {
+      const P = m * g;
+      return [
+        { s: 'P', nom: 'Poids', act: 'Terre sur le skieur', pt: ['G'], ang: 90, F: P, dir: 'verticale', sens: 'vers le bas', c: '--vP' },
+        { s: 'R', nom: 'Réaction de la piste', act: 'Piste sur le skieur', pt: ['C'], ang: ALPHA - 90, F: P * Math.cos(ALPHA * D2R), dir: 'perpendiculaire à la piste', sens: "vers le haut, en s'éloignant de la piste", c: '--vR' },
+        { s: 'f', nom: 'Frottements', act: 'Neige et air sur le skieur', pt: ['G', 'C'], ang: 180 + ALPHA, F: P * Math.sin(ALPHA * D2R), dir: 'parallèle à la piste', sens: 'opposé au mouvement (vers le haut de la piste)', c: '--vf' }
+      ];
+    },
+    note: m => `Valeurs données par le modèle (mouvement à vitesse constante) : R = P × cos ${ALPHA}° = ${N(m * g * Math.cos(ALPHA * D2R))} et f = P × sin ${ALPHA}° = ${N(m * g * Math.sin(ALPHA * D2R))}.`,
+    draw() {
+      const y = x => 140 + (x - 40) * TA, cx = 330, cy = y(cx), ux = Math.cos(ALPHA * D2R), uy = Math.sin(ALPHA * D2R);
+      const sk = (d, o) => `<line x1="${cx - ux * 50 + d}" y1="${cy - uy * 50 - 3 + o}" x2="${cx + ux * 46 + d}" y2="${cy + uy * 46 - 3 + o}" stroke="#d0352b" stroke-width="4" stroke-linecap="round"/>`;
+      return `<path d="M40 ${y(40)} L620 ${y(620)} L620 460 L40 460 Z" fill="var(--snow)" stroke="var(--snow-edge)" stroke-width="2"/>
+        ${sk(0, 0)}
+        <path d="M322 ${cy - 5} L326 210 M338 ${cy - 6} L334 210" stroke="#2b3a55" stroke-width="7" stroke-linecap="round"/>
+        <path d="M330 212 L333 162" stroke="#1f6fae" stroke-width="15" stroke-linecap="round"/>
+        <path d="M332 170 L352 196 L364 ${cy + 4}" stroke="#1f6fae" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <line x1="362" y1="190" x2="378" y2="${y(378) - 2}" stroke="var(--ink)" stroke-width="2"/>
+        <circle cx="334" cy="146" r="11" fill="var(--skin)"/>
+        <path d="M323 142 Q334 128 345 142 Z" fill="#d0352b"/>
+        <g stroke="var(--vv)" stroke-width="2" fill="var(--vv)">
+          <line x1="430" y1="${y(430) + 30}" x2="520" y2="${y(520) + 30}" stroke-dasharray="6 4"/>
+          <path d="M${520 + ux * 10} ${y(520) + 30 + uy * 10} l${-ux * 12 - uy * 6} ${-uy * 12 + ux * 6} l${uy * 12} ${-ux * 12} Z"/>
+        </g>
+        <text transform="translate(475 ${y(475) + 52}) rotate(${ALPHA})" font-size="13" fill="var(--muted)" text-anchor="middle">sens du mouvement</text>
+        <path d="M40 140 L150 140" stroke="var(--ink-soft)" stroke-dasharray="4 3"/>
+        <path d="M110 140 A70 70 0 0 1 ${40 + 70 * ux} ${140 + 70 * uy}" fill="none" stroke="var(--ink-soft)"/>
+        <text x="118" y="158" font-size="13" fill="var(--muted)">${ALPHA}°</text>`;
+    }
+  },
+  {
+    id: 'ballon', nom: 'Ballon en vol', sys: 'le ballon',
+    intro: "Un ballon de football (m = 430 g) a été frappé. Il monte vers la droite. Les frottements de l'air ne sont pas négligés.",
+    par: { l: 'Frottements de l\'air f', min: 0.5, max: 3.0, step: 0.1, v: 1.5, u: 'N' },
+    ech: [0.5, 1, 0.25], e0: 0.5,
+    pts: { G: [BX, BY, 'G', 'centre du ballon'], S: [BX, BY + 22, 'S', 'bas du ballon'], V: [BX + 40 * Math.cos(30 * D2R), BY - 40 * Math.sin(30 * D2R), 'V', 'devant le ballon'] },
+    act: [
+      { id: 'terre', nom: 'Terre', rep: 'dist', why: 'La Terre attire le ballon à distance, même en vol.' },
+      { id: 'air', nom: 'Air', rep: 'cont', why: "L'air touche le ballon et le freine." },
+      { id: 'pied', nom: 'Pied du joueur', rep: 'none', why: "Le ballon a quitté le pied : une fois lancé, plus rien ne le pousse vers l'avant." },
+      { id: 'sol', nom: 'Sol', rep: 'none', why: 'Le ballon est en l\'air, il ne touche pas le sol.' }
+    ],
+    forces(f) {
+      return [
+        { s: 'P', nom: 'Poids', act: 'Terre sur le ballon', pt: ['G'], ang: 90, F: 0.43 * g, dir: 'verticale', sens: 'vers le bas', c: '--vP' },
+        { s: 'f', nom: "Frottements de l'air", act: 'Air sur le ballon', pt: ['G'], ang: 150, F: f, dir: 'celle de la vitesse (tangente à la trajectoire)', sens: 'opposé au mouvement', c: '--vf' }
+      ];
+    },
+    note: () => `P = m × g = 0,430 × 9,81 = ${N(0.43 * g, 3)}. Il n'y a pas de « force du pied » : une fois le ballon parti, seuls la Terre et l'air agissent sur lui.`,
+    draw() {
+      const ux = Math.cos(-30 * D2R), uy = Math.sin(-30 * D2R);
+      return `<line x1="20" y1="442" x2="620" y2="442" stroke="#3c8d3c" stroke-width="4"/>
+        <polyline points="${Array.from({ length: 57 }, (_, i) => { const x = 40 + i * 10; return x + ',' + traj(x).toFixed(1); }).join(' ')}" fill="none" stroke="var(--ink-soft)" stroke-width="2" stroke-dasharray="3 6"/>
+        <circle cx="${BX}" cy="${BY}" r="22" fill="#fff" stroke="#333" stroke-width="2"/>
+        <path d="M${BX} ${BY - 10} l9 6 -3 10 h-12 l-3 -10 Z" fill="#333"/>
+        <path d="M${BX} ${BY - 22} v12 M${BX + 9} ${BY - 4} l12 -4 M${BX + 6} ${BY + 6} l6 10 M${BX - 6} ${BY + 6} l-6 10 M${BX - 9} ${BY - 4} l-12 -4" stroke="#333" stroke-width="1.5"/>
+        <g stroke="var(--vv)" stroke-width="2" fill="var(--vv)">
+          <line x1="${BX + ux * 30}" y1="${BY + uy * 30}" x2="${BX + ux * 100}" y2="${BY + uy * 100}" stroke-dasharray="6 4"/>
+          <path d="M${BX + ux * 110} ${BY + uy * 110} l${-ux * 12 - uy * 6} ${-uy * 12 + ux * 6} l${uy * 12} ${-ux * 12} Z"/>
+        </g>
+        <text x="${BX + ux * 112}" y="${BY + uy * 112 - 8}" font-size="13" fill="var(--muted)">sens du mouvement</text>
+        <text x="60" y="395" font-size="13" fill="var(--muted)">trajectoire</text>`;
+    }
+  }
+];
+
+/* ---------- état ---------- */
+const S = { k: 0, tab: 1, par: {}, ech: {}, doi: {}, doiChecked: {}, user: {}, sel: {}, sol: {}, ptmod: false, drag: null };
+SIT.forEach(s => { S.par[s.id] = s.par.v; S.ech[s.id] = s.e0; S.doi[s.id] = {}; S.user[s.id] = {}; S.sel[s.id] = 0; S.sol[s.id] = false; });
+const cur = () => SIT[S.k];
+const forces = () => cur().forces(S.par[cur().id]);
+const ech = () => S.ech[cur().id];
+const eTxt = e => (e < 1 ? fmt(e, e === 0.25 ? 2 : 1) : String(e)) + ' N';
+const parTxt = s => {
+  const v = S.par[s.id];
+  return s.par.u === 'kg' ? sig(v, 2) + ' kg' : sig(v, 2) + ' N';
+};
+
+/* ---------- message ---------- */
+function say(html, cls = '') { const m = $('msg'); m.className = 'explain ' + cls; m.innerHTML = html; }
+
+/* ---------- vecteurs SVG ---------- */
+function arrow(x, y, ang, L, col, label, op = 1, dash = '') {
+  const a = ang * D2R, ux = Math.cos(a), uy = Math.sin(a), len = L * CAR;
+  const x2 = x + ux * len, y2 = y + uy * len, hl = Math.min(14, len * 0.45), hw = hl * 0.5;
+  const bx = x2 - ux * hl, by = y2 - uy * hl;
+  // étiquette à côté de la pointe, décalée perpendiculairement
+  const px = -uy, py = ux, lx = x + ux * len * 0.62 + px * 16, ly = y + uy * len * 0.62 + py * 16;
+  return `<g opacity="${op}" style="color:var(${col})">
+    <line x1="${x}" y1="${y}" x2="${bx}" y2="${by}" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" ${dash ? `stroke-dasharray="${dash}"` : ''}/>
+    <path d="M${x2} ${y2} L${bx + px * hw} ${by + py * hw} L${bx - px * hw} ${by - py * hw} Z" fill="currentColor"/>
+    <circle cx="${x}" cy="${y}" r="3.5" fill="currentColor"/>
+    ${label ? `<g transform="translate(${lx} ${ly})"><text x="0" y="6" text-anchor="middle" font-size="17" font-style="italic" font-weight="700" fill="currentColor">${label}</text>
+      <path d="M-6 -9 H6 M3 -12 L7 -9 L3 -6" stroke="currentColor" stroke-width="1.5" fill="none"/></g>` : ''}
+  </g>`;
+}
+
+function evalForce(f, u) {
+  if (!u) return null;
+  const errs = [];
+  const okPts = S.ptmod ? [...f.pt, 'G'] : f.pt;
+  if (!okPts.includes(u.pt)) errs.push('pt');
+  const d = angDiff(u.ang, f.ang);
+  if (d > 6) errs.push(d > 174 ? 'sens' : 'dir');
+  const Le = f.F / ech();
+  if (Math.abs(u.L - Le) > Math.max(0.3, 0.06 * Le)) errs.push('norme');
+  return errs;
+}
+
+/* ---------- dessin de la scène ---------- */
+const sv = $('sv');
+function draw() {
+  const s = cur(), fs = forces();
+  let h = '<g>';
+  for (let x = 0; x <= 640; x += CAR) h += `<line x1="${x}" y1="0" x2="${x}" y2="460" stroke="var(--grid)"/>`;
+  for (let y = 0; y <= 460; y += CAR) h += `<line x1="0" y1="${y}" x2="640" y2="${y}" stroke="var(--grid)"/>`;
+  h += '</g>' + s.draw();
+  // échelle
+  h += `<g><rect x="14" y="14" width="196" height="30" rx="6" fill="var(--surface)" stroke="var(--border)"/>
+    <line x1="24" y1="29" x2="44" y2="29" stroke="var(--ink)" stroke-width="3"/><line x1="24" y1="23" x2="24" y2="35" stroke="var(--ink)"/><line x1="44" y1="23" x2="44" y2="35" stroke="var(--ink)"/>
+    <text x="52" y="34" font-size="14" fill="var(--text)">1 carreau ↔ ${eTxt(ech())}</text></g>`;
+  if (S.tab === 2) {
+    // points d'application candidats
+    Object.values(s.pts).forEach(([x, y, n]) => {
+      h += `<g><circle cx="${x}" cy="${y}" r="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5" opacity=".95"/>
+        <text x="${x - 12}" y="${y + 5}" text-anchor="end" font-size="14" font-weight="700" fill="var(--accent)" paint-order="stroke" stroke="var(--canvas)" stroke-width="3">${n}</text></g>`;
+    });
+    const sol = S.sol[s.id];
+    fs.forEach((f, i) => {
+      if (sol) {
+        const p = s.pts[S.ptmod ? 'G' : f.pt[0]];
+        h += arrow(p[0], p[1], f.ang, f.F / ech(), f.c, f.s);
+      }
+      const u = S.user[s.id][i];
+      if (u && !(sol)) { const p = s.pts[u.pt]; h += arrow(p[0], p[1], u.ang, u.L, f.c, f.s); }
+    });
+    if (S.drag) {
+      const f = fs[S.drag.i], p = s.pts[S.drag.pt];
+      if (S.drag.L > 0.05) h += arrow(p[0], p[1], S.drag.ang, S.drag.L, f.c, f.s, 0.85, '7 5');
+    }
+  }
+  sv.innerHTML = h;
+}
+
+/* ---------- interaction : tracer une flèche ---------- */
+function svgPt(e) {
+  const p = sv.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+  return p.matrixTransform(sv.getScreenCTM().inverse());
+}
+function setDrag(q) {
+  const p = cur().pts[S.drag.pt], dx = q.x - p[0], dy = q.y - p[1];
+  S.drag.ang = Math.round(Math.atan2(dy, dx) * R2D / 5) * 5;
+  S.drag.L = Math.round(Math.hypot(dx, dy) / CAR * 10) / 10;
+  const f = forces()[S.drag.i];
+  say(`Flèche ${vecH(f.s)} : longueur <strong>${fmt(S.drag.L, 1)} carreau${S.drag.L >= 2 ? 'x' : ''}</strong>, soit ${sig(S.drag.L * ech(), 2)} N à cette échelle.`);
+}
+sv.addEventListener('pointerdown', e => {
+  if (S.tab !== 2) { say("Passe à l'étape 2 « Vecteurs forces » pour tracer les forces."); return; }
+  const s = cur();
+  if (S.sol[s.id]) { S.sol[s.id] = false; }
+  const q = svgPt(e);
+  let best = null, bd = 24;
+  Object.entries(s.pts).forEach(([k, [x, y]]) => { const d = Math.hypot(q.x - x, q.y - y); if (d < bd) { bd = d; best = k; } });
+  if (!best) { say("Commence ta flèche sur un point d'application : un des petits cercles (G, C, A…).", 'ko'); return; }
+  e.preventDefault();
+  sv.setPointerCapture(e.pointerId);
+  S.drag = { i: S.sel[s.id], pt: best, ang: 0, L: 0 };
+  draw();
+});
+sv.addEventListener('pointermove', e => { if (!S.drag) return; setDrag(svgPt(e)); draw(); });
+function endDrag() {
+  if (!S.drag) return;
+  const s = cur(), d = S.drag; S.drag = null;
+  if (d.L < 0.5) { draw(); say("Flèche trop courte : clique sur un point d'application et fais glisser jusqu'à l'extrémité voulue."); return; }
+  S.user[s.id][d.i] = { pt: d.pt, ang: d.ang, L: d.L };
+  feedback(d.i);
+  // passe à la force suivante non réussie
+  const fs = forces(), nx = fs.findIndex((f, j) => { const r = evalForce(f, S.user[s.id][j]); return !r || r.length; });
+  if (nx >= 0 && nx !== d.i && (evalForce(fs[d.i], S.user[s.id][d.i]) || []).length === 0) S.sel[s.id] = nx;
+  refresh();
+}
+sv.addEventListener('pointerup', endDrag);
+sv.addEventListener('pointercancel', () => { S.drag = null; draw(); });
+
+function feedback(i) {
+  const s = cur(), f = forces()[i], u = S.user[s.id][i], r = evalForce(f, u);
+  if (!r) return;
+  if (!r.length) {
+    const all = forces().every((ff, j) => { const rr = evalForce(ff, S.user[s.id][j]); return rr && !rr.length; });
+    say(`Bravo, ${vecH(f.s)} est juste : ${f.dir}, ${f.sens}, ${N(f.F)} soit ${fmt(f.F / ech(), 1)} carreaux.` + (all ? `<br><strong>Toutes les forces sont bien représentées !</strong> ${s.note(S.par[s.id])}` : ''), 'ok');
+    return;
+  }
+  const t = [];
+  const pName = k => s.pts[k][2] + ' (' + s.pts[k][3] + ')';
+  if (r.includes('pt')) t.push(`Point d'application : tu es parti de ${pName(u.pt)}. ${f.pt[0] === 'G' ? "Une action à distance (ou répartie sur tout l'objet) s'applique au centre de gravité G." : "Une action de contact s'applique à l'endroit du contact."}`);
+  if (r.includes('sens')) t.push('Le sens est inversé : la direction est bonne mais la flèche pointe du mauvais côté.');
+  if (r.includes('dir')) t.push(`Direction : ${vecH(f.s)} doit être ${f.dir}.`);
+  if (r.includes('norme')) t.push(`Longueur : ta flèche mesure ${fmt(u.L, 1)} carreaux. Calcule ${f.s} = ${N(f.F)}, puis divise par l'échelle (${eTxt(ech())} par carreau).`);
+  say(`<strong>${f.nom} : à corriger.</strong><br>` + t.join('<br>'), 'ko');
+}
+
+/* ---------- diagramme objet-interactions ---------- */
+const REPS = [['none', 'Aucune'], ['cont', 'Contact'], ['dist', 'À distance']];
+function renderActors() {
+  const s = cur(), box = $('actors'), chk = S.doiChecked[s.id];
+  box.innerHTML = '';
+  s.act.forEach(a => {
+    const v = S.doi[s.id][a.id] || 'none';
+    const el = document.createElement('div');
+    el.className = 'actor' + (chk ? (v === a.rep ? ' ok' : ' ko') : '');
+    el.innerHTML = `<span class="nm">${a.nom}</span><div class="seg" role="group" aria-label="Interaction avec ${a.nom}">${REPS.map(([k, t]) => `<button type="button" data-v="${k}" aria-pressed="${v === k}">${t}</button>`).join('')}</div>`;
+    el.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      S.doi[s.id][a.id] = b.dataset.v; S.doiChecked[s.id] = false; renderActors(); drawDOI();
+    }));
+    box.appendChild(el);
+  });
+}
+function drawDOI() {
+  const s = cur(), sel = s.act.filter(a => (S.doi[s.id][a.id] || 'none') !== 'none');
+  const cx = 170, cy = 105, chk = S.doiChecked[s.id];
+  let h = '';
+  const n = sel.length;
+  const pos = sel.map((a, i) => {
+    const t = n === 1 ? -Math.PI / 2 : -Math.PI / 2 + (i - (n - 1) / 2) * (Math.PI * 2 / Math.max(n, 3));
+    return [cx + Math.cos(t) * 118, cy + Math.sin(t) * 70];
+  });
+  sel.forEach((a, i) => {
+    const v = S.doi[s.id][a.id], [x, y] = pos[i];
+    const col = chk ? (v === a.rep ? 'var(--ok)' : 'var(--bad)') : 'var(--ink)';
+    h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="2.5" ${v === 'dist' ? 'stroke-dasharray="7 5"' : ''}/>`;
+  });
+  h += `<ellipse cx="${cx}" cy="${cy}" rx="58" ry="22" fill="var(--accent)"/><text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--accent-ink)">${s.sys.replace(/^(le|la|l') ?/, '').replace(/^./, c => c.toUpperCase())}</text>`;
+  sel.forEach((a, i) => {
+    const [x, y] = pos[i], w = Math.max(56, a.nom.length * 7.2 + 16);
+    h += `<rect x="${x - w / 2}" y="${y - 15}" width="${w}" height="30" rx="15" fill="var(--surface)" stroke="var(--ink-soft)"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="13" fill="var(--text)">${a.nom}</text>`;
+  });
+  if (!n) h += `<text x="${cx}" y="185" text-anchor="middle" font-size="12" fill="var(--muted)">Choisis « Contact » ou « À distance » pour ajouter un acteur.</text>`;
+  $('doi').innerHTML = h;
+}
+$('doi-chk').addEventListener('click', () => {
+  const s = cur(); S.doiChecked[s.id] = true;
+  const bad = s.act.filter(a => (S.doi[s.id][a.id] || 'none') !== a.rep);
+  renderActors(); drawDOI();
+  if (!bad.length) say(`Diagramme juste ! ${s.act.filter(a => a.rep !== 'none').length} actions agissent sur ${s.sys}. Passe à l'étape 2 pour représenter les forces.`, 'ok');
+  else say(`<strong>${bad.length} erreur${bad.length > 1 ? 's' : ''}.</strong> Indice : ${bad[0].nom}. ${bad.length > 1 ? 'Regarde les lignes en rouge.' : ''}`, 'ko');
+});
+$('doi-sol').addEventListener('click', () => {
+  const s = cur(); s.act.forEach(a => { S.doi[s.id][a.id] = a.rep; }); S.doiChecked[s.id] = true;
+  renderActors(); drawDOI();
+  say('<strong>Correction.</strong><br>' + s.act.map(a => `${a.nom} : ${a.why}`).join('<br>'), 'ok');
+});
+
+/* ---------- liste des forces et tableau ---------- */
+function renderForces() {
+  const s = cur(), fs = forces(), box = $('forces');
+  box.innerHTML = '';
+  fs.forEach((f, i) => {
+    const r = S.sol[s.id] ? [] : evalForce(f, S.user[s.id][i]);
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'fz' + (r ? (r.length ? ' ko' : ' ok') : '');
+    b.setAttribute('aria-pressed', S.sel[s.id] === i);
+    b.innerHTML = `<span class="sw" style="background:var(${f.c})"></span><span>${vecH(f.s)} ${f.nom}<br><small style="color:var(--muted);font-weight:500">${f.act}</small></span><span class="st">${r ? (r.length ? '✗' : '✓') : ''}</span>`;
+    b.addEventListener('click', () => { S.sel[s.id] = i; renderForces(); say(`Trace ${vecH(f.s)} (${f.nom.toLowerCase()}) : clique-glisse depuis son point d'application.`); });
+    box.appendChild(b);
+  });
+}
+function renderTable() {
+  const s = cur(), fs = forces();
+  $('tb').innerHTML = fs.map((f, i) => {
+    const r = S.sol[s.id] ? [] : evalForce(f, S.user[s.id][i]), known = r && !r.length;
+    const c = v => known ? `<td>${v}</td>` : '<td class="q">?</td>';
+    const ptName = S.ptmod ? 'G' : s.pts[f.pt[0]][2] + ' (' + s.pts[f.pt[0]][3] + ')';
+    return `<tr><td style="color:var(${f.c})">${vecH(f.s)} ${f.nom}</td><td>${f.act}</td>${c(ptName)}${c(f.dir)}${c(f.sens)}${c(N(f.F))}${c(fmt(f.F / ech(), 1) + ' carreaux')}</tr>`;
+  }).join('');
+}
+$('f-clear').addEventListener('click', () => { const s = cur(); S.user[s.id] = {}; S.sol[s.id] = false; S.sel[s.id] = 0; refresh(); say('Flèches effacées. Choisis une force et trace-la.'); });
+$('f-sol').addEventListener('click', () => {
+  const s = cur(); S.sol[s.id] = !S.sol[s.id]; refresh();
+  if (S.sol[s.id]) say(`<strong>Correction.</strong> ${s.note(S.par[s.id])}`, 'ok');
+  else say('Correction masquée : à toi de tracer les flèches.');
+  $('f-sol').textContent = S.sol[s.id] ? 'Masquer la correction' : 'Montrer la correction';
+});
+$('ptmod').addEventListener('change', e => { S.ptmod = e.target.checked; refresh(); });
+
+/* ---------- situations, paramètre, échelle, onglets ---------- */
+function renderSits() {
+  $('sits').innerHTML = SIT.map((s, i) => `<button type="button" class="sit" data-i="${i}" aria-pressed="${i === S.k}">${s.nom}</button>`).join('');
+  $('sits').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.k = +b.dataset.i; loadSit(); }));
+}
+function loadSit() {
+  const s = cur(), p = s.par, r = $('par');
+  renderSits();
+  $('par-l').textContent = p.l;
+  r.min = p.min; r.max = p.max; r.step = p.step; r.value = S.par[s.id];
+  $('par-out').textContent = parTxt(s);
+  $('ech').innerHTML = s.ech.map(e => `<option value="${e}" ${e === ech() ? 'selected' : ''}>${eTxt(e)}</option>`).join('');
+  $('sys1').textContent = s.sys; $('sys2').textContent = s.sys;
+  $('f-sol').textContent = S.sol[s.id] ? 'Masquer la correction' : 'Montrer la correction';
+  renderActors(); drawDOI(); refresh();
+  say(s.intro + (S.tab === 1 ? ' Pour chaque acteur, indique s\'il agit sur ' + s.sys + ' par contact, à distance, ou pas du tout.' : ''));
+}
+function refresh() { renderForces(); renderTable(); draw(); sv.classList.toggle('draw', S.tab === 2); }
+$('par').addEventListener('input', e => {
+  const s = cur(); S.par[s.id] = +e.target.value; $('par-out').textContent = parTxt(s); refresh();
+  const fs = forces(), has = fs.some((f, i) => S.user[s.id][i]);
+  if (has && !S.sol[s.id]) say('La valeur a changé : vérifie la longueur de tes flèches.');
+});
+$('ech').addEventListener('change', e => {
+  const s = cur(); S.ech[s.id] = +e.target.value; refresh();
+  if (Object.keys(S.user[s.id]).length && !S.sol[s.id]) say("Nouvelle échelle : les longueurs des flèches doivent être recalculées.");
+});
+function setTab(t) {
+  S.tab = t;
+  $('t1').setAttribute('aria-selected', t === 1); $('t2').setAttribute('aria-selected', t === 2);
+  $('p1').hidden = t !== 1; $('p2').hidden = t !== 2;
+  refresh();
+  const s = cur();
+  if (t === 2) say(`Trace les forces exercées sur ${s.sys}. Commence par ${vecH(forces()[S.sel[s.id]].s)} : clique-glisse depuis son point d'application.`);
+  else say(s.intro);
+}
+$('t1').addEventListener('click', () => setTab(1));
+$('t2').addEventListener('click', () => setTab(2));
+
+const scene = $('sc'), fsBtn = $('fs');
+if (!scene.requestFullscreen) fsBtn.hidden = true;
+fsBtn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : scene.requestFullscreen());
+document.addEventListener('fullscreenchange', () => { fsBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'; });
+
+/* ---------- exercices ---------- */
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const parse = s => {
+  const t = String(s).replace(/\s/g, '').replace(',', '.').replace(/[×x]10\^?/i, 'e');
+  const v = parseFloat(t); return isNaN(v) ? null : v;
+};
+const OBJETS = [['une pomme', 'g', [120, 220]], ['un téléphone', 'g', [150, 240]], ['un sac de classe', 'kg', [4, 9]], ['un chat', 'kg', [3, 6]], ['une bouteille d\'eau pleine', 'g', [520, 1600]]];
+const EXOS = [
+  {
+    titre: 'Exercice 1 : contact ou à distance ? ★',
+    type: 'cls',
+    gen() {
+      const L = [['La Terre attire une pomme qui tombe.', 'dist'], ['Un aimant attire un trombone sans le toucher.', 'dist'], ['Le vent pousse la voile d\'un bateau.', 'cont'],
+        ['Une raquette frappe une balle.', 'cont'], ['Le Soleil attire la Terre.', 'dist'], ['Une table soutient un vase.', 'cont'], ['Un fil retient un pendule.', 'cont'], ['La Terre attire la Lune.', 'dist']];
+      const it = L.sort(() => Math.random() - 0.5).slice(0, 4);
+      return {
+        enonce: "Pour chaque action mécanique, indique s'il s'agit d'une action de contact ou d'une action à distance.",
+        items: it,
+        corr: '<p>Une action <strong>de contact</strong> nécessite que les deux objets se touchent. Une action <strong>à distance</strong> s\'exerce sans contact (attraction gravitationnelle, force magnétique…).</p>' +
+          it.map(([t, r]) => `<p>${t} → <strong>${r === 'cont' ? 'contact' : 'à distance'}</strong></p>`).join('')
+      };
+    }
+  },
+  {
+    titre: 'Exercice 2 : calculer un poids ★',
+    gen() {
+      const [nom, u, [a, b]] = pick(OBJETS), v = u === 'g' ? rint(a, b) : rint(a * 10, b * 10) / 10, m = u === 'g' ? v / 1000 : v, P = m * g, n = u === 'g' ? 3 : 2;
+      return {
+        enonce: `Calculer la valeur du poids de ${nom} de masse m = ${u === 'g' ? v : sig(v, 2)} ${u}, à la surface de la Terre (g = 9,81 N/kg).`,
+        unite: 'N', rep: P, tol: P * 0.02,
+        corr: `<p><strong>Expression littérale :</strong> P = m × g, avec m en kg.</p>
+          ${u === 'g' ? `<p><strong>Conversion :</strong> m = ${v} g = ${sig(m, n)} kg</p>` : ''}
+          <p><strong>Application numérique :</strong> P = ${sig(m, n)} × 9,81</p>
+          <p><strong>Résultat :</strong> P = <strong>${N(P, n)}</strong> (${n} chiffres significatifs, comme la masse).</p>`
+      };
+    }
+  },
+  {
+    titre: 'Exercice 3 : longueur d\'une flèche à l\'échelle ★',
+    gen() {
+      const e = pick([2.0, 5.0, 10, 50]), L = rint(4, 12) / 2, F = L * e;
+      return {
+        enonce: `Une force a pour valeur F = ${sci(F, 2)} N. Avec l'échelle 1 cm ↔ ${sig(e, 2)} N, quelle doit être la longueur de la flèche qui la représente ?`,
+        unite: 'cm', rep: L, tol: 0.05,
+        corr: `<p><strong>Expression littérale :</strong> longueur = F / (valeur représentée par 1 cm).</p>
+          <p><strong>Application numérique :</strong> ℓ = ${sci(F, 2)} / ${sig(e, 2)}</p>
+          <p><strong>Résultat :</strong> ℓ = <strong>${sig(L, 2)} cm</strong>.</p>`
+      };
+    }
+  },
+  {
+    titre: 'Exercice 4 : lire une valeur sur un schéma ★',
+    gen() {
+      const e = pick([20, 50, 100, 200]), L = rint(5, 11) / 2, F = L * e, w = L * 40;
+      const svg = `<svg viewBox="0 0 480 70" aria-label="Flèche de ${sig(L, 2)} cm"><line x1="20" y1="20" x2="${20 + w - 12}" y2="20" stroke="var(--vT)" stroke-width="3.5"/><path d="M${20 + w} 20 l-14 -7 v14 Z" fill="var(--vT)"/>
+        ${Array.from({ length: 12 }, (_, i) => `<line x1="${20 + i * 40}" y1="40" x2="${20 + i * 40}" y2="50" stroke="var(--ink)"/><text x="${20 + i * 40}" y="64" font-size="11" text-anchor="middle" fill="var(--muted)">${i}</text>`).join('')}
+        <line x1="20" y1="45" x2="460" y2="45" stroke="var(--ink)"/><text x="330" y="36" font-size="11" text-anchor="end" fill="var(--muted)">règle (cm)</text></svg>`;
+      return {
+        enonce: `Sur un schéma, la tension ${vecH('T')} d'un fil est représentée par la flèche ci-dessous (mesurée à la règle). Échelle : 1 cm ↔ ${e} N. Quelle est la valeur de la tension ?${svg}`,
+        unite: 'N', rep: F, tol: F * 0.02,
+        corr: `<p><strong>Mesure :</strong> la flèche mesure ℓ = ${sig(L, 2)} cm.</p>
+          <p><strong>Expression littérale :</strong> T = ℓ × (valeur représentée par 1 cm).</p>
+          <p><strong>Application numérique :</strong> T = ${sig(L, 2)} × ${e}</p>
+          <p><strong>Résultat :</strong> T = <strong>${N(F, 2)}</strong> (2 chiffres significatifs, comme la mesure de ℓ).</p>`
+      };
+    }
+  },
+  {
+    titre: 'Exercice 5 : la tension d\'un fil ★★',
+    gen() {
+      const m = rint(15, 60) / 10, P = m * g;
+      return {
+        enonce: `Un lustre de masse m = ${sig(m, 2)} kg est suspendu au plafond par une chaîne. Il est immobile, donc la tension ${vecH('T')} de la chaîne compense son poids ${vecH('P')}. Donner la valeur de T.`,
+        unite: 'N', rep: P, tol: P * 0.03,
+        corr: `<p><strong>Expression littérale :</strong> le lustre est immobile, donc T = P = m × g.</p>
+          <p><strong>Application numérique :</strong> T = ${sig(m, 2)} × 9,81</p>
+          <p><strong>Résultat :</strong> T = <strong>${N(P, 2)}</strong>.</p>
+          <p>Caractéristiques de ${vecH('T')} : point d'application = point d'attache de la chaîne sur le lustre ; direction = celle de la chaîne (verticale) ; sens = vers le haut ; valeur = ${N(P, 2)}.</p>`
+      };
+    }
+  },
+  {
+    titre: 'Exercice 6 : le poids sur la Lune ★★',
+    gen() {
+      const m = rint(60, 120), PL = m * 1.62, PT = m * g;
+      return {
+        enonce: `Un astronaute équipé a une masse m = ${m},0 kg. Sur la Lune, l'intensité de la pesanteur vaut g<sub>L</sub> = 1,62 N/kg. Calculer la valeur de son poids sur la Lune.`,
+        unite: 'N', rep: PL, tol: PL * 0.02,
+        corr: `<p><strong>Expression littérale :</strong> P<sub>L</sub> = m × g<sub>L</sub>.</p>
+          <p><strong>Application numérique :</strong> P<sub>L</sub> = ${m},0 × 1,62</p>
+          <p><strong>Résultat :</strong> P<sub>L</sub> = <strong>${N(PL, 3)}</strong>.</p>
+          <p>Sur Terre, son poids serait P = ${m},0 × 9,81 = ${N(PT, 3)}, environ 6 fois plus. Sa <strong>masse</strong>, elle, ne change pas : ${m},0 kg partout.</p>`
+      };
+    }
+  },
+  {
+    titre: 'Exercice 7 : actions réciproques ★★',
+    type: 'qcm',
+    gen() {
+      const m = rint(3, 12) / 10, P = m * g;
+      const opts = [
+        ['Même direction, même sens, même valeur.', false],
+        ['Même direction, sens opposés, même valeur.', true],
+        ['Même direction, sens opposés, valeur plus petite car la table est plus lourde.', false],
+        ['Elles ne se comparent pas : l\'une est un poids, l\'autre une réaction.', false]
+      ].sort(() => Math.random() - 0.5);
+      return {
+        enonce: `Un livre de ${sig(m, 2)} kg est posé sur une table. La table exerce sur le livre une force ${vecH('F')}<sub>table/livre</sub> de valeur ${N(P, 2)}. Que peut-on dire de la force ${vecH('F')}<sub>livre/table</sub> exercée par le livre sur la table ?`,
+        opts,
+        corr: `<p><strong>Principe des actions réciproques :</strong> si A agit sur B, alors B agit sur A. Les deux forces ont la même direction, des sens opposés et la même valeur : ${vecH('F')}<sub>livre/table</sub> = −${vecH('F')}<sub>table/livre</sub>.</p>
+          <p>Ici F<sub>livre/table</sub> = <strong>${N(P, 2)}</strong>, verticale, vers le bas, appliquée sur la table (au contact).</p>`
+      };
+    }
+  },
+  {
+    titre: 'Exercice 8 : trouver l\'erreur ★★',
+    type: 'qcm',
+    gen() {
+      const opts = [
+        ['La réaction de la piste doit être perpendiculaire à la piste, pas verticale.', true],
+        ['Il manque la force exercée par le télésiège.', false],
+        ['Le poids doit être perpendiculaire à la piste.', false],
+        ['Il manque une force qui pousse le skieur vers le bas de la piste, dans le sens du mouvement.', false]
+      ].sort(() => Math.random() - 0.5);
+      return {
+        enonce: `Pour un skieur qui descend une piste inclinée (frottements négligés), un élève a représenté le poids ${vecH('P')} vertical vers le bas en G, et la réaction ${vecH('R')} de la piste verticale vers le haut au point de contact. Quelle est son erreur ?`,
+        opts,
+        corr: `<p>Sans frottement, la réaction d'un support est toujours <strong>perpendiculaire au support</strong>. Sur une piste inclinée de 20°, ${vecH('R')} est donc inclinée de 20° par rapport à la verticale.</p>
+          <p>Le poids reste vertical. Il n'y a pas de « force du mouvement » : c'est le poids qui entraîne le skieur vers le bas de la piste, et le télésiège n'agit plus sur lui.</p>
+          <p>Vérifie dans la simulation, situation « Skieur sur une piste ».</p>`
+      };
+    }
+  }
+];
+const box = $('exos');
+EXOS.forEach((ex, k) => {
+  const el = document.createElement('div'); el.className = 'exo';
+  box.appendChild(el);
+  function render() {
+    const q = ex.gen();
+    let rep;
+    if (ex.type === 'qcm') rep = `<div class="qcm">${q.opts.map(([t], j) => `<label><input type="radio" name="q${k}" value="${j}"> ${t}</label>`).join('')}</div>`;
+    else if (ex.type === 'cls') rep = `<div class="cls">${q.items.map(([t], j) => `<span>${t}</span><select data-j="${j}" aria-label="${t}"><option value="">…</option><option value="cont">contact</option><option value="dist">à distance</option></select>`).join('')}</div>`;
+    else rep = `<div class="rep"><label for="ex${k}">Réponse :</label><input type="text" id="ex${k}" inputmode="decimal" autocomplete="off"><span>${q.unite}</span></div>`;
+    el.innerHTML = `<h3>${ex.titre}</h3><div class="enonce">${q.enonce}</div>${rep}
+      <p class="fb" aria-live="polite"></p>
+      <div class="row"><button type="button" class="sm" data-a="chk">Vérifier</button>
+      <button type="button" class="ghost sm" data-a="cor">Voir la correction</button>
+      <button type="button" class="ghost sm" data-a="new">Nouvelles valeurs</button></div>
+      <div class="corr" hidden><strong class="t">Correction</strong>${q.corr}</div>`;
+    const fb = el.querySelector('.fb'), corr = el.querySelector('.corr');
+    const res = (ok, msg) => { fb.className = 'fb ' + (ok ? 'ok' : 'ko'); fb.textContent = msg; if (ok) corr.hidden = false; };
+    const check = () => {
+      if (ex.type === 'qcm') {
+        const c = el.querySelector('input:checked');
+        if (!c) return res(false, 'Choisis une réponse.');
+        return res(q.opts[+c.value][1], q.opts[+c.value][1] ? 'Bravo, c\'est juste !' : 'Non, relis bien l\'énoncé et réessaie.');
+      }
+      if (ex.type === 'cls') {
+        const sels = [...el.querySelectorAll('select')];
+        if (sels.some(s => !s.value)) return res(false, 'Réponds pour chaque ligne.');
+        const nb = sels.filter(s => s.value === q.items[+s.dataset.j][1]).length;
+        return res(nb === sels.length, nb === sels.length ? 'Bravo, tout est juste !' : `${nb} bonne${nb > 1 ? 's' : ''} réponse${nb > 1 ? 's' : ''} sur ${sels.length}. Réessaie.`);
+      }
+      const v = parse(el.querySelector('input').value);
+      if (v === null) return res(false, 'Écris un nombre (par exemple 4,9 ou 6,9e2).');
+      const ok = Math.abs(v - q.rep) <= q.tol;
+      res(ok, ok ? 'Bravo, c\'est juste !' : 'Pas tout à fait. Vérifie la formule et les unités (masse en kg).');
+    };
+    el.querySelector('[data-a=chk]').addEventListener('click', check);
+    const inp = el.querySelector('input[type=text]');
+    if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+    el.querySelector('[data-a=cor]').addEventListener('click', () => { corr.hidden = !corr.hidden; });
+    el.querySelector('[data-a=new]').addEventListener('click', render);
+  }
+  render();
+});
+
+loadSit();
+window.__S = S; window.__SIT = SIT; // pour les tests
+})();
+</script>
+</body>
+</html>

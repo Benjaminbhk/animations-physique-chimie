@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circuits électriques</title>
+<meta name="description" content="Simulation interactive : construire un circuit électrique, mesurer intensités et tensions, vérifier la loi des nœuds, la loi des mailles et la loi d'Ohm, tracer la caractéristique d'un dipôle (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#b35a12; --accent-soft:#fdf0e3; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --wire:#2b3448; --grid:#c9d0de; --red:#d0263a; --ok:#1d8a4a; --bad:#c62f2f;
+  --exo-bg:#e6f3fc; --exo-border:#a9d3ef; --exo-card:#ffffff; --exo-ink:#0f5f8f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#f2a45c; --accent-soft:#33241a; --accent-ink:#1a1209;
+    --canvas:#141821; --wire:#d5dbe8; --grid:#3a4257; --red:#ff6b7a; --ok:#4fd187; --bad:#ff7a7a;
+    --exo-bg:#132433; --exo-border:#244a66; --exo-card:#181f2a; --exo-ink:#8fd0ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#f2a45c; --accent-soft:#33241a; --accent-ink:#1a1209;
+  --canvas:#141821; --wire:#d5dbe8; --grid:#3a4257; --red:#ff6b7a; --ok:#4fd187; --bad:#ff7a7a;
+  --exo-bg:#132433; --exo-border:#244a66; --exo-card:#181f2a; --exo-ink:#8fd0ff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:80ch}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{background:transparent;color:var(--accent)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);
+  border:1px solid var(--border);touch-action:none}
+#cv1{aspect-ratio:820/600}
+#cv2{aspect-ratio:620/300}
+#gr{aspect-ratio:620/400;margin-top:10px}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:1rem;margin:0 0 .35rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.45rem .7rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:40px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.tool{background:var(--bg);color:var(--text);border:1px solid var(--border);font-size:.86rem;line-height:1.15;padding:.35rem .4rem}
+button.tool:hover{border-color:var(--accent)}
+button.tool[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row label{font-weight:600;font-size:.92rem}
+select{font:inherit;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:6ch}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.warn{color:var(--bad);font-weight:600;margin:.4rem 0 0;min-height:1.2em;font-size:.93rem}
+.box{border:1px solid var(--border);border-radius:10px;padding:.55rem .7rem;background:var(--bg);font-size:.92rem}
+.box:empty{display:none}
+table.mes{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+table.mes td,table.mes th{padding:.2rem .4rem;border-bottom:1px solid var(--border);text-align:left}
+table.mes th{color:var(--muted);font-weight:600}
+table.mes td.n{text-align:right;font-weight:700}
+.tablewrap{max-height:210px;overflow:auto}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+.model{font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+/* ----- exercices (fond distinct) ----- */
+.exos{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:16px;margin:0 0 22px}
+.exos > h2{margin:0 0 .2rem;font-size:1.25rem;color:var(--exo-ink)}
+.exos > p{margin:0 0 12px;color:var(--muted)}
+.exo-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.exo{background:var(--exo-card);border:1px solid var(--exo-border);border-radius:12px;padding:.75rem .9rem}
+.exo h3{margin:0 0 .35rem;font-size:1rem}
+.exo h3 span{color:var(--exo-ink)}
+.exo p{margin:.3rem 0}
+.exo .ans{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:.5rem 0}
+.exo input[type=text]{font:inherit;width:7.5em;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.exo .fb{font-weight:600;min-height:1.3em;margin:.2rem 0}
+.exo details{margin-top:.4rem}
+.exo summary{cursor:pointer;font-weight:600;color:var(--exo-ink)}
+.exo .corr{border-left:4px solid var(--ok);padding:.35rem .7rem;margin:.4rem 0 0;background:var(--bg);border-radius:0 8px 8px 0}
+.exo table{border-collapse:collapse;font-variant-numeric:tabular-nums;margin:.3rem 0}
+.exo table td,.exo table th{border:1px solid var(--border);padding:.15rem .5rem;text-align:center}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+.scene:fullscreen .memo{display:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo,.exo-list{grid-template-columns:1fr}
+  .scene,.exos{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Circuits électriques</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Construis un circuit avec un générateur, des résistances, une lampe, une DEL et un interrupteur, branche des
+    <strong>ampèremètres</strong> et des <strong>voltmètres</strong>, puis vérifie la <strong>loi des nœuds</strong> et la
+    <strong>loi des mailles</strong>. Dans le second onglet, trace la <strong>caractéristique</strong> U = f(I) d'un dipôle et modélise-la.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de circuits électriques">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab1" aria-selected="true" aria-controls="p1">1. Construire un circuit</button>
+      <button type="button" role="tab" id="tab2" aria-selected="false" aria-controls="p2">2. Caractéristique d'un dipôle</button>
+      <button id="fs" class="ghost" type="button" style="margin-left:auto">Plein écran</button>
+    </div>
+
+    <!-- ===== Onglet 1 ===== -->
+    <div id="p1" role="tabpanel" aria-labelledby="tab1">
+      <div class="layout">
+        <div>
+          <canvas id="cv1" role="img" aria-label="Plaque de montage : schéma du circuit électrique"></canvas>
+          <p class="explain" id="msg1" aria-live="polite"></p>
+          <p class="warn" id="warn1" aria-live="polite"></p>
+        </div>
+        <div class="panel">
+          <div>
+            <h2>1. Outils <small id="toolname"></small></h2>
+            <div class="grid3" id="tools"></div>
+          </div>
+          <div>
+            <h2>2. Montages prêts</h2>
+            <div class="grid2">
+              <button class="ghost" type="button" data-preset="serie">Série</button>
+              <button class="ghost" type="button" data-preset="derivation">Dérivation</button>
+              <button class="ghost" type="button" data-preset="del">DEL protégée</button>
+              <button class="ghost" type="button" data-preset="vide">Tout effacer</button>
+            </div>
+          </div>
+          <div>
+            <h2>3. Élément sélectionné</h2>
+            <div class="box" id="selbox"></div>
+            <p class="small" id="selhint" style="margin:.2rem 0 0">Avec l'outil « Sélection », clique sur un dipôle pour le régler (clique sur un interrupteur pour l'ouvrir ou le fermer).</p>
+          </div>
+          <div>
+            <h2>4. Mesures</h2>
+            <div class="tablewrap"><table class="mes" id="mes1"></table></div>
+          </div>
+          <div>
+            <label class="check"><input type="checkbox" id="dots" checked> Montrer le sens conventionnel du courant</label>
+            <label class="check"><input type="checkbox" id="allui"> Afficher U et I à côté de chaque dipôle</label>
+          </div>
+        </div>
+      </div>
+      <div class="memo">
+        <div><h3>Loi des nœuds</h3>La somme des intensités des courants qui arrivent à un nœud est égale à la somme des intensités des courants qui en repartent.</div>
+        <div><h3>Loi des mailles</h3>Dans une maille, la tension aux bornes du générateur est égale à la somme des tensions aux bornes des récepteurs (en série : U<sub>G</sub> = U<sub>1</sub> + U<sub>2</sub>).</div>
+        <div><h3>Branchements</h3>L'ampèremètre se branche <strong>en série</strong> (le courant entre par la borne A ou mA), le voltmètre <strong>en dérivation</strong> (U<sub>AB</sub> : borne V en A, borne COM en B).</div>
+      </div>
+    </div>
+
+    <!-- ===== Onglet 2 ===== -->
+    <div id="p2" role="tabpanel" aria-labelledby="tab2" hidden>
+      <div class="layout">
+        <div>
+          <canvas id="cv2" role="img" aria-label="Montage de mesure : générateur réglable, résistance de protection, ampèremètre, dipôle étudié et voltmètre"></canvas>
+          <canvas id="gr" role="img" aria-label="Graphique de la caractéristique U en fonction de I"></canvas>
+          <p class="explain" id="msg2" aria-live="polite"></p>
+          <p class="warn" id="warn2" aria-live="polite"></p>
+        </div>
+        <div class="panel">
+          <div>
+            <h2>1. Dipôle étudié</h2>
+            <div class="row">
+              <select id="dip" aria-label="Dipôle étudié">
+                <option value="r100">Conducteur ohmique 100 Ω</option>
+                <option value="r220">Conducteur ohmique 220 Ω</option>
+                <option value="lampe">Lampe (6 V ; 0,1 A)</option>
+                <option value="del">DEL rouge</option>
+                <option value="myst">Dipôle mystère</option>
+              </select>
+              <button class="ghost" type="button" id="newmyst" hidden>Nouveau mystère</button>
+            </div>
+          </div>
+          <div>
+            <h2>2. Régler le générateur</h2>
+            <div class="row">
+              <label for="E2">Tension E</label>
+              <input id="E2" type="range" min="-6" max="12" step="0.1" value="3">
+              <output id="E2o" for="E2"></output>
+            </div>
+            <div class="row" style="margin-top:6px">
+              <label for="rp">Résistance de protection</label>
+              <select id="rp"><option>22</option><option>47</option><option selected>100</option><option>220</option></select> Ω
+            </div>
+            <label class="check" style="margin-top:6px"><input type="checkbox" id="noise" checked> Mesures avec de petites incertitudes</label>
+          </div>
+          <div>
+            <h2>3. Relever les mesures <small id="npts">0 point</small></h2>
+            <div class="grid2">
+              <button type="button" id="rec">Ajouter le point</button>
+              <button type="button" class="ghost" id="sweep">Balayage auto</button>
+            </div>
+            <div class="tablewrap" style="margin-top:6px"><table class="mes" id="mes2"></table></div>
+            <button type="button" class="ghost" id="clr" style="margin-top:6px;width:100%">Effacer les points</button>
+          </div>
+          <div>
+            <h2>4. Modéliser</h2>
+            <div class="grid2">
+              <button type="button" class="ghost" id="m0">Droite par l'origine</button>
+              <button type="button" class="ghost" id="m1">Fonction affine</button>
+            </div>
+            <div class="box model" id="modbox" style="margin-top:6px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="memo">
+        <div><h3>Caractéristique</h3>C'est la courbe U = f(I) qui donne la tension aux bornes d'un dipôle en fonction de l'intensité du courant qui le traverse.</div>
+        <div><h3>Loi d'Ohm</h3>Pour un conducteur ohmique, la caractéristique est une droite passant par l'origine : U = R × I, avec U en V, I en A et R en Ω.</div>
+        <div><h3>Dipôles non ohmiques</h3>La lampe et la DEL ne suivent pas la loi d'Ohm : leur caractéristique n'est pas une droite. La DEL ne laisse passer le courant que dans un sens.</div>
+      </div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Modèle simplifié : générateur presque idéal, fils et ampèremètres de résistance négligeable, voltmètres de résistance infinie. Les valeurs sont affichées avec 3 chiffres significatifs.</p>
+  </section>
+
+  <!-- ===== Exercices ===== -->
+  <section class="exos" id="exercices" aria-labelledby="exos-titre">
+    <h2 id="exos-titre">S'entraîner</h2>
+    <p>Petits exercices pour vérifier que tu sais utiliser les lois. Écris ta réponse, puis ouvre la correction.</p>
+    <div class="exo-list">
+      <article class="exo">
+        <h3><span>Exercice 1</span> · Loi des nœuds</h3>
+        <p>Un courant d'intensité I = 0,250 A arrive à un nœud. Deux courants en repartent : I<sub>1</sub> = 0,100 A et I<sub>2</sub>.</p>
+        <p>Calcule I<sub>2</sub> (en A).</p>
+        <div class="ans"><input type="text" inputmode="decimal" data-sol="0.150" data-tol="0.002" aria-label="I2 en ampères"> A <button type="button" class="ghost">Vérifier</button></div>
+        <p class="fb" aria-live="polite"></p>
+        <details><summary>Voir la correction</summary><div class="corr">
+          Loi des nœuds : I = I<sub>1</sub> + I<sub>2</sub>, donc I<sub>2</sub> = I − I<sub>1</sub>.<br>
+          I<sub>2</sub> = 0,250 − 0,100 = <strong>0,150 A = 1,50 × 10<sup>−1</sup> A</strong>.
+        </div></details>
+      </article>
+      <article class="exo">
+        <h3><span>Exercice 2</span> · Loi des mailles</h3>
+        <p>Un générateur de tension U<sub>G</sub> = 12,0 V alimente une lampe et une résistance branchées en série. Le voltmètre indique U<sub>L</sub> = 4,5 V aux bornes de la lampe.</p>
+        <p>Calcule la tension U<sub>R</sub> aux bornes de la résistance (en V).</p>
+        <div class="ans"><input type="text" inputmode="decimal" data-sol="7.5" data-tol="0.06" aria-label="UR en volts"> V <button type="button" class="ghost">Vérifier</button></div>
+        <p class="fb" aria-live="polite"></p>
+        <details><summary>Voir la correction</summary><div class="corr">
+          Loi des mailles : U<sub>G</sub> = U<sub>L</sub> + U<sub>R</sub>, donc U<sub>R</sub> = U<sub>G</sub> − U<sub>L</sub>.<br>
+          U<sub>R</sub> = 12,0 − 4,5 = <strong>7,5 V</strong> (soit 7,5 × 10<sup>0</sup> V ; 2 chiffres significatifs, comme 4,5 V).
+        </div></details>
+      </article>
+      <article class="exo">
+        <h3><span>Exercice 3</span> · Loi d'Ohm</h3>
+        <p>Un conducteur ohmique de résistance R = 220 Ω est traversé par un courant d'intensité I = 25,0 mA.</p>
+        <p>Calcule la tension U à ses bornes (en V).</p>
+        <div class="ans"><input type="text" inputmode="decimal" data-sol="5.50" data-tol="0.03" aria-label="U en volts"> V <button type="button" class="ghost">Vérifier</button></div>
+        <p class="fb" aria-live="polite"></p>
+        <details><summary>Voir la correction</summary><div class="corr">
+          Expression littérale : U = R × I, avec I en ampères : I = 25,0 mA = 25,0 × 10<sup>−3</sup> A.<br>
+          Application numérique : U = 220 × 25,0 × 10<sup>−3</sup><br>
+          Résultat : <strong>U = 5,50 V = 5,50 × 10<sup>0</sup> V</strong>.
+        </div></details>
+      </article>
+      <article class="exo">
+        <h3><span>Exercice 4</span> · Exploiter une caractéristique</h3>
+        <p>On a relevé ces mesures pour un dipôle :</p>
+        <table><tr><th>I (mA)</th><td>0</td><td>20,0</td><td>40,0</td><td>60,0</td><td>80,0</td></tr>
+          <tr><th>U (V)</th><td>0</td><td>0,94</td><td>1,88</td><td>2,82</td><td>3,76</td></tr></table>
+        <p>Le dipôle est-il un conducteur ohmique ? Si oui, calcule sa résistance R (en Ω).</p>
+        <div class="ans"><input type="text" inputmode="decimal" data-sol="47" data-tol="0.6" aria-label="R en ohms"> Ω <button type="button" class="ghost">Vérifier</button></div>
+        <p class="fb" aria-live="polite"></p>
+        <details><summary>Voir la correction</summary><div class="corr">
+          Les points sont alignés avec l'origine : U est proportionnelle à I, c'est un conducteur ohmique.<br>
+          R est le coefficient directeur : R = U / I = 3,76 / (80,0 × 10<sup>−3</sup>)<br>
+          <strong>R = 47,0 Ω = 4,70 × 10<sup>1</sup> Ω</strong>. Tu peux le vérifier dans l'onglet 2 avec le dipôle mystère.
+        </div></details>
+      </article>
+      <article class="exo">
+        <h3><span>Exercice 5</span> · Brancher les appareils</h3>
+        <p>On veut mesurer l'intensité du courant qui traverse une lampe et la tension à ses bornes.</p>
+        <p>Comment branche-t-on l'ampèremètre ? Et le voltmètre ? Que se passe-t-il si on branche l'ampèremètre en dérivation aux bornes de la lampe ?</p>
+        <details><summary>Voir la correction</summary><div class="corr">
+          L'ampèremètre se branche <strong>en série</strong> avec la lampe (le courant entre par la borne A ou mA et sort par COM).<br>
+          Le voltmètre se branche <strong>en dérivation</strong> aux bornes de la lampe.<br>
+          Un ampèremètre en dérivation court-circuite la lampe (sa résistance est quasi nulle) : la lampe s'éteint et le courant devient très grand. Essaie-le dans l'onglet 1 !
+        </div></details>
+      </article>
+      <article class="exo">
+        <h3><span>Exercice 6</span> · Protéger une DEL</h3>
+        <p>Une DEL rouge fonctionne correctement avec U<sub>DEL</sub> = 2,0 V et I = 20 mA. Elle est alimentée par un générateur de 6,0 V, en série avec une résistance R.</p>
+        <p>Calcule R (en Ω) pour que I = 20 mA.</p>
+        <div class="ans"><input type="text" inputmode="decimal" data-sol="200" data-tol="3" aria-label="R en ohms"> Ω <button type="button" class="ghost">Vérifier</button></div>
+        <p class="fb" aria-live="polite"></p>
+        <details><summary>Voir la correction</summary><div class="corr">
+          Loi des mailles : U<sub>G</sub> = U<sub>DEL</sub> + U<sub>R</sub>, donc U<sub>R</sub> = 6,0 − 2,0 = 4,0 V.<br>
+          Loi d'Ohm : R = U<sub>R</sub> / I = 4,0 / (20 × 10<sup>−3</sup>)<br>
+          <strong>R = 2,0 × 10<sup>2</sup> Ω</strong>. Essaie le montage « DEL protégée » de l'onglet 1 avec 200 Ω.
+        </div></details>
+      </article>
+    </div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Valeurs affichées avec 3 chiffres significatifs.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+/* ---------- formats (virgule décimale, chiffres significatifs) ---------- */
+function roundSig(x, n = 3) {
+  if (!isFinite(x) || x === 0) return 0;
+  const e = Math.floor(Math.log10(Math.abs(x))), p = Math.pow(10, e - n + 1);
+  return Math.round(x / p) * p;
+}
+function sig(x, n = 3) {
+  if (!isFinite(x)) return '—';
+  if (x === 0) return (0).toFixed(n - 1).replace('.', ',');
+  const r = roundSig(x, n), e = Math.floor(Math.log10(Math.abs(r)));
+  return r.toFixed(clamp(n - 1 - e, 0, 12)).replace('.', ',').replace('-', '−');
+}
+const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+function sci(x, n = 3, html = true) {
+  if (!isFinite(x) || x === 0) return sig(0, n);
+  const r = roundSig(x, n), e = Math.floor(Math.log10(Math.abs(r))), m = r / Math.pow(10, e);
+  const ms = m.toFixed(n - 1).replace('.', ',').replace('-', '−');
+  return ms + ' × 10' + (html ? `<sup>${String(e).replace('-', '−')}</sup>` : String(e).split('').map(c => SUP[c]).join(''));
+}
+const fmtU = u => (Math.abs(u) < 5e-4 ? '0,00' : sig(u)) + ' V';
+function fmtI(i) {
+  if (Math.abs(i) < 5e-6) return '0,00 mA';
+  if (Math.abs(i) >= 0.9995) return sig(i) + ' A';
+  return sig(i * 1000) + ' mA';
+}
+const fmtR = r => (r >= 1000 ? sig(r / 1000) + ' kΩ' : Math.round(r) + ' Ω');
+
+/* ---------- modèles des dipôles ---------- */
+const RW = 1e-3, RG = 0.01, GMIN = 1e-9;
+const LAMP_EPS = 0.01, LAMP_A = 0.1 * Math.pow(36 + LAMP_EPS, 0.2) / 6;          // 6 V ; 0,1 A
+const fLamp = u => LAMP_A * u * Math.pow(u * u + LAMP_EPS, -0.2);
+const LED_VN = 0.1, LED_U0 = 2.0, LED_I0 = 0.02, LED_IS = LED_I0 / Math.exp(LED_U0 / LED_VN);
+const fLed = u => u <= LED_U0 ? LED_IS * (Math.exp(u / LED_VN) - 1) : LED_I0 + (u - LED_U0) * LED_I0 / LED_VN;
+const FN = { lampe: fLamp, del: fLed };
+const dfn = (f, u) => (f(u + 1e-6) - f(u - 1e-6)) / 2e-6;
+
+const NAMES = { fil: 'Fil', gen: 'Générateur', res: 'Résistance', lampe: 'Lampe', del: 'DEL', inter: 'Interrupteur', amp: 'Ampèremètre', myst: 'Dipôle mystère' };
+const PREFIX = { gen: 'G', res: 'R', lampe: 'L', del: 'D', inter: 'K', amp: 'A', myst: 'X' };
+const RVALS = [10, 22, 33, 47, 68, 100, 150, 200, 220, 330, 470, 680, 1000];
+
+/* ---------- circuit sur une grille ---------- */
+function makeCircuit(o) {
+  return Object.assign({ items: new Map(), volts: [], V: new Float64Array(o.cols * o.rows), noise: null, fixedLabels: false }, o);
+}
+const nxy = (C, n) => [C.x0 + (n % C.cols) * C.dx, C.y0 + Math.floor(n / C.cols) * C.dy];
+const nid = (C, r, c) => r * C.cols + c;
+const ekey = (a, b) => a < b ? a + '-' + b : b + '-' + a;
+function addItem(C, type, a, b, props = {}) {
+  const it = Object.assign({ type, a, b }, props);
+  if (type === 'res' && it.R == null) it.R = 100;
+  if (type === 'gen' && it.E == null) it.E = 6;
+  if (type === 'inter' && it.closed == null) it.closed = true;
+  if (PREFIX[type] && !it.label) it.label = nextLabel(C, PREFIX[type]);
+  C.items.set(ekey(a, b), it);
+  return it;
+}
+function nextLabel(C, p) {
+  const used = new Set([...C.items.values()].map(i => i.label));
+  for (let k = 1; ; k++) if (!used.has(p + k)) return p + k;
+}
+function nextVolt(C) {
+  const used = new Set(C.volts.map(v => v.label));
+  for (let k = 1; ; k++) if (!used.has('V' + k)) return 'V' + k;
+}
+function addVolt(C, p, m, label) {
+  const v = { p, m, label: label || nextVolt(C) };
+  const [xa, ya] = nxy(C, p), [xb, yb] = nxy(C, m);
+  const mx = (xa + xb) / 2, my = (ya + yb) / 2;
+  let px = -(yb - ya), py = xb - xa; const L = Math.hypot(px, py) || 1; px /= L; py /= L;
+  const cx = C.W / 2, cy = C.H / 2;
+  if ((mx - cx) * px + (my - cy) * py < 0) { px = -px; py = -py; }
+  const d = Math.hypot(xb - xa, yb - ya) < 1 ? 0 : 52;
+  v.x = clamp(mx + px * d, 26, C.W - 26); v.y = clamp(my + py * d, 26, C.H - 30);
+  C.volts.push(v); return v;
+}
+
+function gauss(A, b) {
+  const n = b.length;
+  for (let k = 0; k < n; k++) {
+    let p = k, mx = Math.abs(A[k][k]);
+    for (let i = k + 1; i < n; i++) if (Math.abs(A[i][k]) > mx) { mx = Math.abs(A[i][k]); p = i; }
+    if (p !== k) { const t = A[k]; A[k] = A[p]; A[p] = t; const tb = b[k]; b[k] = b[p]; b[p] = tb; }
+    const akk = A[k][k]; if (akk === 0) continue;
+    for (let i = k + 1; i < n; i++) {
+      const f = A[i][k] / akk; if (f === 0) continue;
+      const Ai = A[i], Ak = A[k];
+      for (let j = k; j < n; j++) Ai[j] -= f * Ak[j];
+      b[i] -= f * b[k];
+    }
+  }
+  const x = new Float64Array(n);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = b[i]; for (let j = i + 1; j < n; j++) s -= A[i][j] * x[j];
+    x[i] = A[i][i] ? s / A[i][i] : 0;
+  }
+  return x;
+}
+function solve(C) {
+  const N = C.cols * C.rows, items = [...C.items.values()];
+  const nl = items.some(it => FN[it.type]);
+  let V = Float64Array.from(C.V);
+  for (let iter = 0; iter < (nl ? 500 : 1); iter++) {
+    const A = Array.from({ length: N }, () => new Float64Array(N)), J = new Float64Array(N);
+    for (let i = 0; i < N; i++) A[i][i] += GMIN;
+    const G = (a, b, g) => { A[a][a] += g; A[b][b] += g; A[a][b] -= g; A[b][a] -= g; };
+    for (const it of items) {
+      const { a, b } = it;
+      switch (it.type) {
+        case 'fil': case 'amp': G(a, b, 1 / RW); break;
+        case 'inter': if (it.closed) G(a, b, 1 / RW); break;
+        case 'res': case 'myst': G(a, b, 1 / it.R); break;
+        case 'gen': G(a, b, 1 / RG); J[a] += it.E / RG; J[b] -= it.E / RG; break;
+        case 'lampe': case 'del': {
+          const f = FN[it.type], u = V[a] - V[b], i = f(u), g = Math.max(dfn(f, u), 1e-12), ieq = i - g * u;
+          G(a, b, g); J[a] -= ieq; J[b] += ieq;
+        }
+      }
+    }
+    const X = gauss(A, J);
+    if (!nl) { V = X; break; }
+    let m = 0; for (let i = 0; i < N; i++) m = Math.max(m, Math.abs(X[i] - V[i]));
+    const s = m > 0.4 ? 0.4 / m : 1;
+    for (let i = 0; i < N; i++) V[i] += s * (X[i] - V[i]);
+    if (m < 1e-11) break;
+  }
+  C.V = V;
+  for (const it of items) it.I = Iab(C, it);
+  C.warn = [];
+  for (const it of items) {
+    if (it.type === 'gen' && Math.abs(it.I) > 2) C.warn.push(`Court-circuit ! Le générateur ${it.label} débite ${fmtI(-it.I)} : il risque d'être détérioré.`);
+    if (it.type === 'del' && it.I > 0.03) C.warn.push(`La DEL ${it.label} est traversée par ${fmtI(it.I)} (plus de 30 mA) : elle va griller. Ajoute une résistance de protection.`);
+    if (it.type === 'lampe' && Math.abs(it.I) > 0.13) C.warn.push(`La lampe ${it.label} est en surintensité (${fmtI(Math.abs(it.I))}) : elle risque de griller.`);
+  }
+}
+function Iab(C, it) {   // intensité du courant dans le dipôle, de la borne a vers la borne b
+  const u = C.V[it.a] - C.V[it.b];
+  switch (it.type) {
+    case 'fil': case 'amp': return u / RW;
+    case 'inter': return it.closed ? u / RW : 0;
+    case 'res': case 'myst': return u / it.R;
+    case 'gen': return (u - it.E) / RG;
+    case 'lampe': case 'del': return FN[it.type](u);
+  }
+  return 0;
+}
+const Uab = (C, it) => C.V[it.a] - C.V[it.b];
+const readA = (C, it) => it.I * (C.noise ? C.noise.a : 1);
+const readV = (C, v) => (C.V[v.p] - C.V[v.m]) * (C.noise ? C.noise.v : 1);
+
+/* ---------- couleurs ---------- */
+let K = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  K = { canvas: g('--canvas'), wire: g('--wire'), grid: g('--grid'), text: g('--text'), muted: g('--muted'),
+        accent: g('--accent'), soft: g('--accent-soft'), red: g('--red'), bad: g('--bad'), ok: g('--ok'), surface: g('--surface') };
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+const FONT = w => `${w} 14px system-ui, -apple-system, "Segoe UI", sans-serif`;
+
+/* ---------- dessin ---------- */
+function setupCanvas(cv, W, H) {
+  const o = { cv, ctx: cv.getContext('2d'), W, H, scale: 1, dpr: 1 };
+  const rs = () => {
+    const w = cv.clientWidth || W; o.dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    o.scale = w / W; cv.width = Math.round(w * o.dpr); cv.height = Math.round(w * H / W * o.dpr);
+  };
+  new ResizeObserver(rs).observe(cv); rs();
+  return o;
+}
+function degree(C) {
+  const d = new Map();
+  for (const it of C.items.values()) { d.set(it.a, (d.get(it.a) || 0) + 1); d.set(it.b, (d.get(it.b) || 0) + 1); }
+  return d;
+}
+function text(c, s, x, y, align = 'center', base = 'middle', col = K.text, w = 600, size = 14) {
+  c.font = `${w} ${size}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  c.textAlign = align; c.textBaseline = base; c.fillStyle = col; c.fillText(s, x, y);
+}
+function labelText(C, it) {
+  switch (it.type) {
+    case 'res': return `${it.label} = ${fmtR(it.R)}`;
+    case 'myst': return C.hideMyst ? `${it.label} = ?` : `${it.label} = ${fmtR(it.R)}`;
+    case 'gen': return `${it.label} : ${sig(it.E, Math.abs(it.E) >= 10 ? 3 : 2)} V`;
+    case 'lampe': case 'del': case 'inter': return it.label;
+    default: return '';
+  }
+}
+function drawItem(c, C, it, sel, t) {
+  const [xa, ya] = nxy(C, it.a), [xb, yb] = nxy(C, it.b);
+  const mx = (xa + xb) / 2, my = (ya + yb) / 2, L = Math.hypot(xb - xa, yb - ya), ang = Math.atan2(yb - ya, xb - xa);
+  const horiz = Math.abs(yb - ya) < 1;
+  c.save(); c.translate(mx, my); c.rotate(ang);
+  c.lineWidth = 3; c.strokeStyle = K.wire; c.lineCap = 'round'; c.lineJoin = 'round';
+  const lead = s => { c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(-s, 0); c.moveTo(s, 0); c.lineTo(L / 2, 0); c.stroke(); };
+  if (sel) { c.save(); c.fillStyle = K.soft; c.strokeStyle = K.accent; c.lineWidth = 2; c.setLineDash([5, 4]);
+    c.beginPath(); c.roundRect(-L / 2 + 12, -30, L - 24, 60, 10); c.fill(); c.stroke(); c.restore(); }
+  switch (it.type) {
+    case 'fil': c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(L / 2, 0); c.stroke(); break;
+    case 'res': case 'myst':
+      lead(24); c.fillStyle = it.type === 'myst' ? K.soft : K.canvas;
+      c.beginPath(); c.rect(-24, -10, 48, 20); c.fill(); c.stroke(); break;
+    case 'lampe': {
+      lead(17);
+      const p = Math.abs(Uab(C, it) * it.I) / 0.6;
+      if (p > 0.01) { const g = c.createRadialGradient(0, 0, 4, 0, 0, 46);
+        g.addColorStop(0, `rgba(255,214,90,${clamp(p, 0, 1.2) * 0.85})`); g.addColorStop(1, 'rgba(255,214,90,0)');
+        c.fillStyle = g; c.beginPath(); c.arc(0, 0, 46, 0, 7); c.fill(); }
+      c.fillStyle = p > 0.01 ? `rgba(255,226,120,${clamp(p, 0, 1)})` : K.canvas;
+      c.beginPath(); c.arc(0, 0, 17, 0, 7); c.fill(); c.stroke();
+      c.beginPath(); c.moveTo(-12, -12); c.lineTo(12, 12); c.moveTo(12, -12); c.lineTo(-12, 12); c.stroke(); break;
+    }
+    case 'del': {
+      lead(12);
+      const p = clamp(it.I / 0.02, 0, 1.5);
+      if (p > 0.02) { const g = c.createRadialGradient(0, 0, 3, 0, 0, 42);
+        g.addColorStop(0, `rgba(255,40,40,${Math.min(1, p) * 0.75})`); g.addColorStop(1, 'rgba(255,40,40,0)');
+        c.fillStyle = g; c.beginPath(); c.arc(0, 0, 42, 0, 7); c.fill(); }
+      c.fillStyle = p > 0.02 ? `rgba(240,50,50,${0.35 + 0.65 * Math.min(1, p)})` : K.canvas;
+      c.beginPath(); c.moveTo(-11, -12); c.lineTo(11, 0); c.lineTo(-11, 12); c.closePath(); c.fill(); c.stroke();
+      c.beginPath(); c.moveTo(11, -13); c.lineTo(11, 13); c.stroke();
+      c.lineWidth = 2;
+      for (const dx of [-2, 7]) { c.beginPath(); c.moveTo(dx, -15); c.lineTo(dx + 9, -26); c.stroke();
+        c.beginPath(); c.moveTo(dx + 9, -26); c.lineTo(dx + 3, -24); c.moveTo(dx + 9, -26); c.lineTo(dx + 8, -20); c.stroke(); }
+      break;
+    }
+    case 'gen': {
+      lead(6);
+      c.lineWidth = 3; c.beginPath(); c.moveTo(-6, -22); c.lineTo(-6, 22); c.stroke();
+      c.lineWidth = 7; c.beginPath(); c.moveTo(6, -11); c.lineTo(6, 11); c.stroke();
+      break;
+    }
+    case 'inter':
+      c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(-18, 0); c.moveTo(18, 0); c.lineTo(L / 2, 0); c.stroke();
+      c.beginPath(); if (it.closed) { c.moveTo(-18, 0); c.lineTo(18, 0); } else { c.moveTo(-18, 0); c.lineTo(14, -17); } c.stroke();
+      c.fillStyle = K.wire; for (const x of [-18, 18]) { c.beginPath(); c.arc(x, 0, 3.5, 0, 7); c.fill(); }
+      break;
+    case 'amp':
+      c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(-18, 0); c.stroke();
+      c.beginPath(); c.moveTo(18, 0); c.lineTo(L / 2, 0); c.stroke();
+      c.strokeStyle = K.red; c.beginPath(); c.moveTo(-28, 0); c.lineTo(-18, 0); c.stroke();
+      c.strokeStyle = K.wire; c.fillStyle = K.canvas; c.beginPath(); c.arc(0, 0, 18, 0, 7); c.fill(); c.stroke();
+      break;
+  }
+  c.restore();
+  // textes droits
+  const cx = C.W / 2, cy = C.H / 2;
+  let ox = horiz ? 0 : ((it.a % C.cols === C.cols - 1 && it.b % C.cols === C.cols - 1) ? -1 : 1), oy = horiz ? (my < cy ? 1 : -1) : 0;
+  if (C.labelSide) [ox, oy] = C.labelSide(it, ox, oy);
+  if (it.type === 'amp') {
+    text(c, 'A', mx, my + 1, 'center', 'middle', K.text, 700, 17);
+    const [ax, ay] = [xa + (xb - xa) / L * (L / 2 - 30), ya + (yb - ya) / L * (L / 2 - 30)];
+    text(c, '+', ax + (horiz ? 0 : -ox * 12) + (horiz ? -4 : 0), ay + (horiz ? -14 : 0), 'center', 'middle', K.red, 700, 13);
+    const s = `${it.label} : ${fmtI(readA(C, it))}`;
+    if (horiz) text(c, s, mx, my + oy * 36, 'center', 'middle', K.accent, 700, 15);
+    else text(c, s, mx + ox * 26, my, ox > 0 ? 'left' : 'right', 'middle', K.accent, 700, 15);
+    return;
+  }
+  if (it.type === 'gen') {
+    const px = xa + (xb - xa) / L * (L / 2 - 16), py = ya + (yb - ya) / L * (L / 2 - 16);
+    text(c, '+', px + (horiz ? 0 : -ox * 14), py + (horiz ? -20 : 0), 'center', 'middle', K.red, 700, 16);
+  }
+  if (it.type === 'del' && C.sel === it) {} // rien
+  let s = labelText(C, it);
+  if (C.showUI && it.type !== 'fil') s += (s ? '  ' : '') + `${fmtU(Uab(C, it))} ; ${fmtI(Math.abs(it.I))}`;
+  if (!s) return;
+  if (horiz) text(c, s, mx, my + oy * 36, 'center', 'middle', K.muted, 600, 13.5);
+  else text(c, s, mx + ox * 30, my, ox > 0 ? 'left' : 'right', 'middle', K.muted, 600, 13.5);
+}
+function drawDots(c, C, t) {
+  for (const it of C.items.values()) {
+    const I = it.I || 0; if (Math.abs(I) < 2e-5) continue;
+    const [xa, ya] = nxy(C, it.a), [xb, yb] = nxy(C, it.b), L = Math.hypot(xb - xa, yb - ya);
+    const v = 8 + 16 * Math.log10(Math.abs(I) / 1e-5), sp = 30;
+    let off = ((t * v) % sp + sp) % sp; if (I < 0) off = sp - off;
+    c.fillStyle = K.accent;
+    for (let s = off; s < L; s += sp) {
+      const f = I > 0 ? s / L : 1 - s / L;
+      const x = xa + (xb - xa) * f, y = ya + (yb - ya) * f;
+      if (it.type !== 'fil' && Math.abs(s - L / 2) < 26) continue;
+      c.beginPath(); c.arc(x, y, 3.2, 0, 7); c.fill();
+    }
+  }
+}
+function drawVolt(c, C, v, sel) {
+  const [xa, ya] = nxy(C, v.p), [xb, yb] = nxy(C, v.m);
+  c.lineWidth = 2; c.setLineDash([]);
+  const leg = (x, y, col, dx) => { c.strokeStyle = col; c.beginPath(); c.moveTo(v.x + dx, v.y + 10);
+    c.quadraticCurveTo((v.x + x) / 2, (v.y + y) / 2 + 10, x, y); c.stroke();
+    c.fillStyle = col; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); };
+  const left = xa <= xb ? -1 : 1;
+  leg(xa, ya, K.red, left * 10); leg(xb, yb, K.wire, -left * 10);
+  c.fillStyle = sel ? K.soft : K.canvas; c.strokeStyle = sel ? K.accent : K.wire; c.lineWidth = sel ? 3 : 2.5;
+  c.beginPath(); c.arc(v.x, v.y, 20, 0, 7); c.fill(); c.stroke();
+  text(c, 'V', v.x, v.y + 1, 'center', 'middle', K.text, 700, 17);
+  const s = `${v.label} : ${fmtU(readV(C, v))}`;
+  c.font = FONT(700); const w = c.measureText(s).width + 10;
+  const ty = v.y + (v.y > C.H - 60 ? -34 : 34);
+  const tx = clamp(v.x, w / 2 + 2, C.W - w / 2 - 2);
+  c.fillStyle = K.canvas; c.globalAlpha = .85; c.fillRect(tx - w / 2, ty - 10, w, 20); c.globalAlpha = 1;
+  text(c, s, tx, ty, 'center', 'middle', K.accent, 700, 15);
+}
+function drawCircuit(o, C, t, extra) {
+  const c = o.ctx;
+  c.setTransform(o.dpr * o.scale, 0, 0, o.dpr * o.scale, 0, 0);
+  c.clearRect(0, 0, o.W, o.H);
+  if (C.gridDots) { c.fillStyle = K.grid;
+    for (let n = 0; n < C.cols * C.rows; n++) { const [x, y] = nxy(C, n); c.beginPath(); c.arc(x, y, 3, 0, 7); c.fill(); } }
+  if (extra && extra.under) extra.under(c);
+  for (const it of C.items.values()) drawItem(c, C, it, C.sel === it || (C.mesh && C.mesh.has(it)), t);
+  const d = degree(C); c.fillStyle = K.wire;
+  for (const [n, k] of d) if (k >= 3) { const [x, y] = nxy(C, n); c.beginPath(); c.arc(x, y, 6, 0, 7); c.fill(); }
+  if (C.showDots) drawDots(c, C, t);
+  for (const v of C.volts) drawVolt(c, C, v, C.sel === v);
+  if (extra && extra.over) extra.over(c);
+}
+
+/* =================== ONGLET 1 =================== */
+const C1 = makeCircuit({ cols: 7, rows: 5, x0: 70, y0: 66, dx: 113, dy: 117, W: 820, H: 600, gridDots: true, showDots: true });
+const O1 = setupCanvas($('cv1'), 820, 600);
+const TOOLS = [
+  ['sel', 'Sélection'], ['fil', 'Fil'], ['gen', 'Générateur'],
+  ['res', 'Résistance'], ['lampe', 'Lampe'], ['del', 'DEL'],
+  ['inter', 'Interrupteur'], ['amp', 'Ampèremètre'], ['volt', 'Voltmètre'],
+  ['noeud', 'Loi des nœuds'], ['maille', 'Loi des mailles'], ['gomme', 'Gomme']
+];
+const HINT = {
+  sel: 'Clique sur un dipôle pour le régler, sur un interrupteur pour l\'ouvrir ou le fermer. Tu peux déplacer l\'affichage d\'un voltmètre.',
+  fil: 'Glisse d\'un point à l\'autre de la grille pour tracer des fils (ou clique entre deux points).',
+  gen: 'Clique entre deux points pour placer le générateur. Clique de nouveau dessus pour inverser ses bornes + et −.',
+  res: 'Clique entre deux points pour placer une résistance (règle sa valeur avec l\'outil Sélection).',
+  lampe: 'Clique entre deux points pour placer une lampe (6 V ; 0,1 A).',
+  del: 'Clique entre deux points pour placer une DEL. Clique de nouveau dessus pour la retourner : elle ne conduit que dans un sens.',
+  inter: 'Clique entre deux points pour placer un interrupteur.',
+  amp: 'L\'ampèremètre se branche en série, à la place d\'un fil. Le courant doit entrer par la borne + (A). Clique de nouveau dessus pour l\'inverser.',
+  volt: 'Le voltmètre se branche en dérivation : clique d\'abord le point relié à la borne V (rouge), puis le point relié à la borne COM (noire).',
+  noeud: 'Clique sur un nœud (gros point où se rejoignent au moins trois fils) pour vérifier la loi des nœuds.',
+  maille: 'Clique sur chaque dipôle d\'une maille (générateur, résistances, lampe, DEL…) : les fils et les ampèremètres ne comptent pas.',
+  gomme: 'Clique (ou glisse) sur un élément pour l\'effacer.'
+};
+let tool = 'sel', voltStart = null, nodeSel = null;
+const toolBox = $('tools');
+TOOLS.forEach(([id, nm]) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'tool'; b.dataset.tool = id; b.textContent = nm;
+  b.setAttribute('aria-pressed', id === tool);
+  b.addEventListener('click', () => setTool(id)); toolBox.appendChild(b);
+});
+function setTool(id) {
+  tool = id; voltStart = null;
+  if (id !== 'maille') C1.mesh = null; else C1.mesh = new Set();
+  if (id !== 'noeud') nodeSel = null;
+  if (id !== 'sel') C1.sel = null;
+  toolBox.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === id));
+  $('toolname').textContent = TOOLS.find(t => t[0] === id)[1];
+  say1(HINT[id]); refresh1();
+}
+const say1 = h => { $('msg1').innerHTML = h; };
+
+function preset(name) {
+  C1.items.clear(); C1.volts = []; C1.V.fill(0); C1.sel = null; nodeSel = null; if (C1.mesh) C1.mesh = new Set();
+  const n = (r, c) => nid(C1, r, c), h = (r, c, t, p) => addItem(C1, t, n(r, c), n(r, c + 1), p), v = (r, c, t, p) => addItem(C1, t, n(r, c), n(r + 1, c), p);
+  if (name === 'serie') {
+    v(1, 1, 'fil'); v(2, 1, 'gen', { E: 6 }); v(3, 1, 'fil');
+    h(1, 1, 'inter'); h(1, 2, 'res', { R: 100 }); h(1, 3, 'fil'); h(1, 4, 'res', { R: 200 }); h(1, 5, 'fil');
+    v(1, 6, 'amp'); v(2, 6, 'fil'); v(3, 6, 'fil');
+    for (let c = 1; c < 6; c++) h(4, c, 'fil');
+    addVolt(C1, n(2, 1), n(3, 1)); addVolt(C1, n(1, 2), n(1, 3)); addVolt(C1, n(1, 4), n(1, 5));
+    say1('Circuit en série : un seul chemin pour le courant. Compare U<sub>G</sub> à U<sub>R1</sub> + U<sub>R2</sub>, puis choisis l\'outil « Loi des mailles ».');
+  } else if (name === 'derivation') {
+    v(1, 1, 'fil'); v(2, 1, 'gen', { E: 6 }); v(3, 1, 'fil');
+    h(1, 1, 'amp'); h(1, 2, 'fil'); h(1, 3, 'fil'); h(1, 4, 'fil');
+    v(1, 3, 'amp'); v(2, 3, 'res', { R: 100 }); v(3, 3, 'fil');
+    v(1, 5, 'amp'); v(2, 5, 'res', { R: 200 }); v(3, 5, 'fil');
+    for (let c = 1; c < 5; c++) h(4, c, 'fil');
+    addVolt(C1, n(2, 1), n(3, 1));
+    const a = addVolt(C1, n(2, 3), n(3, 3)); a.x = 250; a.y = 300;
+    const b = addVolt(C1, n(2, 5), n(3, 5)); b.x = 700; b.y = 300;
+    say1('Circuit en dérivation : deux branches. Compare l\'intensité A1 du courant principal à A2 + A3, puis choisis l\'outil « Loi des nœuds ».');
+  } else if (name === 'del') {
+    v(1, 1, 'fil'); v(2, 1, 'gen', { E: 6 }); v(3, 1, 'fil');
+    h(1, 1, 'inter'); h(1, 2, 'res', { R: 200 }); h(1, 3, 'fil'); h(1, 4, 'del'); h(1, 5, 'fil');
+    v(1, 6, 'amp'); v(2, 6, 'fil'); v(3, 6, 'fil');
+    for (let c = 1; c < 6; c++) h(4, c, 'fil');
+    addVolt(C1, n(1, 2), n(1, 3)); addVolt(C1, n(1, 4), n(1, 5));
+    say1('Une DEL doit toujours être protégée par une résistance. Retourne la DEL (outil DEL, clique dessus) ou retire la résistance pour voir ce qui se passe.');
+  } else {
+    say1('Plaque vide. Commence par placer un générateur, puis trace les fils avec l\'outil « Fil ».');
+  }
+  changed1();
+}
+
+/* --- interactions --- */
+function ptr(o, e) { const r = o.cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * o.W, (e.clientY - r.top) / r.height * o.H]; }
+const hitR = o => Math.max(18, 11 / o.scale);
+function hitNode(C, o, x, y) {
+  let best = -1, bd = hitR(o);
+  for (let n = 0; n < C.cols * C.rows; n++) { const [nx, ny] = nxy(C, n), d = Math.hypot(x - nx, y - ny); if (d < bd) { bd = d; best = n; } }
+  return best;
+}
+function hitEdge(C, o, x, y) {
+  let best = null, bd = Math.max(26, 14 / o.scale);
+  for (let r = 0; r < C.rows; r++) for (let c = 0; c < C.cols; c++) {
+    const a = nid(C, r, c);
+    for (const b of [c + 1 < C.cols ? a + 1 : -1, r + 1 < C.rows ? a + C.cols : -1]) {
+      if (b < 0) continue;
+      const [xa, ya] = nxy(C, a), [xb, yb] = nxy(C, b), L = Math.hypot(xb - xa, yb - ya);
+      const ux = (xb - xa) / L, uy = (yb - ya) / L, s = (x - xa) * ux + (y - ya) * uy;
+      if (s < 12 || s > L - 12) continue;
+      const d = Math.abs((x - xa) * uy - (y - ya) * ux);
+      if (d < bd) { bd = d; best = [a, b]; }
+    }
+  }
+  return best;
+}
+const hitVolt = (C, x, y) => C.volts.find(v => Math.hypot(x - v.x, y - v.y) < 24) || null;
+
+let drag = null, hover = null;
+const cv1 = $('cv1');
+cv1.addEventListener('pointerdown', e => {
+  const [x, y] = ptr(O1, e); cv1.setPointerCapture(e.pointerId);
+  const vh = hitVolt(C1, x, y), nh = hitNode(C1, O1, x, y), eh = nh < 0 ? hitEdge(C1, O1, x, y) : null;
+  const it = eh ? C1.items.get(ekey(eh[0], eh[1])) : null;
+  if (tool === 'sel') {
+    if (vh) { C1.sel = vh; drag = { volt: vh, dx: vh.x - x, dy: vh.y - y }; }
+    else if (it) { if (it.type === 'inter') { it.closed = !it.closed; changed1(); say1(`Interrupteur ${it.label} ${it.closed ? 'fermé' : 'ouvert'}.`); } C1.sel = it.type === 'fil' ? null : it; }
+    else C1.sel = null;
+  } else if (tool === 'fil') {
+    if (nh >= 0) drag = { wire: nh };
+    else if (eh && !it) { addItem(C1, 'fil', eh[0], eh[1]); changed1(); }
+  } else if (['gen', 'res', 'lampe', 'del', 'inter', 'amp'].includes(tool)) {
+    if (!eh) return;
+    if (it && it.type === tool) {
+      if (['gen', 'del', 'amp'].includes(tool)) { const t = it.a; it.a = it.b; it.b = t; say1(`${NAMES[tool]} ${it.label} retourné${tool === 'del' ? 'e' : ''}.`); }
+      else if (tool === 'inter') it.closed = !it.closed;
+      C1.sel = it;
+    } else {
+      C1.items.delete(ekey(eh[0], eh[1]));
+      const [a, b] = eh;
+      // générateur : borne + vers le haut ou vers la gauche ; DEL et ampèremètre : sens de gauche à droite / de haut en bas
+      const ni = tool === 'gen' ? addItem(C1, tool, a, b) : addItem(C1, tool, a, b);
+      if (C1.sel !== undefined && tool !== 'fil') C1.sel = null;
+    }
+    changed1();
+  } else if (tool === 'volt') {
+    if (nh < 0) return;
+    if (voltStart == null) { voltStart = nh; say1('Borne V placée. Clique maintenant sur le point relié à la borne COM.'); }
+    else if (nh !== voltStart) {
+      if (C1.volts.length >= 5) { say1('5 voltmètres au maximum : efface-en un avec la gomme.'); voltStart = null; return; }
+      const v = addVolt(C1, voltStart, nh); voltStart = null; changed1();
+      say1(`Voltmètre ${v.label} branché en dérivation. Il indique U = V<sub>borne V</sub> − V<sub>borne COM</sub>.`);
+    }
+  } else if (tool === 'gomme') { drag = { erase: true }; erase(x, y); }
+  else if (tool === 'noeud') { if (nh >= 0) { nodeSel = nh; nodeLaw(); } }
+  else if (tool === 'maille') {
+    if (!it) return;
+    if (['fil', 'amp'].includes(it.type) || (it.type === 'inter' && it.closed)) { say1('Un fil, un ampèremètre ou un interrupteur fermé a une tension (quasi) nulle à ses bornes : inutile de le sélectionner.'); return; }
+    C1.mesh.has(it) ? C1.mesh.delete(it) : C1.mesh.add(it); meshLaw();
+  }
+  refresh1();
+});
+cv1.addEventListener('pointermove', e => {
+  const [x, y] = ptr(O1, e);
+  hover = { x, y };
+  if (!drag) return;
+  if (drag.volt) { drag.volt.x = clamp(x + drag.dx, 22, 798); drag.volt.y = clamp(y + drag.dy, 22, 574); }
+  else if (drag.wire != null) {
+    const nh = hitNode(C1, O1, x, y);
+    if (nh >= 0 && nh !== drag.wire) {
+      const r1 = Math.floor(drag.wire / C1.cols), c1 = drag.wire % C1.cols, r2 = Math.floor(nh / C1.cols), c2 = nh % C1.cols;
+      if (Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1) { if (!C1.items.has(ekey(drag.wire, nh))) { addItem(C1, 'fil', drag.wire, nh); changed1(); } drag.wire = nh; }
+    }
+  } else if (drag.erase) erase(x, y);
+});
+const endDrag = () => { drag = null; };
+cv1.addEventListener('pointerup', endDrag); cv1.addEventListener('pointercancel', endDrag);
+cv1.addEventListener('pointerleave', () => { hover = null; });
+function erase(x, y) {
+  const vh = hitVolt(C1, x, y);
+  if (vh) { C1.volts = C1.volts.filter(v => v !== vh); if (C1.sel === vh) C1.sel = null; changed1(); return; }
+  const eh = hitEdge(C1, O1, x, y);
+  if (eh && C1.items.has(ekey(eh[0], eh[1]))) { const it = C1.items.get(ekey(eh[0], eh[1])); if (C1.sel === it) C1.sel = null; C1.items.delete(ekey(eh[0], eh[1])); changed1(); }
+}
+
+/* --- lois --- */
+function nodeLaw() {
+  if (nodeSel == null) return;
+  const inc = [...C1.items.values()].filter(it => it.a === nodeSel || it.b === nodeSel);
+  const out = inc.map(it => ({ it, I: it.a === nodeSel ? it.I : -it.I }));
+  const thr = 5e-6, arr = out.filter(o => o.I < -thr), dep = out.filter(o => o.I > thr);
+  const sumA = arr.reduce((s, o) => s - o.I, 0), sumD = dep.reduce((s, o) => s + o.I, 0);
+  const list = (a, sgn) => a.length ? a.map(o => fmtI(sgn * o.I)).join(' + ') : '0,00 mA';
+  let h = '';
+  if (inc.length < 3) h = `Ce point ne relie que ${inc.length} branche${inc.length > 1 ? 's' : ''} : ce n'est pas un nœud. ${inc.length === 2 ? 'Le même courant le traverse : ' + fmtI(sumA) + '.' : ''}`;
+  else {
+    h = `<strong>Nœud sélectionné.</strong> Courants qui arrivent : ${list(arr, -1)}${arr.length > 1 ? ' = ' + fmtI(sumA) : ''}.<br>Courants qui repartent : ${list(dep, 1)}${dep.length > 1 ? ' = ' + fmtI(sumD) : ''}.<br>`;
+    h += Math.abs(sumA - sumD) <= Math.max(1e-5, 0.006 * sumA) ? '<span class="ok">✓ Loi des nœuds vérifiée : la somme des intensités qui arrivent est égale à la somme des intensités qui repartent.</span>' : '<span class="bad">Écart inattendu.</span>';
+    if (sumA < 5e-6) h = '<strong>Nœud sélectionné.</strong> Aucun courant ne circule : le circuit est-il fermé ?';
+  }
+  say1(h);
+}
+function supernodes(C) {
+  const N = C.cols * C.rows, p = Array.from({ length: N }, (_, i) => i);
+  const f = i => p[i] === i ? i : (p[i] = f(p[i]));
+  for (const it of C.items.values()) if (it.type === 'fil' || it.type === 'amp' || (it.type === 'inter' && it.closed)) p[f(it.a)] = f(it.b);
+  return f;
+}
+function meshLaw() {
+  const sel = [...C1.mesh];
+  if (!sel.length) { say1(HINT.maille); return; }
+  const f = supernodes(C1), deg = new Map();
+  for (const it of sel) for (const n of [f(it.a), f(it.b)]) deg.set(n, (deg.get(n) || 0) + 1);
+  const names = sel.map(it => it.label).join(', ');
+  const closedLoop = sel.length >= 2 && [...deg.values()].every(d => d === 2) && sel.every(it => f(it.a) !== f(it.b));
+  let ordered = null;
+  if (closedLoop) {
+    const rest = new Set(sel), first = sel[0]; rest.delete(first);
+    ordered = [{ it: first, from: first.a, to: first.b }];
+    let cur = f(first.b);
+    while (rest.size) {
+      const nx = [...rest].find(it => f(it.a) === cur || f(it.b) === cur);
+      if (!nx) { ordered = null; break; }
+      rest.delete(nx);
+      const fw = f(nx.a) === cur; ordered.push({ it: nx, from: fw ? nx.a : nx.b, to: fw ? nx.b : nx.a });
+      cur = f(fw ? nx.b : nx.a);
+    }
+    if (ordered && cur !== f(first.a)) ordered = null;
+  }
+  if (!ordered) { say1(`Dipôles sélectionnés : ${names}. Continue jusqu'à fermer une maille (un chemin qui revient à son point de départ).`); return; }
+  const terms = ordered.map(o => ({ it: o.it, d: C1.V[o.from] - C1.V[o.to] }));
+  // on oriente pour que les « générateurs » (tension qui monte) soient à gauche
+  let L = terms.filter(t => t.d < -5e-4), R = terms.filter(t => t.d >= -5e-4);
+  if (L.length > R.length && R.some(t => t.d > 5e-4)) { [L, R] = [R.filter(t => t.d > 5e-4), [...L, ...R.filter(t => t.d <= 5e-4)]]; L.forEach(t => t.d = -t.d); R.forEach(t => t.d = -t.d); }
+  R.sort((x, y) => x.it.label.localeCompare(y.it.label, 'fr', { numeric: true }));
+  const U = t => `U<sub>${t.it.label}</sub>`, val = t => fmtU(Math.abs(t.d));
+  const sl = L.reduce((s, t) => s + Math.abs(t.d), 0), sr = R.reduce((s, t) => s + Math.abs(t.d), 0);
+  if (!L.length) { say1(`Maille ${names} : aucune tension, il n'y a pas de générateur dans cette maille ou le courant ne circule pas.`); return; }
+  let h = `<strong>Maille fermée :</strong> ${L.map(U).join(' + ')} = ${R.map(U).join(' + ')}<br>${L.map(val).join(' + ')}${L.length > 1 ? ' = ' + fmtU(sl) : ''} &nbsp;et&nbsp; ${R.map(val).join(' + ')}${R.length > 1 ? ' = ' + fmtU(sr) : ''}<br>`;
+  h += Math.abs(sl - sr) < Math.max(2e-3, 0.004 * sl) ? '<span class="ok">✓ Loi des mailles vérifiée (aux arrondis près).</span>' : '<span class="bad">Écart inattendu.</span>';
+  say1(h);
+}
+
+/* --- panneau --- */
+function changed1() {
+  solve(C1);
+  $('warn1').textContent = C1.warn.join(' ');
+  if (tool === 'noeud') nodeLaw();
+  if (tool === 'maille' && C1.mesh) { for (const it of [...C1.mesh]) if (!C1.items.has(ekey(it.a, it.b))) C1.mesh.delete(it); if (C1.mesh.size) meshLaw(); }
+  refresh1();
+}
+function refresh1() {
+  const box = $('selbox'), s = C1.sel;
+  if (!s) box.innerHTML = '';
+  else if (s.p != null) {
+    box.innerHTML = `<strong>Voltmètre ${s.label}</strong> : ${fmtU(readV(C1, s))}<div class="row" style="margin-top:6px"><button type="button" class="ghost" id="sw">Inverser V et COM</button><button type="button" class="ghost" id="del1">Supprimer</button></div>`;
+    $('sw').onclick = () => { const t = s.p; s.p = s.m; s.m = t; changed1(); };
+    $('del1').onclick = () => { C1.volts = C1.volts.filter(v => v !== s); C1.sel = null; changed1(); };
+  } else {
+    let h = `<strong>${NAMES[s.type]} ${s.label || ''}</strong><br>`;
+    if (s.type !== 'amp') h += `Tension à ses bornes : ${fmtU(Math.abs(Uab(C1, s)))} · Intensité : ${fmtI(Math.abs(s.I))}`;
+    else h += `Intensité mesurée : ${fmtI(s.I)}${s.I < -5e-6 ? ' (valeur négative : le courant entre par la borne COM)' : ''}`;
+    if (s.type === 'res') h += `<div class="row" style="margin-top:6px"><label for="rsel">Valeur</label><select id="rsel">${RVALS.map(r => `<option value="${r}"${r === s.R ? ' selected' : ''}>${fmtR(r)}</option>`).join('')}</select></div>`;
+    if (s.type === 'gen') h += `<div class="row" style="margin-top:6px"><label for="esel">E</label><input id="esel" type="range" min="0" max="12" step="0.5" value="${s.E}"><output>${sig(s.E, s.E >= 10 ? 3 : 2)} V</output></div>`;
+    if (s.type === 'inter') h += `<div class="row" style="margin-top:6px"><button type="button" class="ghost" id="tog">${s.closed ? 'Ouvrir' : 'Fermer'}</button></div>`;
+    h += `<div class="row" style="margin-top:6px">${['gen', 'del', 'amp'].includes(s.type) ? '<button type="button" class="ghost" id="flip">Retourner</button>' : ''}<button type="button" class="ghost" id="del1">Supprimer</button></div>`;
+    box.innerHTML = h;
+    if ($('rsel')) $('rsel').onchange = e => { s.R = +e.target.value; changed1(); };
+    if ($('esel')) $('esel').oninput = e => { s.E = +e.target.value; changed1(); };
+    if ($('tog')) $('tog').onclick = () => { s.closed = !s.closed; changed1(); };
+    if ($('flip')) $('flip').onclick = () => { const t = s.a; s.a = s.b; s.b = t; C1.V.fill(0); changed1(); };
+    $('del1').onclick = () => { C1.items.delete(ekey(s.a, s.b)); C1.sel = null; changed1(); };
+  }
+  $('selhint').hidden = !!s;
+  const amps = [...C1.items.values()].filter(i => i.type === 'amp').sort((a, b) => a.label.localeCompare(b.label, 'fr', { numeric: true }));
+  const vs = [...C1.volts].sort((a, b) => a.label.localeCompare(b.label, 'fr', { numeric: true }));
+  $('mes1').innerHTML = (amps.length || vs.length)
+    ? '<tr><th>Appareil</th><th>Mesure</th></tr>' + amps.map(a => `<tr><td>Ampèremètre ${a.label}</td><td class="n">${fmtI(a.I)}</td></tr>`).join('') + vs.map(v => `<tr><td>Voltmètre ${v.label}</td><td class="n">${fmtU(readV(C1, v))}</td></tr>`).join('')
+    : '<tr><td class="small">Aucun appareil de mesure. Ajoute un ampèremètre ou un voltmètre.</td></tr>';
+}
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => preset(b.dataset.preset)));
+$('dots').addEventListener('change', e => { C1.showDots = e.target.checked; });
+$('allui').addEventListener('change', e => { C1.showUI = e.target.checked; });
+
+function extra1() {
+  return {
+    under(c) {
+      if (hover && !drag && ['fil', 'gen', 'res', 'lampe', 'del', 'inter', 'amp'].includes(tool) && hitNode(C1, O1, hover.x, hover.y) < 0) {
+        const eh = hitEdge(C1, O1, hover.x, hover.y);
+        if (eh) { const [xa, ya] = nxy(C1, eh[0]), [xb, yb] = nxy(C1, eh[1]); c.strokeStyle = K.accent; c.globalAlpha = .35; c.lineWidth = 12; c.lineCap = 'round';
+          c.beginPath(); c.moveTo(xa, ya); c.lineTo(xb, yb); c.stroke(); c.globalAlpha = 1; }
+      }
+    },
+    over(c) {
+      if (voltStart != null) { const [x, y] = nxy(C1, voltStart); c.fillStyle = K.red; c.beginPath(); c.arc(x, y, 8, 0, 7); c.fill(); text(c, 'V', x, y - 18, 'center', 'middle', K.red, 700, 14); }
+      if (tool === 'noeud' && nodeSel != null) {
+        const [x, y] = nxy(C1, nodeSel); c.strokeStyle = K.accent; c.lineWidth = 3; c.beginPath(); c.arc(x, y, 14, 0, 7); c.stroke();
+        for (const it of C1.items.values()) {
+          if (it.a !== nodeSel && it.b !== nodeSel) continue;
+          const other = it.a === nodeSel ? it.b : it.a, Iout = it.a === nodeSel ? it.I : -it.I;
+          if (Math.abs(Iout) < 5e-6) continue;
+          const [ox, oy] = nxy(C1, other), L = Math.hypot(ox - x, oy - y), ux = (ox - x) / L, uy = (oy - y) / L;
+          const s = Iout > 0 ? 1 : -1, px = x + ux * 34, py = y + uy * 34;
+          c.fillStyle = K.accent; c.beginPath();
+          c.moveTo(px + s * ux * 9, py + s * uy * 9); c.lineTo(px - s * ux * 7 - uy * 7, py - s * uy * 7 + ux * 7); c.lineTo(px - s * ux * 7 + uy * 7, py - s * uy * 7 - ux * 7); c.fill();
+          const tx = x + ux * 40 + (uy !== 0 ? 14 : 0), ty = y + uy * 40 + (ux !== 0 ? -16 : 0);
+          text(c, fmtI(Math.abs(Iout)), tx, ty, uy !== 0 ? 'left' : 'center', 'middle', K.accent, 700, 13);
+        }
+      }
+      if (!C1.items.size) text(c, 'Choisis un outil puis clique sur la grille, ou charge un montage prêt.', 410, 300, 'center', 'middle', K.muted, 600, 17);
+    }
+  };
+}
+
+/* =================== ONGLET 2 =================== */
+const C2 = makeCircuit({ cols: 4, rows: 2, x0: 60, y0: 60, dx: 140, dy: 170, W: 620, H: 300, showDots: true });
+C2.labelSide = (it, ox, oy) => it.type === 'gen' ? [1, 0] : [ox, oy];
+const O2 = setupCanvas($('cv2'), 620, 300), OG = setupCanvas($('gr'), 620, 400);
+const n2 = (r, c) => nid(C2, r, c);
+const gen2 = addItem(C2, 'gen', n2(0, 0), n2(1, 0), { E: 3, label: 'G' });
+const rp2 = addItem(C2, 'res', n2(0, 0), n2(0, 1), { R: 100, label: 'Rp' });
+addItem(C2, 'amp', n2(0, 1), n2(0, 2), { label: 'A' });
+addItem(C2, 'fil', n2(0, 2), n2(0, 3));
+for (let c = 0; c < 3; c++) addItem(C2, 'fil', n2(1, c), n2(1, c + 1));
+let dip2 = null;
+const v2 = addVolt(C2, n2(0, 3), n2(1, 3), 'V'); v2.x = 560; v2.y = 135;
+let myR = 0, pts = [], model = null, sweeping = null;
+const MYST = [56, 68, 82, 120, 150, 180, 270, 330, 390, 470];
+function newMyst() { let r; do r = MYST[Math.floor(Math.random() * MYST.length)]; while (r === myR); myR = r; }
+newMyst();
+function setDip() {
+  const v = $('dip').value;
+  C2.items.delete(ekey(n2(0, 3), n2(1, 3)));
+  if (v === 'r100') dip2 = addItem(C2, 'res', n2(0, 3), n2(1, 3), { R: 100, label: 'D' });
+  else if (v === 'r220') dip2 = addItem(C2, 'res', n2(0, 3), n2(1, 3), { R: 220, label: 'D' });
+  else if (v === 'myst') dip2 = addItem(C2, 'myst', n2(0, 3), n2(1, 3), { R: myR, label: 'X' });
+  else dip2 = addItem(C2, v, n2(0, 3), n2(1, 3), { label: 'D' });
+  C2.hideMyst = true;
+  $('newmyst').hidden = v !== 'myst';
+  C2.V.fill(0); pts = []; model = null; changed2(true);
+  const tips = {
+    r100: 'Fais varier E, relève une dizaine de points, puis modélise par une droite passant par l\'origine.',
+    r220: 'Compare avec le conducteur ohmique de 100 Ω : la droite est-elle plus ou moins pentue ?',
+    lampe: 'Relève des points jusqu\'à environ 6 V : la caractéristique est-elle une droite ?',
+    del: 'Essaie aussi des tensions E négatives : la DEL ne conduit que dans un sens. Pense à la résistance de protection.',
+    myst: 'Trace la caractéristique du dipôle mystère et détermine sa résistance. La valeur est révélée après la modélisation.'
+  };
+  say2(tips[v]);
+}
+const say2 = h => { $('msg2').innerHTML = h; };
+function changed2(resample) {
+  gen2.E = +$('E2').value; rp2.R = +$('rp').value;
+  $('E2o').textContent = sig(gen2.E, Math.abs(gen2.E) >= 10 ? 3 : 2) + ' V';
+  if (resample || !C2.noise) {
+    const g = () => { let s = 0; for (let i = 0; i < 6; i++) s += Math.random(); return (s - 3) / Math.sqrt(0.5); };
+    C2.noise = $('noise').checked ? { a: 1 + 0.004 * g(), v: 1 + 0.004 * g() } : { a: 1, v: 1 };
+  }
+  solve(C2);
+  const w = C2.warn.slice();
+  $('warn2').textContent = w.join(' ');
+  refresh2();
+}
+function meas2() { return { I: roundSig(readA(C2, [...C2.items.values()].find(i => i.type === 'amp')), 3), U: roundSig(readV(C2, v2), 3) }; }
+function record() {
+  const m = meas2();
+  if (pts.some(p => Math.abs(p.I - m.I) < 1e-9 && Math.abs(p.U - m.U) < 1e-9)) { say2('Ce point est déjà dans le tableau : change la tension E du générateur.'); return; }
+  pts.push(m); pts.sort((a, b) => a.I - b.I || a.U - b.U); if (model) fit(model.type); refresh2();
+}
+function fit(type) {
+  if (pts.length < 2) { $('modbox').innerHTML = 'Relève au moins 2 points (idéalement une dizaine) avant de modéliser.'; model = null; return; }
+  let k, b = 0;
+  if (type === 0) { let sxy = 0, sxx = 0; for (const p of pts) { sxy += p.I * p.U; sxx += p.I * p.I; } k = sxx ? sxy / sxx : 0; }
+  else { const n = pts.length, mx = pts.reduce((s, p) => s + p.I, 0) / n, my = pts.reduce((s, p) => s + p.U, 0) / n;
+    let sxy = 0, sxx = 0; for (const p of pts) { sxy += (p.I - mx) * (p.U - my); sxx += (p.I - mx) ** 2; } k = sxx ? sxy / sxx : 0; b = my - k * mx; }
+  const umax = Math.max(...pts.map(p => Math.abs(p.U))) || 1;
+  const rms = Math.sqrt(pts.reduce((s, p) => s + (p.U - k * p.I - b) ** 2, 0) / pts.length) / umax;
+  model = { type, k, b, rms };
+  let h = `<strong>Modèle :</strong> U = ${sci(k)} × I${type ? (b >= 0 ? ' + ' : ' − ') + sci(Math.abs(b)) : ''} &nbsp;<span class="small">(U en V, I en A)</span><br>`;
+  if (rms > 0.03) h += '<span class="bad">Les points ne sont pas alignés sur cette droite :</span> le modèle ne convient pas, ce dipôle ne suit pas la loi d\'Ohm.';
+  else if (type === 0) {
+    h += `<span class="ok">Les points sont alignés sur une droite passant par l'origine :</span> U est proportionnelle à I. C'est un conducteur ohmique de résistance <strong>R = ${sci(k)} Ω</strong>.`;
+    if (dip2.type === 'myst') h += `<br>Valeur réelle du dipôle mystère : ${sci(dip2.R)} Ω (écart ${sig(Math.abs(k - dip2.R) / dip2.R * 100, 2)} %).`;
+  } else h += Math.abs(b) < 0.03 * umax ? 'L\'ordonnée à l\'origine est presque nulle : on peut modéliser par une droite passant par l\'origine.' : 'La droite ne passe pas par l\'origine.';
+  $('modbox').innerHTML = h;
+}
+function refresh2() {
+  $('npts').textContent = pts.length + (pts.length > 1 ? ' points' : ' point');
+  $('mes2').innerHTML = '<tr><th>n°</th><th>I (mA)</th><th>U (V)</th><th></th></tr>' + pts.map((p, i) =>
+    `<tr><td>${i + 1}</td><td class="n">${Math.abs(p.I) < 5e-6 ? '0,00' : sig(p.I * 1000)}</td><td class="n">${Math.abs(p.U) < 5e-4 ? '0,00' : sig(p.U)}</td><td><button type="button" class="ghost" data-del="${i}" style="min-height:0;padding:0 .4rem" aria-label="Supprimer le point ${i + 1}">×</button></td></tr>`).join('');
+  $('mes2').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { pts.splice(+b.dataset.del, 1); if (model) fit(model.type); refresh2(); });
+  if (!model) $('modbox').innerHTML = pts.length ? 'Choisis un modèle : la droite est tracée sur le graphique.' : '';
+  $('rec').disabled = !!sweeping; $('sweep').textContent = sweeping ? 'Arrêter' : 'Balayage auto';
+}
+function niceStep(range, n) { const r = range / n, p = Math.pow(10, Math.floor(Math.log10(r))), m = r / p; return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p; }
+function drawGraph() {
+  const o = OG, c = o.ctx; c.setTransform(o.dpr * o.scale, 0, 0, o.dpr * o.scale, 0, 0); c.clearRect(0, 0, o.W, o.H);
+  const cur = meas2();
+  const all = pts.concat([cur]);
+  let xmin = Math.min(0, ...all.map(p => p.I * 1000)), xmax = Math.max(10, ...all.map(p => p.I * 1000));
+  let ymin = Math.min(0, ...all.map(p => p.U)), ymax = Math.max(1, ...all.map(p => p.U));
+  const sx = niceStep(xmax - xmin, 6), sy = niceStep(ymax - ymin, 5);
+  xmin = Math.floor(xmin / sx) * sx; xmax = Math.ceil(xmax * 1.05 / sx) * sx; ymin = Math.floor(ymin / sy) * sy; ymax = Math.ceil(ymax * 1.05 / sy) * sy;
+  const L = 64, R = 600, T = 24, B = 350;
+  const X = v => L + (v - xmin) / (xmax - xmin) * (R - L), Y = v => B - (v - ymin) / (ymax - ymin) * (B - T);
+  c.lineWidth = 1; c.strokeStyle = K.grid;
+  for (let v = xmin; v <= xmax + 1e-9; v += sx) { c.beginPath(); c.moveTo(X(v), T); c.lineTo(X(v), B); c.stroke(); text(c, sig0(v, sx), X(v), B + 16, 'center', 'middle', K.muted, 500, 13); }
+  for (let v = ymin; v <= ymax + 1e-9; v += sy) { c.beginPath(); c.moveTo(L, Y(v)); c.lineTo(R, Y(v)); c.stroke(); text(c, sig0(v, sy), L - 8, Y(v), 'right', 'middle', K.muted, 500, 13); }
+  c.strokeStyle = K.wire; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(X(0), T - 6); c.lineTo(X(0), B); c.moveTo(L, Y(0)); c.lineTo(R + 6, Y(0)); c.stroke();
+  text(c, 'I (mA)', R, B + 36, 'right', 'middle', K.text, 700, 14);
+  text(c, 'U (V)', L - 4, T - 12, 'left', 'middle', K.text, 700, 14);
+  if (model) {
+    c.save(); c.beginPath(); c.rect(L, T, R - L, B - T); c.clip();
+    c.strokeStyle = K.accent; c.lineWidth = 2.5; c.setLineDash([8, 5]); c.beginPath();
+    const i0 = xmin / 1000, i1 = xmax / 1000; c.moveTo(X(xmin), Y(model.k * i0 + model.b)); c.lineTo(X(xmax), Y(model.k * i1 + model.b)); c.stroke(); c.restore();
+  }
+  c.strokeStyle = K.text; c.lineWidth = 2.2;
+  for (const p of pts) { const x = X(p.I * 1000), y = Y(p.U); c.beginPath(); c.moveTo(x - 6, y - 6); c.lineTo(x + 6, y + 6); c.moveTo(x + 6, y - 6); c.lineTo(x - 6, y + 6); c.stroke(); }
+  c.fillStyle = K.accent; c.globalAlpha = .5; c.beginPath(); c.arc(X(cur.I * 1000), Y(cur.U), 7, 0, 7); c.fill(); c.globalAlpha = 1;
+  if (!pts.length) text(c, 'Règle E puis clique « Ajouter le point »', (L + R) / 2, T + 30, 'center', 'middle', K.muted, 600, 15);
+}
+function sig0(v, step) { const d = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)); return (Math.abs(v) < step / 1e3 ? 0 : v).toFixed(d).replace('.', ',').replace('-', '−'); }
+$('dip').addEventListener('change', setDip);
+$('newmyst').addEventListener('click', () => { newMyst(); setDip(); });
+$('E2').addEventListener('input', () => changed2(true));
+$('rp').addEventListener('change', () => changed2(true));
+$('noise').addEventListener('change', () => changed2(true));
+$('rec').addEventListener('click', record);
+$('clr').addEventListener('click', () => { pts = []; model = null; refresh2(); });
+$('m0').addEventListener('click', () => { fit(0); refresh2(); });
+$('m1').addEventListener('click', () => { fit(1); refresh2(); });
+$('sweep').addEventListener('click', () => {
+  if (sweeping) { clearInterval(sweeping); sweeping = null; refresh2(); return; }
+  const neg = dip2.type === 'del', vals = [];
+  const rpv = +$('rp').value, lo = neg ? -4 : 0, hi = neg ? Math.min(12, 2 + 0.028 * (rpv + 5)) : 12;
+  for (let k = 0; k <= 12; k++) vals.push(Math.round((lo + (hi - lo) * k / 12) * 10) / 10);
+  pts = []; model = null; let k = 0;
+  sweeping = setInterval(() => {
+    if (k >= vals.length) { clearInterval(sweeping); sweeping = null; refresh2(); say2('Balayage terminé. Modélise maintenant la caractéristique.'); return; }
+    $('E2').value = vals[k++]; changed2(true); record();
+  }, 260);
+  refresh2();
+});
+
+/* ---------- onglets, plein écran ---------- */
+function showTab(k) {
+  $('p1').hidden = k !== 1; $('p2').hidden = k !== 2;
+  $('tab1').setAttribute('aria-selected', k === 1); $('tab2').setAttribute('aria-selected', k === 2);
+}
+$('tab1').addEventListener('click', () => showTab(1));
+$('tab2').addEventListener('click', () => showTab(2));
+const fsBtn = $('fs'), scene = $('sc');
+if (!scene.requestFullscreen) fsBtn.hidden = true;
+fsBtn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : scene.requestFullscreen());
+document.addEventListener('fullscreenchange', () => { fsBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'; });
+
+/* ---------- exercices ---------- */
+document.querySelectorAll('.exo .ans').forEach(box => {
+  const inp = box.querySelector('input'), btn = box.querySelector('button'), fb = box.parentElement.querySelector('.fb');
+  const check = () => {
+    const v = parseFloat(inp.value.replace(/\s/g, '').replace(',', '.').replace('−', '-'));
+    if (!isFinite(v)) { fb.innerHTML = '<span class="bad">Écris un nombre.</span>'; return; }
+    const ok = Math.abs(v - +inp.dataset.sol) <= +inp.dataset.tol;
+    fb.innerHTML = ok ? '<span class="ok">✓ Bonne réponse !</span>' : '<span class="bad">✗ Ce n\'est pas ça : relis la loi à utiliser, puis réessaie.</span>';
+  };
+  btn.addEventListener('click', check);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+});
+
+/* ---------- boucle ---------- */
+let t0 = performance.now();
+function frame(now) {
+  const t = (now - t0) / 1000;
+  if (!$('p1').hidden) drawCircuit(O1, C1, t, extra1());
+  else { drawCircuit(O2, C2, t); drawGraph(); }
+  requestAnimationFrame(frame);
+}
+setTool('sel');
+preset('serie');
+setDip();
+requestAnimationFrame(frame);
+window.__T = { C1, C2, solve, fLed, fLamp, preset, setTool, record, fit, pts: () => pts }; // pour les tests
+})();
+</script>
+</body>
+</html>
