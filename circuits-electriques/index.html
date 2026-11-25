@@ -233,7 +233,7 @@ footer strong{color:var(--text)}
         <div><h3>Dipôles non ohmiques</h3>La lampe et la DEL ne suivent pas la loi d'Ohm : leur caractéristique n'est pas une droite. La DEL ne laisse passer le courant que dans un sens.</div>
       </div>
     </div>
-    <p class="small" style="margin:.6rem 0 0">Modèle simplifié : générateur presque idéal, fils et ampèremètres de résistance négligeable, voltmètres de résistance infinie. Les valeurs sont affichées avec 3 chiffres significatifs.</p>
+    <p class="small" style="margin:.6rem 0 0">Modèle simplifié : générateur presque idéal, fils et ampèremètres parfaits (résistance nulle), voltmètres de résistance infinie. Les valeurs sont affichées avec 3 chiffres significatifs.</p>
   </section>
 
   <!-- ===== Exercices ===== -->
@@ -296,7 +296,7 @@ footer strong{color:var(--text)}
         <details><summary>Voir la correction</summary><div class="corr">
           L'ampèremètre se branche <strong>en série</strong> avec la lampe (le courant entre par la borne A ou mA et sort par COM).<br>
           Le voltmètre se branche <strong>en dérivation</strong> aux bornes de la lampe.<br>
-          Un ampèremètre en dérivation court-circuite la lampe (sa résistance est quasi nulle) : la lampe s'éteint et le courant devient très grand. Essaie-le dans l'onglet 1 !
+          Un ampèremètre en dérivation court-circuite la lampe (sa résistance est nulle, comme celle d'un fil) : la lampe s'éteint et le courant devient très grand. Essaie-le dans l'onglet 1 !
         </div></details>
       </article>
       <article class="exo">
@@ -469,13 +469,13 @@ function solve(C) {
   }
   /* Courants dans les conducteurs (règles, de la plus forte à la plus faible) :
      – un fil ou un interrupteur fermé a une résistance nulle ;
-     – un ampèremètre a une résistance très petite, mais pas nulle : un fil branché en parallèle le court-circuite (il indique 0) ;
+     – un ampèremètre est parfait : résistance nulle, il se comporte exactement comme un fil et ne fait que mesurer ;
      – entre plusieurs fils en parallèle, le courant se partage comme dans de vrais fils (plus il y a de longueur, moins il en passe) ;
      – une boucle de fils sans générateur n'est parcourue par aucun courant.
      On résout L·φ = −(courant sortant par les dipôles), un point fixé par groupe. */
   const conds = items.filter(isCond);
   if (conds.length) {
-    const isWire = it => it.type === 'fil' || it.type === 'inter';
+    const isWire = it => it.type === 'fil' || it.type === 'inter' || it.type === 'amp';   // ampèremètre parfait = fil
     const p0 = Int32Array.from({ length: N }, (_, k) => k);
     const find0 = k => { while (p0[k] !== k) { p0[k] = p0[p0[k]]; k = p0[k]; } return k; };
     for (const it of conds) if (isWire(it)) { const ra = find0(it.a), rb = find0(it.b); if (ra !== rb) p0[ra] = rb; }
@@ -485,8 +485,8 @@ function solve(C) {
       for (let n = 0; n < N; n++) if (pinned(n)) A[n][n] += 1;
       return gauss(A, J);
     };
-    // 1) ampèremètres, entre groupes de points reliés par des fils
-    const amps = conds.filter(it => it.type === 'amp');
+    // 1) (ampèremètres parfaits : traités comme des fils, plus d'étape séparée)
+    const amps = [];
     const inj0 = new Float64Array(N);
     for (let n = 0; n < N; n++) inj0[find0(n)] -= out[n];
     const ampE = amps.filter(it => find0(it.a) !== find0(it.b)).map(it => [find0(it.a), find0(it.b)]);
