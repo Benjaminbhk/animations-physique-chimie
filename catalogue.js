@@ -119,5 +119,15 @@ window.CATALOGUE = [
     chapitre: "Transformations nucléaires",
     mots: ["fission", "fusion", "isotopes", "nombre de masse", "numéro atomique", "équation nucléaire", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "principe-inertie",
+    titre: "Le principe d'inertie",
+    resume: "Lancer un palet en réglant les frottements jusqu'à zéro (table à coussin d'air), voir les forces se compenser ou non, puis une sonde spatiale et un passager de bus qui freine. Exercices corrigés.",
+    theme: "mouvement",
+    niveau: "seconde",
+    chapitre: "Mouvement et interactions",
+    mots: ["principe d'inertie", "contraposée", "forces qui se compensent", "mouvement rectiligne uniforme", "chronophotographie", "exercices"],
+    statut: "en-ligne"
   }
 ];
