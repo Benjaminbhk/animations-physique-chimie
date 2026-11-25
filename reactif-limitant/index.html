@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le réactif limitant</title>
+<meta name="description" content="Animation interactive pour comprendre le réactif limitant et le mélange stœchiométrique (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --vessel:rgba(70,90,120,0.55); --vessel-fill:rgba(160,185,215,0.08);
+  --c1:#d9822b; --c2:#1f7fbf; --c3:#2f8f6b; --c4:#b0418f;
+  --ok:#2f8f6b; --ko:#c8423a; --ok-soft:#e3f4ec; --ko-soft:#fbe7e5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+    --canvas:#141821; --vessel:rgba(190,208,235,0.5); --vessel-fill:rgba(140,170,210,0.06);
+    --c1:#f0a04b; --c2:#4fa8e8; --c3:#4cc597; --c4:#e07ac0;
+    --ok:#4cc597; --ko:#ef7a70; --ok-soft:#173327; --ko-soft:#3a1d1b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+  --canvas:#141821; --vessel:rgba(190,208,235,0.5); --vessel-fill:rgba(140,170,210,0.06);
+  --c1:#f0a04b; --c2:#4fa8e8; --c3:#4cc597; --c4:#e07ac0;
+  --ok:#4cc597; --ko:#ef7a70; --ok-soft:#173327; --ko-soft:#3a1d1b;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:72ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene h2{margin:0;font-size:1.35rem;display:flex;align-items:center;gap:.5rem}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;
+  padding:.15rem .5rem;border-radius:999px;color:#fff;background:var(--accent)}
+.scene .sub{color:var(--muted);margin:.25rem 0 .8rem}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/520;border-radius:10px;background:var(--canvas);border:1px solid var(--border)}
+.equation{font-size:clamp(1.15rem,3.2vw,1.6rem);font-weight:600;text-align:center;margin:10px 0 2px;
+  font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.co{color:var(--accent);font-weight:800}
+.arrow{margin:0 .35em;color:var(--muted)}
+.plus{margin:0 .3em;color:var(--muted)}
+.rxdesc{text-align:center;color:var(--muted);font-size:.92rem;margin:0 0 6px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin:12px 0 6px}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl label{font-weight:600;font-size:.95rem}
+.ctrl output{font-variant-numeric:tabular-nums;min-width:6ch;font-weight:700}
+.ctrl .dot{width:.8em;height:.8em;border-radius:50%;display:inline-block}
+input[type=range]{width:min(200px,56vw);accent-color:var(--accent)}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);max-width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+button{font:inherit;font-weight:600;padding:.55rem .9rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.small{font-size:.85rem;color:var(--muted)}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:10px 0 0;min-height:3.2em}
+.cards{display:grid;grid-template-columns:1.2fr 1fr;gap:10px;margin-top:10px}
+.card{border:1px solid var(--border);border-radius:10px;padding:.6rem .8rem;background:var(--bg)}
+.card h3{margin:0 0 .35rem;font-size:.95rem}
+table.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:.95rem}
+table.st th,table.st td{border-bottom:1px solid var(--border);padding:.3rem .4rem;text-align:center}
+table.st th:first-child,table.st td:first-child{text-align:left}
+table.st thead th{color:var(--muted);font-weight:600;font-size:.85rem}
+.pill{display:inline-block;font-size:.72rem;font-weight:700;padding:.05rem .45rem;border-radius:999px;margin-left:.3rem;vertical-align:middle}
+.pill.lim{background:var(--ko);color:#fff} .pill.exc{background:var(--c2);color:#fff} .pill.sto{background:var(--ok);color:#fff}
+.calc{font-variant-numeric:tabular-nums;line-height:1.7}
+.calc .hidden{filter:blur(6px);user-select:none}
+.k{font-size:1.05rem;margin:.2rem 0 .4rem}
+.k strong{color:var(--accent);font-size:1.25rem}
+/* exercice */
+.q{margin:12px 0}
+.q > p{margin:.2rem 0 .5rem;font-weight:600}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;padding:.45rem .75rem;cursor:pointer;background:var(--bg)}
+.choice:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.choice input{accent-color:var(--accent)}
+input[type=text]{font:inherit;padding:.4rem .55rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:9ch}
+.enonce{font-size:1.02rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem}
+.feedback{border-radius:10px;padding:.6rem .85rem;margin-top:10px;line-height:1.7}
+.feedback.ok{background:var(--ok-soft);border-left:4px solid var(--ok)}
+.feedback.ko{background:var(--ko-soft);border-left:4px solid var(--ko)}
+.correction{border:2px solid var(--ok);border-radius:10px;padding:.6rem .9rem;margin-top:10px;line-height:1.75}
+.correction h3{margin:0 0 .3rem;color:var(--ok);font-size:1rem}
+.score{color:var(--muted);font-size:.92rem}
+.retenir{border:1px solid var(--border);border-radius:10px;padding:.2rem 1rem .6rem;background:var(--bg)}
+.retenir li{margin:.3rem 0}
+footer{max-width:1040px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:18px 28px}
+.scene:fullscreen canvas{max-height:66vh;width:auto;max-width:100%;margin:0 auto}
+@media (max-width:760px){
+  .cards{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Le réactif limitant</h1>
+    <a href="../">← Toutes les animations</a>
+  </header>
+  <p class="lead">Quand on mélange des réactifs, la transformation s'arrête dès que l'un d'eux est épuisé : c'est le <strong>réactif limitant</strong>.
+    Règle les quantités initiales, lance la transformation et observe les atomes se réorganiser, une réaction après l'autre.</p>
+
+  <!-- ============ SIMULATION ============ -->
+  <section class="scene" id="sc-sim" aria-labelledby="t-sim">
+    <div class="head">
+      <div>
+        <h2 id="t-sim"><span class="tag">1</span> Observer la transformation</h2>
+        <p class="sub">Chaque dessin représente une entité (molécule, ion, atome… ou ingrédient pour la recette).</p>
+      </div>
+      <button class="ghost fs" data-target="sc-sim" type="button">Plein écran</button>
+    </div>
+    <div class="controls" style="margin-top:0">
+      <div class="ctrl">
+        <label for="s-rx">Transformation</label>
+        <select id="s-rx"></select>
+      </div>
+      <div class="ctrl">
+        <label for="s-unit">Compter</label>
+        <select id="s-unit">
+          <option value="0">les entités (une par une)</option>
+          <option value="0.1">en mol (1 dessin = 0,10 mol)</option>
+          <option value="0.05">en mol (1 dessin = 0,050 mol)</option>
+          <option value="0.02">en mol (1 dessin = 0,020 mol)</option>
+        </select>
+      </div>
+    </div>
+    <div class="equation" id="s-eq" aria-live="polite"></div>
+    <p class="rxdesc" id="s-desc"></p>
+    <canvas id="cv" role="img" aria-label="Animation des entités qui réagissent dans le système chimique"></canvas>
+    <div class="controls">
+      <div class="ctrl">
+        <span class="dot" style="background:var(--c1)"></span>
+        <label for="s-n1" id="s-l1"></label>
+        <input id="s-n1" type="range" min="0" max="10" step="1" value="4">
+        <output id="s-o1" for="s-n1"></output>
+      </div>
+      <div class="ctrl">
+        <span class="dot" style="background:var(--c2)"></span>
+        <label for="s-n2" id="s-l2"></label>
+        <input id="s-n2" type="range" min="0" max="10" step="1" value="4">
+        <output id="s-o2" for="s-n2"></output>
+      </div>
+      <div class="ctrl">
+        <label for="s-v">Vitesse</label>
+        <input id="s-v" type="range" min="1" max="5" step="1" value="2" style="width:110px">
+      </div>
+    </div>
+    <div class="btns">
+      <button id="s-run" type="button">▶ Lancer la transformation</button>
+      <button id="s-step" class="ghost" type="button">Une réaction à la fois</button>
+      <button id="s-sto" class="ghost" type="button">Mélange stœchiométrique</button>
+      <button id="s-reset" class="ghost" type="button">Recommencer</button>
+    </div>
+    <p class="explain" id="s-text" aria-live="polite"></p>
+    <div class="cards">
+      <div class="card">
+        <h3>Bilan de matière</h3>
+        <table class="st"><thead><tr><th>Espèce</th><th>État initial</th><th id="s-hnow">Maintenant</th></tr></thead><tbody id="s-tab"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>Combien de fois la réaction peut-elle se produire ?</h3>
+        <div class="k">La réaction s'est produite <strong id="s-k">0</strong> fois.</div>
+        <div class="calc" id="s-calc"></div>
+        <button id="s-show" class="ghost" type="button" style="margin-top:6px">Afficher la prévision</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXERCICE ============ -->
+  <section class="scene" id="sc-ex" aria-labelledby="t-ex">
+    <div class="head">
+      <div>
+        <h2 id="t-ex"><span class="tag">2</span> À toi : qui est le réactif limitant ?</h2>
+        <p class="sub">Un mélange au hasard. Réponds, vérifie, puis regarde la transformation avec les particules.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-ex" type="button">Plein écran</button>
+    </div>
+    <div class="enonce" id="e-enonce"></div>
+    <div class="q">
+      <p>1. Quel est le réactif limitant ?</p>
+      <div class="choices" id="e-choices"></div>
+    </div>
+    <div class="q">
+      <p id="e-q2"></p>
+      <div class="ctrl"><input type="text" id="e-rest" inputmode="decimal" autocomplete="off" aria-labelledby="e-q2"> <span>mol</span></div>
+    </div>
+    <div class="btns">
+      <button id="e-check" type="button">Vérifier</button>
+      <button id="e-sol" class="ghost" type="button">Voir la correction</button>
+      <button id="e-anim" class="ghost" type="button">Voir avec les particules</button>
+      <button id="e-new" class="ghost" type="button">Nouveau mélange</button>
+    </div>
+    <div id="e-fb" aria-live="polite"></div>
+    <div id="e-corr"></div>
+    <p class="score" id="e-score"></p>
+  </section>
+
+  <!-- ============ A RETENIR ============ -->
+  <section class="scene" aria-labelledby="t-ret">
+    <h2 id="t-ret"><span class="tag">3</span> À retenir</h2>
+    <div class="retenir">
+      <ul>
+        <li>Le <strong>réactif limitant</strong> est le réactif entièrement consommé : quand il n'y en a plus, la transformation s'arrête.
+          L'autre réactif est <strong>en excès</strong> : il en reste à l'état final.</li>
+        <li>Pour l'équation <em>a</em> A + <em>b</em> B → …, on compare <strong>n(A) / a</strong> et <strong>n(B) / b</strong> :
+          le réactif qui a la plus petite valeur est le réactif limitant.</li>
+        <li>Attention : le réactif limitant n'est pas forcément celui qu'on a en plus petite quantité, il faut tenir compte des nombres stœchiométriques.</li>
+        <li>Si n(A) / a = n(B) / b, les deux réactifs sont entièrement consommés : le mélange est <strong>stœchiométrique</strong>.</li>
+        <li>Les atomes ne disparaissent pas, ils se réorganisent : c'est pour cela qu'on ajuste l'équation.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Animation libre d'utilisation en classe</span>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const irnd = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- nombres ---------- */
+const fmt = (x, d) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+function sf(x, n = 2) { // n chiffres significatifs, écriture décimale
+  if (!isFinite(x)) return '—';
+  if (Math.abs(x) < 1e-12) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)) + 1e-9);
+  return fmt(x, Math.max(0, n - 1 - e));
+}
+function sci(x, n = 2) { // écriture scientifique HTML
+  if (Math.abs(x) < 1e-12) return '0';
+  let e = Math.floor(Math.log10(Math.abs(x)) + 1e-9);
+  let m = x / Math.pow(10, e);
+  if (Math.abs(+m.toFixed(n - 1)) >= 10) { m /= 10; e++; }
+  return `${fmt(m, n - 1)} × 10<sup>${e < 0 ? '−' + (-e) : e}</sup>`;
+}
+function parseNum(s) {
+  s = String(s).trim().replace(/\s/g, '').replace(',', '.').replace(/[×x]10\^?(−|-)?(\d+)/i, (m, sg, d) => 'e' + (sg ? '-' : '') + d);
+  if (!/^[-+]?\d*\.?\d+(e[-+]?\d+)?$/i.test(s)) return NaN;
+  return parseFloat(s);
+}
+
+/* ---------- formules : "H_2O", "Cu^{2+}", "HO^-" ---------- */
+function formulaParts(f) {
+  const out = []; let i = 0;
+  while (i < f.length) {
+    const ch = f[i];
+    if (ch === '_') { let j = i + 1, s = ''; while (j < f.length && /\d/.test(f[j])) s += f[j++]; out.push({ t: s, m: 'sub' }); i = j; }
+    else if (ch === '^') {
+      let s = '';
+      if (f[i + 1] === '{') { const j = f.indexOf('}', i); s = f.slice(i + 2, j); i = j + 1; }
+      else { s = f[i + 1]; i += 2; }
+      out.push({ t: s.replace('-', '−'), m: 'sup' });
+    } else { let s = ''; while (i < f.length && f[i] !== '_' && f[i] !== '^') s += f[i++]; out.push({ t: s, m: '' }); }
+  }
+  return out;
+}
+const fHTML = f => formulaParts(f).map(p => p.m ? `<${p.m}>${p.t}</${p.m}>` : p.t).join('');
+function fCanvas(x, f, cx, cy, size, align = 'center') {
+  const parts = formulaParts(f);
+  const widths = parts.map(p => { x.font = `600 ${p.m ? size * .68 : size}px system-ui,sans-serif`; return x.measureText(p.t).width; });
+  const W = widths.reduce((a, b) => a + b, 0);
+  let px = align === 'center' ? cx - W / 2 : cx;
+  x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  parts.forEach((p, i) => {
+    x.font = `600 ${p.m ? size * .68 : size}px system-ui,sans-serif`;
+    x.fillText(p.t, px, cy + (p.m === 'sub' ? size * .28 : p.m === 'sup' ? -size * .42 : 0));
+    px += widths[i];
+  });
+}
+
+/* ---------- éléments et espèces ---------- */
+// rayons relatifs (unité R) ; couleurs conventionnelles des modèles moléculaires
+const EL = {
+  H: { c: '#f2f2f2', r: .62 }, O: { c: '#e0412f', r: 1 }, C: { c: '#3c3c3c', r: 1 },
+  N: { c: '#3768e6', r: .95 }, Cu: { c: '#3d9be0', r: 1.15 },
+  pain: { food: 1 }, jambon: { food: 1 }
+};
+const SP = {
+  H2:  { f: 'H_2',  nom: 'dihydrogène', ent: 'molécule', atoms: [['H', -.5, 0], ['H', .5, 0]] },
+  O2:  { f: 'O_2',  nom: 'dioxygène', ent: 'molécule', atoms: [['O', -.55, 0], ['O', .55, 0]] },
+  H2O: { f: 'H_2O', nom: 'eau', ent: 'molécule', atoms: [['H', -.78, .5], ['H', .78, .5], ['O', 0, -.1]] },
+  CH4: { f: 'CH_4', nom: 'méthane', ent: 'molécule', atoms: [['H', -.72, -.72], ['H', .72, -.72], ['C', 0, 0], ['H', -.72, .72], ['H', .72, .72]] },
+  CO2: { f: 'CO_2', nom: 'dioxyde de carbone', ent: 'molécule', atoms: [['O', -1.12, 0], ['O', 1.12, 0], ['C', 0, 0]] },
+  C:   { f: 'C',    nom: 'carbone', ent: 'atome', atoms: [['C', 0, 0]] },
+  N2:  { f: 'N_2',  nom: 'diazote', ent: 'molécule', atoms: [['N', -.52, 0], ['N', .52, 0]] },
+  NH3: { f: 'NH_3', nom: 'ammoniac', ent: 'molécule', atoms: [['H', 0, -.88], ['H', -.82, .42], ['H', .82, .42], ['N', 0, .02]] },
+  Cu:  { f: 'Cu^{2+}', nom: 'ion cuivre (II)', ent: 'ion', charge: '2+', atoms: [['Cu', 0, 0]] },
+  HO:  { f: 'HO^-', nom: 'ion hydroxyde', ent: 'ion', charge: '−', atoms: [['H', .72, -.55], ['O', 0, 0]] },
+  CuOH2: { f: 'Cu(OH)_2', nom: 'hydroxyde de cuivre (II)', ent: 'entité', solid: 1,
+    atoms: [['H', -2.35, -.6], ['H', 2.35, -.6], ['O', -1.65, 0], ['O', 1.65, 0], ['Cu', 0, 0]] },
+  pain:     { f: 'pain', nom: 'pain', ent: 'tranche', label: 'tranches de pain', sujet: 'le pain', food: 1, atoms: [['pain', 0, 0]] },
+  jambon:   { f: 'jambon', nom: 'jambon', ent: 'tranche', label: 'tranches de jambon', sujet: 'le jambon', food: 1, atoms: [['jambon', 0, 0]] },
+  sandwich: { f: 'sandwich', nom: 'sandwich', ent: 'sandwich', label: 'sandwichs', sujet: 'le sandwich', food: 1,
+    atoms: [['pain', 0, .62], ['jambon', 0, 0], ['pain', 0, -.62]] }
+};
+const RX = [
+  { id: 'sandwich', nom: 'Recette : fabriquer des sandwichs', R: [['pain', 2], ['jambon', 1]], P: [['sandwich', 1]], food: 1,
+    desc: 'Pour un sandwich, il faut 2 tranches de pain et 1 tranche de jambon.' },
+  { id: 'h2', nom: 'Combustion du dihydrogène', R: [['H2', 2], ['O2', 1]], P: [['H2O', 2]],
+    desc: 'Le dihydrogène brûle dans le dioxygène et forme de l’eau.' },
+  { id: 'ch4', nom: 'Combustion du méthane', R: [['CH4', 1], ['O2', 2]], P: [['CO2', 1], ['H2O', 2]],
+    desc: 'Le méthane (gaz de ville) brûle dans le dioxygène de l’air.' },
+  { id: 'c', nom: 'Combustion du carbone', R: [['C', 1], ['O2', 1]], P: [['CO2', 1]],
+    desc: 'Le carbone (charbon) brûle dans le dioxygène.' },
+  { id: 'nh3', nom: 'Synthèse de l’ammoniac', R: [['N2', 1], ['H2', 3]], P: [['NH3', 2]],
+    desc: 'Le diazote réagit avec le dihydrogène pour former de l’ammoniac.' },
+  { id: 'cu', nom: 'Précipitation de l’hydroxyde de cuivre (II)', R: [['Cu', 1], ['HO', 2]], P: [['CuOH2', 1]],
+    desc: 'Les ions cuivre (II) et hydroxyde forment un précipité bleu (les ions spectateurs ne sont pas dessinés).' }
+];
+const COLS = ['--c1', '--c2', '--c3', '--c4'];
+const plural = (w, n) => (Math.abs(n) > 1 && !/s$/.test(w)) ? w + 's' : w;
+const sujet = sp => SP[sp].sujet || fHTML(SP[sp].f);
+const sujetCap = sp => { const s = sujet(sp); return s.charAt(0).toUpperCase() + s.slice(1); };
+const deSp = sp => SP[sp].food ? 'de ' + SP[sp].nom : 'de ' + fHTML(SP[sp].f);
+function eqHTML(rx) {
+  const side = L => L.map(([s, c]) => `${c > 1 ? `<span class="co">${c}</span>&#8239;` : ''}${fHTML(SP[s].f)}`).join('<span class="plus">+</span>');
+  return `${side(rx.R)}<span class="arrow">→</span>${side(rx.P)}`;
+}
+
+/* ---------- thème + sprites d'atomes ---------- */
+let TH = {}; const SPR = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = n => cs.getPropertyValue(n).trim();
+  TH = { canvas: g('--canvas'), vessel: g('--vessel'), vfill: g('--vessel-fill'), text: g('--text'), muted: g('--muted'),
+    border: g('--border'), accent: g('--accent'), ko: g('--ko'), ok: g('--ok'), cols: COLS.map(g) };
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light'
+            || document.documentElement.dataset.theme === 'dark';
+  for (const k in EL) {
+    if (EL[k].food) continue;
+    const s = 64, c = document.createElement('canvas'); c.width = c.height = s;
+    const x = c.getContext('2d');
+    let col = EL[k].c; if (k === 'C' && dark) col = '#5a5a5a';
+    const [r, gg, b] = [1, 3, 5].map(i => parseInt(col.slice(i, i + 2), 16));
+    const gr = x.createRadialGradient(s * .36, s * .32, s * .03, s / 2, s / 2, s / 2);
+    gr.addColorStop(0, `rgb(${Math.min(255, r + 110)},${Math.min(255, gg + 110)},${Math.min(255, b + 110)})`);
+    gr.addColorStop(.5, `rgb(${r},${gg},${b})`);
+    gr.addColorStop(1, `rgb(${r * .5 | 0},${gg * .5 | 0},${b * .5 | 0})`);
+    x.fillStyle = gr; x.beginPath(); x.arc(s / 2, s / 2, s / 2 - 1.5, 0, TAU); x.fill();
+    x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1.5; x.stroke();
+    SPR[k] = c;
+  }
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+
+/* ---------- canvas ---------- */
+const cv = $('cv'), ctx = cv.getContext('2d');
+const W = 900, H = 520;
+const BOX = { x: 16, y: 16, w: 580, h: 488 };
+const R = 12;                // rayon de base d'un atome (px logiques)
+const KR = R / 8.5;
+let scale = 1, visible = true;
+function resize() {
+  const w = cv.clientWidth || W, dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+  scale = cv.width / W;
+}
+new ResizeObserver(resize).observe(cv);
+new IntersectionObserver(e => { visible = e[0].isIntersecting; }).observe(cv);
+resize();
+
+function drawAtom(el, x, y, a, k = 1) {
+  if (EL[el].food) return drawFood(el, x, y, a, k);
+  const r = EL[el].r * R * k;
+  ctx.drawImage(SPR[el], x - r, y - r, 2 * r, 2 * r);
+}
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function drawFood(el, x, y, a, k) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a * .15);
+  const s = R * k;
+  if (el === 'pain') {
+    rr(-2.3 * s, -.55 * s, 4.6 * s, 1.1 * s, .5 * s);
+    ctx.fillStyle = '#b8742f'; ctx.fill();
+    rr(-2.05 * s, -.34 * s, 4.1 * s, .68 * s, .32 * s);
+    ctx.fillStyle = '#f3d8a2'; ctx.fill();
+    ctx.fillStyle = 'rgba(184,116,47,.45)';
+    [[-1.2, 0], [-.2, .08], [.9, -.05], [1.5, .1]].forEach(([u, v]) => { ctx.beginPath(); ctx.arc(u * s, v * s, .12 * s, 0, TAU); ctx.fill(); });
+  } else {
+    rr(-2.15 * s, -.33 * s, 4.3 * s, .66 * s, .33 * s);
+    ctx.fillStyle = '#e88a9a'; ctx.fill();
+    ctx.strokeStyle = '#fbe3e6'; ctx.lineWidth = .16 * s;
+    ctx.beginPath(); ctx.moveTo(-1.8 * s, -.05 * s); ctx.quadraticCurveTo(0, .18 * s, 1.8 * s, -.08 * s); ctx.stroke();
+    ctx.strokeStyle = 'rgba(150,50,70,.5)'; ctx.lineWidth = 1; rr(-2.15 * s, -.33 * s, 4.3 * s, .66 * s, .33 * s); ctx.stroke();
+  }
+  ctx.restore();
+}
+function spAtomsWorld(sp, x, y, a, k = 1) {
+  const c = Math.cos(a), s = Math.sin(a), food = SP[sp].food;
+  return SP[sp].atoms.map(([el, u, v]) => {
+    const uu = food ? u : u * c - v * s, vv = food ? v : u * s + v * c;
+    return { el, x: x + uu * R * k, y: y + vv * R * k * (food ? .9 : 1) };
+  });
+}
+function drawSpecies(sp, x, y, a, k = 1) {
+  spAtomsWorld(sp, x, y, a, k).forEach(p => drawAtom(p.el, p.x, p.y, a, k));
+  if (SP[sp].charge) {
+    ctx.fillStyle = TH.text; ctx.font = `700 ${14 * k}px system-ui,sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(SP[sp].charge, x + R * k * 1.05, y - R * k * 1.15);
+  }
+}
+const EXT = {};
+for (const k in SP) EXT[k] = SP[k].food ? 2.4 * R : Math.max(...SP[k].atoms.map(([el, u, v]) => Math.hypot(u, v) + EL[el].r)) * R;
+
+/* ---------- état de la simulation ---------- */
+const S = {
+  rx: RX[0], unit: 0, N0: [0, 0], mols: [], events: [], counts: {}, k: 0,
+  running: false, started: false, done: false, nextT: 0, steps: 0, showCalc: false, tEnd: 0
+};
+let uid = 0;
+function freeMol(sp, x, y) {
+  const ang = rnd(0, TAU), v = rnd(18, 34);
+  return { id: uid++, sp, x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, a: rnd(0, TAU), va: rnd(-.8, .8), busy: false, born: 0 };
+}
+function place(sp) {
+  const e = EXT[sp] + 4;
+  for (let t = 0; t < 60; t++) {
+    const x = rnd(BOX.x + e, BOX.x + BOX.w - e), y = rnd(BOX.y + e, BOX.y + BOX.h - e);
+    if (S.mols.every(m => Math.hypot(m.x - x, m.y - y) > EXT[m.sp] + e + 2)) return [x, y];
+  }
+  return [rnd(BOX.x + e, BOX.x + BOX.w - e), rnd(BOX.y + e, BOX.y + BOX.h - e)];
+}
+function reset() {
+  S.mols = []; S.events = []; S.k = 0; S.running = false; S.started = false; S.done = false; S.nextT = 0; S.steps = 0;
+  S.counts = {};
+  S.rx.R.forEach(([sp], i) => { S.counts[sp] = S.N0[i]; for (let j = 0; j < S.N0[i]; j++) { const [x, y] = place(sp); S.mols.push(freeMol(sp, x, y)); } });
+  S.rx.P.forEach(([sp]) => { S.counts[sp] = 0; });
+  ui(true);
+}
+const kmax = () => Math.min(...S.rx.R.map(([, c], i) => Math.floor(S.N0[i] / c)));
+const freeOf = sp => S.mols.filter(m => !m.busy && m.sp === sp);
+const canReact = () => S.rx.R.every(([sp, c]) => freeOf(sp).length >= c);
+
+function startEvent() {
+  if (!canReact()) return false;
+  const [sp0] = S.rx.R[0];
+  const first = pick(freeOf(sp0));
+  const members = [];
+  S.rx.R.forEach(([sp, c]) => {
+    const pool = freeOf(sp).filter(m => m !== first).sort((a, b) => Math.hypot(a.x - first.x, a.y - first.y) - Math.hypot(b.x - first.x, b.y - first.y));
+    if (sp === sp0) { members.push(first); members.push(...pool.slice(0, c - 1)); }
+    else members.push(...pool.slice(0, c));
+  });
+  members.forEach(m => { m.busy = true; m.sx = m.x; m.sy = m.y; m.sa = m.a; });
+  let cx = members.reduce((s, m) => s + m.x, 0) / members.length;
+  let cy = members.reduce((s, m) => s + m.y, 0) / members.length;
+  const pad = 46 * KR; cx = clamp(cx, BOX.x + pad, BOX.x + BOX.w - pad); cy = clamp(cy, BOX.y + pad, BOX.y + BOX.h - pad);
+  // positions de rassemblement
+  const nR = members.length, rho = nR > 1 ? (13 + 5.5 * nR) * KR : 0, off = rnd(0, TAU);
+  members.forEach((m, i) => {
+    const ang = off + i * TAU / nR;
+    m.gx = cx + Math.cos(ang) * rho; m.gy = cy + Math.sin(ang) * rho * (S.rx.food ? .8 : 1);
+    m.ga = S.rx.food ? 0 : m.a;
+  });
+  S.events.push({ members, cx, cy, ph: 0, t: 0 });
+  return true;
+}
+function toRearrange(ev) {
+  // atomes des réactifs → atomes des produits
+  const src = [];
+  ev.members.forEach(m => spAtomsWorld(m.sp, m.x, m.y, m.a).forEach(p => src.push(p)));
+  const prods = [];
+  S.rx.P.forEach(([sp, c]) => { for (let j = 0; j < c; j++) prods.push(sp); });
+  const nP = prods.length, rho = nP > 1 ? (15 + 6 * nP) * KR : 0, off = rnd(0, TAU);
+  ev.prods = prods.map((sp, i) => {
+    const ang = off + i * TAU / nP;
+    return { sp, x: ev.cx + Math.cos(ang) * rho, y: ev.cy + Math.sin(ang) * rho, a: S.rx.food ? 0 : rnd(0, TAU), ang };
+  });
+  const tgt = [];
+  ev.prods.forEach(p => spAtomsWorld(p.sp, p.x, p.y, p.a).forEach(q => tgt.push(q)));
+  const angle = p => Math.atan2(p.y - ev.cy, p.x - ev.cx);
+  ev.atoms = [];
+  [...new Set(src.map(p => p.el))].forEach(el => {
+    const a = src.filter(p => p.el === el).sort((p, q) => angle(p) - angle(q));
+    const b = tgt.filter(p => p.el === el).sort((p, q) => angle(p) - angle(q));
+    // meilleur décalage circulaire
+    let best = 0, bd = Infinity;
+    for (let s = 0; s < b.length; s++) {
+      let d = 0; a.forEach((p, i) => { const q = b[(i + s) % b.length]; d += Math.hypot(p.x - q.x, p.y - q.y); });
+      if (d < bd) { bd = d; best = s; }
+    }
+    a.forEach((p, i) => { const q = b[(i + best) % b.length]; ev.atoms.push({ el, x0: p.x, y0: p.y, x1: q.x, y1: q.y }); });
+  });
+  // les réactifs disparaissent
+  S.mols = S.mols.filter(m => !ev.members.includes(m));
+  S.rx.R.forEach(([sp, c]) => { S.counts[sp] -= c; });
+}
+function finishEvent(ev) {
+  ev.prods.forEach(p => {
+    const m = freeMol(p.sp, p.x, p.y);
+    m.a = p.a; m.vx = Math.cos(p.ang) * 45 + rnd(-8, 8); m.vy = Math.sin(p.ang) * 40 + rnd(-8, 8); m.born = 1;
+    S.mols.push(m);
+  });
+  S.rx.P.forEach(([sp, c]) => { S.counts[sp] += c; });
+  S.k++;
+}
+
+function update(dt) {
+  const sp = +$('s-v').value;
+  const T1 = 1.0 / sp, T2 = 0.9 / sp, T3 = 0.25 / sp;
+  // agitation thermique
+  const vmul = reduce ? .4 : 1;
+  S.mols.forEach(m => {
+    if (m.busy) return;
+    m.vx += rnd(-1, 1) * 30 * dt; m.vy += rnd(-1, 1) * 30 * dt;
+    const v = Math.hypot(m.vx, m.vy), vt = 26;
+    m.vx += (m.vx / (v || 1)) * (vt - v) * dt * .8; m.vy += (m.vy / (v || 1)) * (vt - v) * dt * .8;
+    m.x += m.vx * dt * vmul; m.y += m.vy * dt * vmul;
+    if (!S.rx.food) m.a += m.va * dt * vmul; else m.a = Math.sin(performance.now() / 900 + m.id) * .6;
+    const e = EXT[m.sp];
+    if (m.x < BOX.x + e) { m.x = BOX.x + e; m.vx = Math.abs(m.vx); }
+    if (m.x > BOX.x + BOX.w - e) { m.x = BOX.x + BOX.w - e; m.vx = -Math.abs(m.vx); }
+    if (m.y < BOX.y + e) { m.y = BOX.y + e; m.vy = Math.abs(m.vy); }
+    if (m.y > BOX.y + BOX.h - e) { m.y = BOX.y + BOX.h - e; m.vy = -Math.abs(m.vy); }
+    if (m.born > 0) m.born = Math.max(0, m.born - dt * 1.2);
+  });
+  // événements de réaction
+  for (const ev of S.events) {
+    ev.t += dt;
+    if (ev.ph === 0) {
+      const k = ease(clamp(ev.t / T1, 0, 1));
+      ev.members.forEach(m => { m.x = lerp(m.sx, m.gx, k); m.y = lerp(m.sy, m.gy, k); m.a = lerp(m.sa, m.ga, k); });
+      if (ev.t >= T1) { ev.ph = 1; ev.t = 0; toRearrange(ev); }
+    } else if (ev.ph === 1) {
+      if (ev.t >= T2) { ev.ph = 2; ev.t = 0; finishEvent(ev); }
+    } else if (ev.ph === 2) {
+      if (ev.t >= T3) ev.ph = 3;
+    }
+  }
+  S.events = S.events.filter(ev => ev.ph < 3);
+  // lancement de nouvelles réactions
+  if (S.running) {
+    S.nextT -= dt;
+    const maxC = sp + 1;
+    if (S.nextT <= 0 && S.events.filter(e => e.ph < 2).length < maxC) {
+      if (startEvent()) S.nextT = 1.1 / sp;
+    }
+  } else if (S.steps > 0 && S.events.length === 0) {
+    S.steps--; if (!startEvent()) S.steps = 0;
+  }
+  // fin ?
+  if (S.started && !S.done && S.events.length === 0 && !canReact()) {
+    S.done = true; S.running = false; S.steps = 0; S.tEnd = performance.now(); ui(true);
+  }
+}
+
+/* ---------- dessin ---------- */
+function draw() {
+  const x = ctx;
+  x.setTransform(scale, 0, 0, scale, 0, 0);
+  x.clearRect(0, 0, W, H);
+  // récipient
+  rr(BOX.x, BOX.y, BOX.w, BOX.h, 14); x.fillStyle = TH.vfill; x.fill();
+  x.lineWidth = 2; x.strokeStyle = TH.vessel; x.stroke();
+  x.fillStyle = TH.muted; x.font = '600 13px system-ui,sans-serif'; x.textAlign = 'left'; x.textBaseline = 'top';
+  x.fillText('Système chimique', BOX.x + 12, BOX.y + 10);
+  const now = performance.now();
+  // excès en surbrillance à la fin
+  let excess = null;
+  if (S.done) {
+    const left = S.rx.R.filter(([sp]) => S.counts[sp] > 0).map(([sp]) => sp);
+    excess = new Set(left);
+  }
+  const colOf = sp => {
+    const all = [...S.rx.R, ...S.rx.P].map(([s]) => s); return TH.cols[all.indexOf(sp)];
+  };
+  // molécules libres
+  S.mols.forEach(m => {
+    if (excess && excess.has(m.sp)) {
+      const p = .5 + .5 * Math.sin(now / 260);
+      x.beginPath(); x.arc(m.x, m.y, EXT[m.sp] + 5 + 2 * p, 0, TAU);
+      x.strokeStyle = colOf(m.sp); x.globalAlpha = .55 + .35 * p; x.lineWidth = 2.5; x.stroke(); x.globalAlpha = 1;
+    }
+    if (m.born > 0) {
+      x.beginPath(); x.arc(m.x, m.y, EXT[m.sp] + 4, 0, TAU);
+      x.fillStyle = colOf(m.sp); x.globalAlpha = .28 * m.born; x.fill(); x.globalAlpha = 1;
+    }
+    drawSpecies(m.sp, m.x, m.y, m.a);
+  });
+  // réorganisation des atomes
+  const sp = +$('s-v').value, T2 = 0.9 / sp;
+  S.events.forEach(ev => {
+    if (ev.ph === 0) {
+      const k = clamp(ev.t / (1.0 / sp), 0, 1);
+      x.beginPath(); x.arc(ev.cx, ev.cy, (34 + 26 * (1 - k)) * KR, 0, TAU);
+      x.setLineDash([4, 5]); x.strokeStyle = TH.accent; x.globalAlpha = .5 * k; x.lineWidth = 1.5; x.stroke(); x.setLineDash([]); x.globalAlpha = 1;
+    }
+    if (ev.ph === 1) {
+      const k = ease(clamp(ev.t / T2, 0, 1));
+      const g = x.createRadialGradient(ev.cx, ev.cy, 0, ev.cx, ev.cy, 80);
+      g.addColorStop(0, 'rgba(255,214,90,' + (.55 * Math.sin(Math.PI * k)) + ')'); g.addColorStop(1, 'rgba(255,214,90,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(ev.cx, ev.cy, 80, 0, TAU); x.fill();
+      ev.atoms.forEach(a => {
+        // petite trajectoire courbe
+        const mx = (a.x0 + a.x1) / 2 + (a.y1 - a.y0) * .25, my = (a.y0 + a.y1) / 2 - (a.x1 - a.x0) * .25;
+        const px = (1 - k) * (1 - k) * a.x0 + 2 * (1 - k) * k * mx + k * k * a.x1;
+        const py = (1 - k) * (1 - k) * a.y0 + 2 * (1 - k) * k * my + k * k * a.y1;
+        drawAtom(a.el, px, py, 0);
+      });
+    }
+  });
+  drawBars();
+}
+function drawBars() {
+  const x = ctx, all = [...S.rx.R, ...S.rx.P].map(([s]) => s);
+  const X0 = 618, X1 = 886, top = 64, base = 440;
+  x.fillStyle = TH.text; x.font = '700 14px system-ui,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'top';
+  x.fillText(S.unit ? 'Quantité de matière (mol)' : 'Nombre d’entités', (X0 + X1) / 2, 20);
+  const nR = S.rx.R.length, n = all.length, gap = 16, arrowW = 26;
+  const bw = Math.min(54, (X1 - X0 - arrowW - gap * (n - 1)) / n);
+  const total = n * bw + (n - 1) * gap + arrowW;
+  let px = (X0 + X1) / 2 - total / 2;
+  const km = kmax();
+  const maxV = Math.max(1, ...S.N0, ...S.rx.P.map(([, c]) => c * km));
+  const hOf = v => (base - top - 22) * v / maxV;
+  x.strokeStyle = TH.border; x.lineWidth = 1.5; x.beginPath(); x.moveTo(X0, base + .5); x.lineTo(X1, base + .5); x.stroke();
+  all.forEach((sp, i) => {
+    if (i === nR) {
+      x.fillStyle = TH.muted; x.font = '700 22px system-ui,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText('→', px + arrowW / 2 - gap / 2, base - 40);
+      px += arrowW;
+    }
+    const col = TH.cols[i];
+    const isR = i < nR, v0 = isR ? S.N0[i] : 0, v = S.counts[sp];
+    if (isR && v0 > 0) { // fantôme de l'état initial
+      x.setLineDash([4, 4]); x.strokeStyle = col; x.lineWidth = 1.5;
+      x.strokeRect(px + .5, base - hOf(v0), bw - 1, hOf(v0)); x.setLineDash([]);
+    }
+    if (v > 0) { x.fillStyle = col; rr(px, base - hOf(v), bw, hOf(v), 4); x.fill(); x.fillRect(px, base - Math.min(4, hOf(v)), bw, Math.min(4, hOf(v))); }
+    x.fillStyle = TH.text; x.font = '700 14px system-ui,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'bottom';
+    x.fillText(qty(v), px + bw / 2, base - hOf(v) - 5);
+    if (isR && v0 !== v && hOf(v0) - hOf(v) > 20) {
+      x.fillStyle = TH.muted; x.font = '600 12px system-ui,sans-serif';
+      x.fillText('initial : ' + qty(v0), px + bw / 2, base - hOf(v0) - 4);
+    }
+    x.fillStyle = TH.text;
+    if (SP[sp].food) { x.font = '600 13px system-ui,sans-serif'; x.textBaseline = 'top'; x.fillText(SP[sp].nom, px + bw / 2, base + 8); }
+    else fCanvas(x, SP[sp].f, px + bw / 2, base + 24, 16);
+    if (S.done && isR) {
+      const lim = v < S.rx.R[i][1];
+      x.font = '700 11.5px system-ui,sans-serif'; x.textBaseline = 'top';
+      x.fillStyle = lim ? TH.ko : TH.muted;
+      x.fillText(lim ? 'limitant' : 'en excès', px + bw / 2, base + 42);
+    }
+    px += bw + gap;
+  });
+  x.fillStyle = TH.muted; x.font = '500 12px system-ui,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'top';
+  x.fillText('pointillés : état initial', (X0 + X1) / 2, base + 64);
+}
+const qty = v => S.unit ? sf(v * S.unit, 2) : String(v);
+const qtyU = v => S.unit ? sf(v * S.unit, 2) + ' mol' : String(v);
+
+/* ---------- interface ---------- */
+RX.forEach((r, i) => $('s-rx').insertAdjacentHTML('beforeend', `<option value="${i}">${r.nom}</option>`));
+function setupSliders(keep) {
+  const rx = S.rx;
+  rx.R.forEach(([sp, c], i) => {
+    const s = $('s-n' + (i + 1));
+    s.step = c; s.min = 0; s.max = c * 10;
+    if (!keep) s.value = c * [5, 3][i] * (rx.id === 'sandwich' ? 1 : 1);
+    s.value = Math.round(+s.value / c) * c;
+    S.N0[i] = +s.value;
+    $('s-l' + (i + 1)).innerHTML = rx.food ? `Tranches de ${SP[sp].nom}` : `${SP[sp].ent.charAt(0).toUpperCase() + SP[sp].ent.slice(1)}s de ${fHTML(SP[sp].f)}`;
+  });
+  $('s-unit').disabled = !!rx.food;
+  if (rx.food) { $('s-unit').value = '0'; S.unit = 0; }
+  $('s-eq').innerHTML = eqHTML(rx);
+  $('s-desc').textContent = rx.desc;
+}
+function ui(full) {
+  const rx = S.rx;
+  rx.R.forEach(([sp], i) => { $('s-o' + (i + 1)).textContent = qtyU(S.N0[i]); });
+  $('s-k').textContent = S.k;
+  $('s-hnow').textContent = S.done ? 'État final' : 'Maintenant';
+  if (!full) { rows(); return; }
+  rows();
+  $('s-run').textContent = S.running ? '⏸ Pause' : (S.started && !S.done ? '▶ Reprendre' : '▶ Lancer la transformation');
+  $('s-run').disabled = S.done || (!S.started && !canReact());
+  $('s-step').disabled = S.done || !canReact() || S.running;
+  // prévision
+  const km = kmax();
+  const lines = rx.R.map(([sp, c], i) => {
+    const r = S.unit ? S.N0[i] * S.unit / c : S.N0[i] / c;
+    const lhs = S.unit ? `n(${fHTML(SP[sp].f)}) / ${c}` : `N(${SP[sp].food ? SP[sp].nom : fHTML(SP[sp].f)}) / ${c}`;
+    return { sp, r, txt: `${lhs} = ${qty(S.N0[i])} / ${c} = <strong>${S.unit ? sf(r, 2) + ' mol' : fmt(r, Number.isInteger(r) ? 0 : 1)}</strong>` };
+  });
+  const rmin = Math.min(...lines.map(l => l.r));
+  const lim = lines.filter(l => Math.abs(l.r - rmin) < 1e-9);
+  let concl = '';
+  if (rmin === 0) concl = 'Un réactif manque : aucune réaction n’est possible.';
+  else if (lim.length === lines.length) concl = `Valeurs égales : <strong>mélange stœchiométrique</strong>, tous les réactifs seront consommés.`;
+  else concl = `Plus petite valeur : ${sujet(lim[0].sp)} → <strong>réactif limitant</strong>. ${S.unit ? '' : `La réaction pourra se produire ${km} fois.`}`;
+  $('s-calc').innerHTML = `<div class="${S.showCalc || S.done ? '' : 'hidden'}">${lines.map(l => l.txt).join('<br>')}<br>${concl}</div>`;
+  $('s-show').hidden = S.showCalc || S.done;
+  // texte d'explication
+  const t = $('s-text');
+  const parts = L => L.map(([sp, c]) => `${c} ${rx.food ? plural(SP[sp].ent === 'tranche' ? 'tranche' : SP[sp].ent, c) + ' ' + deSp(sp) : fHTML(SP[sp].f)}`).join(' et ');
+  if (!S.started) {
+    t.innerHTML = rx.food
+      ? `Chaque fois qu’on fabrique un sandwich, on utilise ${parts(rx.R)}. Combien de sandwichs pourra-t-on faire ? Fais une prévision, puis lance la fabrication.`
+      : `Chaque fois que la réaction se produit, ${parts(rx.R)} disparaissent et ${parts(rx.P)} apparaissent. Fais une prévision, puis lance la transformation.`;
+  } else if (!S.done) {
+    t.innerHTML = rx.food
+      ? `On fabrique les sandwichs un par un… Déjà ${S.k} ${plural('sandwich', S.k)}.`
+      : `Les entités se rencontrent et leurs atomes se réorganisent : la réaction s’est produite ${S.k} fois.`;
+  } else {
+    const left = rx.R.map(([sp], i) => ({ sp, n: S.counts[sp] }));
+    const exc = left.filter(l => l.n > 0);
+    const lims = left.filter(l => l.n === 0);
+    const reste = exc.map(l => S.unit ? `${qtyU(l.n)} ${deSp(l.sp)}` : `${l.n} ${plural(SP[l.sp].ent, l.n)} ${deSp(l.sp)}`).join(' et ');
+    if (exc.length === 0) {
+      t.innerHTML = rx.food
+        ? `Plus de pain ni de jambon : tout a été utilisé en même temps. Les quantités étaient exactement dans les proportions de la recette : c’est un <strong>mélange stœchiométrique</strong>.`
+        : `Les deux réactifs ont été entièrement consommés en même temps : le mélange initial était <strong>stœchiométrique</strong> (dans les proportions de l’équation).`;
+    } else {
+      const L = lims.map(l => sujet(l.sp)).join(' et ');
+      t.innerHTML = rx.food
+        ? `Il n’y a plus de ${SP[lims[0].sp].nom} : on ne peut plus fabriquer de sandwich. ${sujetCap(lims[0].sp)} est l’ingrédient <strong>limitant</strong>. Il reste ${reste} : ${sujet(exc[0].sp)} est <strong>en excès</strong>.`
+        : `Il n’y a plus de ${L} : la transformation s’arrête. ${L} est le <strong>réactif limitant</strong> (entièrement consommé). Il reste ${reste} : ${sujet(exc[0].sp)} est <strong>en excès</strong>.`;
+    }
+  }
+}
+function rows() {
+  const rx = S.rx, all = [...rx.R, ...rx.P];
+  $('s-tab').innerHTML = all.map(([sp], i) => {
+    const isR = i < rx.R.length, v0 = isR ? S.N0[i] : 0, v = S.counts[sp];
+    let pill = '';
+    if (S.done && isR) {
+      const none = rx.R.every(([s]) => S.counts[s] === 0);
+      pill = none ? '<span class="pill sto">consommé</span>' : v === 0 ? '<span class="pill lim">limitant</span>' : '<span class="pill exc">en excès</span>';
+    }
+    const name = SP[sp].food ? SP[sp].nom : fHTML(SP[sp].f);
+    return `<tr><td><span class="dot" style="display:inline-block;width:.7em;height:.7em;border-radius:50%;background:var(${COLS[i]});margin-right:.35em"></span>${name}${pill}</td><td>${qtyU(v0)}</td><td><strong>${qtyU(v)}</strong></td></tr>`;
+  }).join('');
+}
+
+$('s-rx').addEventListener('change', e => { S.rx = RX[+e.target.value]; S.showCalc = false; setupSliders(false); reset(); });
+$('s-unit').addEventListener('change', e => { S.unit = +e.target.value; ui(true); });
+['s-n1', 's-n2'].forEach((id, i) => $(id).addEventListener('input', e => { S.N0[i] = +e.target.value; S.showCalc = false; reset(); }));
+$('s-run').addEventListener('click', () => {
+  if (S.done) return;
+  if (!S.started) { S.started = true; S.nextT = 0; }
+  S.running = !S.running; ui(true);
+});
+$('s-step').addEventListener('click', () => {
+  if (S.done || S.running || !canReact()) return;
+  S.started = true; S.steps = 1; ui(true);
+});
+$('s-sto').addEventListener('click', () => {
+  const [[, a], [, b]] = S.rx.R;
+  let g = Math.min(Math.round(S.N0[0] / a), 10);
+  if (g < 2) g = 4;
+  S.N0 = [g * a, g * b];
+  $('s-n1').value = S.N0[0]; $('s-n2').value = S.N0[1]; S.showCalc = false; reset();
+});
+$('s-reset').addEventListener('click', reset);
+$('s-show').addEventListener('click', () => { S.showCalc = true; ui(true); });
+
+/* ---------- exercice ---------- */
+const E = { score: 0, total: 0, checked: false };
+const CHEM = RX.filter(r => !r.food);
+function newEx() {
+  const rx = pick(CHEM);
+  const u = pick([0.1, 0.05, 0.02]);
+  const [[, a], [, b]] = rx.R;
+  let g1, g2;
+  const r = Math.random();
+  g1 = irnd(2, 9);
+  if (r < .2) g2 = g1;
+  else { do { g2 = irnd(2, 9); } while (g2 === g1); }
+  // de préférence un piège : le limitant est le réactif en plus grande quantité
+  if (a !== b && r >= .2 && Math.random() < .55) {
+    for (let t = 0; t < 40; t++) {
+      const h1 = irnd(2, 9), h2 = irnd(2, 9);
+      if (h1 === h2) continue;
+      const lim = h1 < h2 ? 0 : 1;
+      const n = [a * h1, b * h2];
+      if (n[lim] > n[1 - lim]) { g1 = h1; g2 = h2; break; }
+    }
+  }
+  Object.assign(E, { rx, u, N: [a * g1, b * g2], checked: false, solShown: false });
+  const n = E.N.map(v => v * u);
+  const [[s1], [s2]] = rx.R;
+  $('e-enonce').innerHTML = `<strong>${rx.nom}.</strong> ${rx.desc}<br>
+    Équation : <span style="font-weight:600">${eqHTML(rx)}</span><br>
+    État initial : n(${fHTML(SP[s1].f)}) = <strong>${sf(n[0], 2)} mol</strong> et n(${fHTML(SP[s2].f)}) = <strong>${sf(n[1], 2)} mol</strong>.`;
+  $('e-choices').innerHTML = [
+    [0, `${fHTML(SP[s1].f)}`], [1, `${fHTML(SP[s2].f)}`], [2, 'Aucun : mélange stœchiométrique']
+  ].map(([v, l]) => `<label class="choice"><input type="radio" name="e-lim" value="${v}"> ${l}</label>`).join('');
+  $('e-q2').innerHTML = '2. Quelle quantité de matière reste-t-il du réactif en excès à l’état final ? (0 si le mélange est stœchiométrique)';
+  $('e-rest').value = '';
+  $('e-fb').innerHTML = ''; $('e-corr').innerHTML = '';
+}
+function exSolution() {
+  const { rx, u, N } = E, n = N.map(v => v * u);
+  const [[s1, a], [s2, b]] = rx.R;
+  const r = [n[0] / a, n[1] / b];
+  const sto = Math.abs(r[0] - r[1]) < 1e-9;
+  const lim = sto ? 2 : (r[0] < r[1] ? 0 : 1);
+  const xr = Math.min(...r);
+  const rest = sto ? 0 : n[1 - lim] - (lim === 0 ? b : a) * xr;
+  return { n, r, sto, lim, xr, rest, a, b, s1, s2 };
+}
+function exCorrection() {
+  const { rx } = E, s = exSolution();
+  const F = sp => fHTML(SP[sp].f);
+  const coef = [s.a, s.b], sps = [s.s1, s.s2];
+  let h = `<h3>Correction</h3>
+    On compare n / (nombre stœchiométrique) pour chaque réactif :<br>
+    n(${F(s.s1)}) / ${s.a} = ${sf(s.n[0], 2)} / ${s.a} = <strong>${sf(s.r[0], 2)} mol</strong><br>
+    n(${F(s.s2)}) / ${s.b} = ${sf(s.n[1], 2)} / ${s.b} = <strong>${sf(s.r[1], 2)} mol</strong><br>`;
+  if (s.sto) {
+    h += `Les deux valeurs sont égales : le mélange est <strong>stœchiométrique</strong>. Les deux réactifs sont entièrement consommés, il ne reste rien.<br>`;
+  } else {
+    const L = s.lim, X = 1 - L;
+    h += `La plus petite valeur est celle de ${F(sps[L])} : <strong>${F(sps[L])} est le réactif limitant</strong>.<br>
+      ${F(sps[L])} est entièrement consommé. D’après l’équation, ${coef[L]} ${F(sps[L])} réagit avec ${coef[X]} ${F(sps[X])} :
+      la quantité de ${F(sps[X])} consommée est ${coef[X]} × ${sf(s.xr, 2)} = ${sf(coef[X] * s.xr, 2)} mol.<br>
+      Il reste n(${F(sps[X])}) = ${sf(s.n[X], 2)} − ${sf(coef[X] * s.xr, 2)} = <strong>${sf(s.rest, 2)} mol</strong> = ${sci(s.rest, 2)} mol.<br>`;
+  }
+  h += `Il se forme ${rx.P.map(([sp, c]) => `${sf(c * s.xr, 2)} mol de ${F(sp)}`).join(' et ')}.`;
+  $('e-corr').innerHTML = `<div class="correction">${h}</div>`;
+  E.solShown = true;
+}
+$('e-check').addEventListener('click', () => {
+  const ch = document.querySelector('input[name="e-lim"]:checked');
+  const s = exSolution();
+  const v = parseNum($('e-rest').value);
+  if (!ch) { $('e-fb').innerHTML = '<div class="feedback ko">Choisis d’abord le réactif limitant.</div>'; return; }
+  const ok1 = +ch.value === s.lim;
+  const tol = Math.max(0.0051, Math.abs(s.rest) * 0.02);
+  const ok2 = isFinite(v) && Math.abs(v - s.rest) <= tol;
+  const msgs = [];
+  msgs.push(ok1 ? '✓ Bon choix pour le réactif limitant.' : '✗ Ce n’est pas le bon réactif limitant. As-tu bien divisé chaque quantité par son nombre stœchiométrique ?');
+  if ($('e-rest').value.trim() === '') msgs.push('Question 2 : tu n’as pas donné de valeur.');
+  else if (!isFinite(v)) msgs.push('Question 2 : écris un nombre (par exemple 0,20).');
+  else msgs.push(ok2 ? '✓ Bonne quantité restante.' : '✗ La quantité restante n’est pas correcte.');
+  if (!E.checked) { E.total++; if (ok1 && ok2) E.score++; E.checked = true; }
+  $('e-fb').innerHTML = `<div class="feedback ${ok1 && ok2 ? 'ok' : 'ko'}">${msgs.join('<br>')}</div>`;
+  $('e-score').textContent = `Score : ${E.score} / ${E.total}`;
+  if (ok1 && ok2) exCorrection();
+});
+$('e-sol').addEventListener('click', exCorrection);
+$('e-new').addEventListener('click', newEx);
+$('e-anim').addEventListener('click', () => {
+  const i = RX.indexOf(E.rx);
+  $('s-rx').value = i; S.rx = E.rx;
+  setupSliders(true);
+  S.N0 = [...E.N]; $('s-n1').value = E.N[0]; $('s-n2').value = E.N[1];
+  S.unit = E.u; $('s-unit').value = String(E.u);
+  S.showCalc = E.solShown; reset();
+  $('sc-sim').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  setTimeout(() => { if (!S.started) { S.started = true; S.running = true; ui(true); } }, 900);
+});
+
+/* ---------- plein écran ---------- */
+document.querySelectorAll('button.fs').forEach(btn => {
+  const el = $(btn.dataset.target);
+  if (!el.requestFullscreen) { btn.hidden = true; return; }
+  btn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen());
+});
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('button.fs').forEach(b => b.textContent = document.fullscreenElement === $(b.dataset.target) ? 'Quitter le plein écran' : 'Plein écran');
+});
+
+/* ---------- démarrage ---------- */
+setupSliders(false); reset(); newEx();
+let last = performance.now(), uiT = 0;
+function frame(now) {
+  const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
+  update(dt);
+  if (visible) draw();
+  uiT += dt; if (uiT > .12) { uiT = 0; ui(S.events.length > 0 || S.running); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__sim = S;
+})();
+</script>
+</body>
+</html>
