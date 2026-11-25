@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dissolution et dilution</title>
+<meta name="description" content="Animation interactive pour comprendre la différence entre dissolution et dilution (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+  --glass-hi:rgba(255,255,255,0.75);
+  --water:110,170,230; --solute:118,52,170; --rubber:#c8423a;
+  --diss:#d9822b; --dil:#2f8f6b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+    --glass-hi:rgba(255,255,255,0.35);
+    --water:80,140,215; --solute:196,140,255; --rubber:#d9554c;
+    --diss:#f0a04b; --dil:#4cc597;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  --glass-hi:rgba(255,255,255,0.35);
+  --water:80,140,215; --solute:196,140,255; --rubber:#d9554c;
+  --diss:#f0a04b; --dil:#4cc597;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:70ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:16px;margin:0 0 22px}
+.scene h2{margin:0;font-size:1.35rem;display:flex;align-items:center;gap:.5rem}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:.15rem .5rem;border-radius:999px;color:#fff}
+.tag.diss{background:var(--diss)} .tag.dil{background:var(--dil)}
+.scene .sub{color:var(--muted);margin:.25rem 0 .8rem}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);
+  touch-action:pan-y;cursor:grab;border:1px solid var(--border)}
+canvas.diss{aspect-ratio:900/545} canvas.dil{aspect-ratio:900/680}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:12px 0 6px}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl label{font-weight:600;font-size:.95rem}
+.ctrl output{font-variant-numeric:tabular-nums;min-width:5.5ch;font-weight:600;color:var(--accent)}
+input[type=range]{width:min(220px,60vw);accent-color:var(--accent)}
+select{font:inherit;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+button{font:inherit;font-weight:600;padding:.55rem .9rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.small{font-size:.85rem;color:var(--muted)}
+.check{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--muted)}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:10px 0 0;min-height:3.2em}
+.scene.d1 .explain{border-color:var(--diss)} .scene.d2 .explain{border-color:var(--dil)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.card{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg)}
+.card h3{margin:0 0 .25rem;font-size:.95rem}
+.card dl{display:grid;grid-template-columns:auto 1fr;gap:.1rem .6rem;margin:0;font-variant-numeric:tabular-nums}
+.card dt{color:var(--muted)} .card dd{margin:0;font-weight:600}
+.big{font-size:1.1rem}
+.relation{margin-top:10px;font-variant-numeric:tabular-nums}
+table.cmp{width:100%;border-collapse:collapse;margin-top:8px;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid var(--border);padding:.45rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:var(--bg)}
+.tablewrap{overflow-x:auto}
+footer{max-width:1040px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:18px 28px}
+.scene:fullscreen canvas{max-height:70vh;width:auto;max-width:100%;margin:0 auto}
+@media (max-width:700px){
+  .cards{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Dissolution et dilution</h1>
+    <a href="../">← Toutes les animations</a>
+  </header>
+  <p class="lead">Deux façons d'obtenir une solution, à ne pas confondre. Les points violets représentent les entités du soluté
+    (modèle : 1 point = 10 mg de soluté). Fais glisser une image vers la gauche ou la droite pour faire tourner les béchers.</p>
+
+  <!-- ============ DISSOLUTION ============ -->
+  <section class="scene d1" id="sc-diss" aria-labelledby="t-diss">
+    <div class="head">
+      <div>
+        <h2 id="t-diss"><span class="tag diss">1</span> La dissolution</h2>
+        <p class="sub">On disperse un <strong>soluté solide</strong> dans un <strong>solvant</strong> : on fabrique une solution.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-diss" type="button">Plein écran</button>
+    </div>
+    <canvas id="cv-diss" class="diss" role="img" aria-label="Animation de la dissolution d'un solide dans l'eau"></canvas>
+    <div class="controls">
+      <div class="ctrl">
+        <label for="d-n">Masse de soluté</label>
+        <input id="d-n" type="range" min="50" max="300" step="10" value="150">
+        <output id="d-n-out" for="d-n"></output>
+      </div>
+      <label class="check"><input type="checkbox" id="d-rot" checked> Rotation 3D</label>
+    </div>
+    <div class="btns">
+      <button id="d-b1" type="button">① Mettre le solide dans le bécher</button>
+      <button id="d-b2" type="button">② Ajouter le solvant (eau)</button>
+      <button id="d-b3" type="button">③ Agiter</button>
+      <button id="d-reset" class="ghost" type="button">Recommencer</button>
+    </div>
+    <p class="explain" id="d-text" aria-live="polite"></p>
+    <div class="cards">
+      <div class="card"><h3>Soluté</h3><dl><dt>masse m</dt><dd id="d-m"></dd><dt>dissous</dt><dd id="d-pct"></dd></dl></div>
+      <div class="card"><h3>Solvant / solution</h3><dl><dt>volume V</dt><dd id="d-v"></dd></dl></div>
+      <div class="card"><h3>Concentration en masse</h3><div class="big" id="d-c"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ DILUTION ============ -->
+  <section class="scene d2" id="sc-dil" aria-labelledby="t-dil">
+    <div class="head">
+      <div>
+        <h2 id="t-dil"><span class="tag dil">2</span> La dilution</h2>
+        <p class="sub">On part d'une <strong>solution mère</strong>, on en prélève une partie et on ajoute du <strong>solvant</strong> : on obtient une <strong>solution fille</strong> moins concentrée.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-dil" type="button">Plein écran</button>
+    </div>
+    <canvas id="cv-dil" class="dil" role="img" aria-label="Animation de la dilution d'une solution avec une pipette"></canvas>
+    <div class="controls">
+      <div class="ctrl">
+        <label for="l-n">Concentration de la solution mère</label>
+        <input id="l-n" type="range" min="20" max="300" step="20" value="200">
+        <output id="l-n-out" for="l-n"></output>
+      </div>
+      <div class="ctrl">
+        <label for="l-vp">Volume prélevé</label>
+        <select id="l-vp">
+          <option value="10">10 mL</option>
+          <option value="20" selected>20 mL</option>
+          <option value="25">25 mL</option>
+          <option value="50">50 mL</option>
+        </select>
+      </div>
+      <label class="check"><input type="checkbox" id="l-rot" checked> Rotation 3D</label>
+    </div>
+    <div class="btns">
+      <button id="l-b1" type="button">① Prélever avec la pipette</button>
+      <button id="l-b2" type="button">② Verser dans le bécher vide</button>
+      <button id="l-b3" type="button">③ Compléter avec le solvant</button>
+      <button id="l-reset" class="ghost" type="button">Recommencer</button>
+    </div>
+    <p class="explain" id="l-text" aria-live="polite"></p>
+    <div class="cards">
+      <div class="card"><h3>Solution mère</h3><dl>
+        <dt>points</dt><dd id="lm-n"></dd><dt>masse</dt><dd id="lm-m"></dd><dt>volume</dt><dd id="lm-v"></dd><dt>C<sub>m</sub></dt><dd id="lm-c"></dd></dl></div>
+      <div class="card"><h3>Pipette</h3><dl>
+        <dt>points</dt><dd id="lp-n"></dd><dt>volume</dt><dd id="lp-v"></dd><dt>C<sub>m</sub></dt><dd id="lp-c"></dd></dl></div>
+      <div class="card"><h3>Solution fille</h3><dl>
+        <dt>points</dt><dd id="lf-n"></dd><dt>masse</dt><dd id="lf-m"></dd><dt>volume</dt><dd id="lf-v"></dd><dt>C<sub>m</sub></dt><dd id="lf-c"></dd></dl></div>
+    </div>
+    <p class="relation" id="l-rel"></p>
+  </section>
+
+  <section class="scene" aria-labelledby="t-cmp">
+    <h2 id="t-cmp">Ce qu'il faut retenir</h2>
+    <div class="tablewrap">
+    <table class="cmp">
+      <thead><tr><th></th><th>Dissolution</th><th>Dilution</th></tr></thead>
+      <tbody>
+        <tr><th>On part de…</th><td>un soluté (solide, liquide ou gaz) et un solvant</td><td>une solution déjà préparée (solution mère)</td></tr>
+        <tr><th>On ajoute…</th><td>le solvant au soluté</td><td>du solvant à une partie prélevée de la solution mère</td></tr>
+        <tr><th>Masse de soluté</th><td>la masse m pesée se retrouve entièrement dans la solution</td><td>se conserve : m<sub>prélevée</sub> = m<sub>fille</sub></td></tr>
+        <tr><th>Relation</th><td>C<sub>m</sub> = m / V</td><td>C<sub>mère</sub> × V<sub>prélevé</sub> = C<sub>fille</sub> × V<sub>fille</sub><br>F = C<sub>mère</sub> / C<sub>fille</sub> = V<sub>fille</sub> / V<sub>prélevé</sub></td></tr>
+        <tr><th>Verrerie au labo</th><td>balance, coupelle, entonnoir, fiole jaugée</td><td>pipette jaugée + propipette, fiole jaugée</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="small">Ici on utilise des béchers pour bien voir les points. Au laboratoire, la solution est préparée dans une fiole jaugée pour que le volume soit précis.</p>
+  </section>
+</div>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Animation libre d'utilisation en classe</span>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const MG = 0.01;          // 1 point = 0,01 g
+const PR = 4.5;           // rayon d'un point (px logiques)
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- outils ---------- */
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function gauss() { let u = 0; for (let i = 0; i < 4; i++) u += Math.random(); return (u - 2) * 1.732; }
+const fmt = (x, d) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+function sf3(x) { // 3 chiffres significatifs
+  if (!isFinite(x)) return '—';
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  return fmt(x, Math.max(0, 2 - e));
+}
+const vol = v => fmt(v, Math.abs(v - Math.round(v)) < 1e-6 ? 0 : 1) + ' mL';
+const rot2 = (x, y, a) => ({ x: x * Math.cos(a) - y * Math.sin(a), y: x * Math.sin(a) + y * Math.cos(a) });
+
+/* ---------- thème ---------- */
+let C = {}, sprite = null;
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = n => cs.getPropertyValue(n).trim();
+  C = { canvas: g('--canvas'), glass: g('--glass'), glassFill: g('--glass-fill'), glassHi: g('--glass-hi'),
+        text: g('--text'), muted: g('--muted'), water: g('--water'), solute: g('--solute'), rubber: g('--rubber') };
+  const s = 64, c = document.createElement('canvas'); c.width = c.height = s;
+  const x = c.getContext('2d');
+  const [r, gg, b] = C.solute.split(',').map(Number);
+  const gr = x.createRadialGradient(s * .36, s * .33, s * .03, s / 2, s / 2, s / 2);
+  gr.addColorStop(0, `rgb(${Math.min(255, r + 120)},${Math.min(255, gg + 120)},${Math.min(255, b + 120)})`);
+  gr.addColorStop(.45, `rgb(${r},${gg},${b})`);
+  gr.addColorStop(1, `rgb(${r * .42 | 0},${gg * .42 | 0},${b * .42 | 0})`);
+  x.fillStyle = gr; x.beginPath(); x.arc(s / 2, s / 2, s / 2 - 1, 0, TAU); x.fill();
+  sprite = c;
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+
+/* ---------- séquenceur d'animations ---------- */
+class Seq {
+  constructor() { this.q = []; }
+  add(s) { this.q.push(s); return this; }
+  clear() { this.q = []; }
+  get busy() { return this.q.length > 0; }
+  update(dt) {
+    let guard = 0;
+    while (this.q.length && guard++ < 20) {
+      const s = this.q[0];
+      if (!s.started) { s.started = true; s.t = 0; s.start && s.start(); }
+      s.t += dt; dt = 0;
+      const k = s.dur > 0 ? Math.min(1, s.t / s.dur) : 1;
+      s.fn && s.fn(k);
+      if (k >= 1) { this.q.shift(); s.end && s.end(); } else break;
+    }
+  }
+}
+
+/* ---------- scène (canvas) ---------- */
+class Scene {
+  constructor(cv, W, H, rotBox) {
+    this.cv = cv; this.ctx = cv.getContext('2d'); this.W = W; this.H = H;
+    this.theta = 0.3; this.rotBox = rotBox; this.visible = true; this.dragX = null;
+    if (reduce) rotBox.checked = false;
+    this.resize();
+    new ResizeObserver(() => this.resize()).observe(cv);
+    new IntersectionObserver(e => { this.visible = e[0].isIntersecting; }).observe(cv);
+    cv.addEventListener('pointerdown', e => { this.dragX = e.clientX; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; });
+    cv.addEventListener('pointermove', e => {
+      if (this.dragX === null) return;
+      this.theta += (e.clientX - this.dragX) / (this.s || 1) * 0.012; this.dragX = e.clientX;
+    });
+    const up = () => { this.dragX = null; cv.style.cursor = ''; };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  }
+  resize() {
+    const w = this.cv.clientWidth || this.W, dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    this.s = w / this.W; this.dpr = dpr;
+    this.cv.width = Math.round(w * dpr); this.cv.height = Math.round(w * this.H / this.W * dpr);
+  }
+  tick(dt) { if (this.rotBox.checked && this.dragX === null) this.theta += dt * 0.22; }
+  begin() {
+    const c = this.ctx;
+    c.setTransform(this.s * this.dpr, 0, 0, this.s * this.dpr, 0, 0);
+    c.clearRect(0, 0, this.W, this.H);
+    c.fillStyle = C.canvas; c.fillRect(0, 0, this.W, this.H);
+    return c;
+  }
+}
+
+/* ---------- bécher en pseudo-3D ---------- */
+class Beaker {
+  constructor(sc, o) {
+    this.sc = sc;
+    Object.assign(this, { cx: 450, base: 480, R: 100, H: 230, cap: 150, V: 0, k: 0.3, agit: 0, agitMin: 0, swirl: 0, parts: [] }, o);
+  }
+  hOf(V) { return V / this.cap * this.H * 0.92; }
+  get h() { return this.hOf(this.V); }
+  get ry() { return this.R * this.k; }
+  proj(x, y, z) {
+    const t = this.sc.theta, c = Math.cos(t), s = Math.sin(t);
+    const xr = x * c - z * s, zr = x * s + z * c;
+    return [this.cx + xr, this.base - y + zr * this.k, zr];
+  }
+  randomPoint(maxY) {
+    const rm = this.R - 7 - PR, r = rm * Math.sqrt(Math.random()), a = Math.random() * TAU;
+    return { x: r * Math.cos(a), z: r * Math.sin(a), y: PR + Math.random() * Math.max(0, maxY - 2 * PR), vx: 0, vy: 0, vz: 0, st: 'free' };
+  }
+  step(dt) {
+    const h = this.h, rm = this.R - 7 - PR;
+    const T = 1 + this.agit * 5, sig = 90 * Math.sqrt(T), gam = 2, sq = Math.sqrt(dt);
+    const om = this.swirl * dt, co = Math.cos(om), so = Math.sin(om);
+    const top = Math.max(PR, h - PR);
+    for (const p of this.parts) {
+      if (p.st !== 'free') continue;
+      p.vx += -gam * p.vx * dt + sig * sq * gauss();
+      p.vy += -gam * p.vy * dt + sig * sq * gauss();
+      p.vz += -gam * p.vz * dt + sig * sq * gauss();
+      p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+      if (om) { const x = p.x * co - p.z * so; p.z = p.x * so + p.z * co; p.x = x; }
+      const r = Math.hypot(p.x, p.z);
+      if (r > rm) {
+        const f = rm / r; p.x *= f; p.z *= f;
+        const nx = p.x / rm, nz = p.z / rm, vn = p.vx * nx + p.vz * nz;
+        if (vn > 0) { p.vx -= 2 * vn * nx; p.vz -= 2 * vn * nz; }
+      }
+      if (p.y < PR) { p.y = PR; p.vy = Math.abs(p.vy); }
+      if (p.y > top) { p.y = top; p.vy = -Math.abs(p.vy); }
+    }
+    this.agit = Math.max(this.agitMin, this.agit - dt * 0.35);
+  }
+  drawBack(c) {
+    const { cx, base, R, H } = this, ry = this.ry, top = base - H;
+    c.fillStyle = C.glassFill;
+    c.beginPath(); c.ellipse(cx, top, R, ry, 0, Math.PI, TAU); c.lineTo(cx + R, base);
+    c.ellipse(cx, base, R, ry, 0, 0, Math.PI); c.closePath(); c.fill();
+    c.strokeStyle = C.glass; c.lineWidth = 1.6;
+    c.beginPath(); c.ellipse(cx, top, R, ry, 0, Math.PI, TAU); c.stroke();
+    c.globalAlpha = .45; c.beginPath(); c.ellipse(cx, base, R, ry, 0, Math.PI, TAU); c.stroke(); c.globalAlpha = 1;
+  }
+  liquidPath(c, inset = 1.5) {
+    const { cx, base } = this, R = this.R - inset, ry = R * this.k, sy = base - this.h;
+    c.beginPath(); c.moveTo(cx - R, sy); c.lineTo(cx - R, base);
+    c.ellipse(cx, base, R, ry, 0, Math.PI, 0, true);
+    c.lineTo(cx + R, sy);
+    c.ellipse(cx, sy, R, ry, 0, 0, Math.PI, true);
+    c.closePath();
+  }
+  drawLiquid(c, conc) {
+    if (this.V <= 0.05) return;
+    this.liquidPath(c);
+    c.fillStyle = `rgba(${C.water},0.20)`; c.fill();
+    const a = clamp(conc / 30, 0, 1) * 0.42;
+    if (a > 0.002) { c.fillStyle = `rgba(${C.solute},${a})`; c.fill(); }
+  }
+  drawSurface(c) {
+    if (this.V <= 0.05) return;
+    const R = this.R - 1.5, sy = this.base - this.h;
+    c.beginPath(); c.ellipse(this.cx, sy, R, R * this.k, 0, 0, TAU);
+    c.fillStyle = `rgba(${C.water},0.16)`; c.fill();
+    c.strokeStyle = `rgba(${C.water},0.75)`; c.lineWidth = 1.2; c.stroke();
+  }
+  drawFront(c) {
+    const { cx, base, R, H } = this, ry = this.ry, top = base - H;
+    c.strokeStyle = C.glass; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(cx - R, top); c.lineTo(cx - R, base); c.stroke();
+    c.beginPath(); c.moveTo(cx + R, top); c.lineTo(cx + R, base); c.stroke();
+    c.beginPath(); c.ellipse(cx, base, R, ry, 0, 0, Math.PI); c.stroke();
+    c.lineWidth = 2.4; c.beginPath(); c.ellipse(cx, top, R, ry, 0, 0, Math.PI); c.stroke();
+    // bec verseur
+    c.lineWidth = 2; c.beginPath(); c.moveTo(cx - R + 4, top - ry * .2); c.quadraticCurveTo(cx - R - 10, top - 4, cx - R - 12, top - 10); c.stroke();
+    // reflet
+    const g = c.createLinearGradient(cx - R, 0, cx - R + 40, 0);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, C.glassHi); g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.globalAlpha = .55;
+    c.fillRect(cx - R + 12, top + ry + 10, 16, H - ry - 20); c.globalAlpha = 1;
+    // graduations
+    c.fillStyle = C.muted; c.strokeStyle = C.glass; c.lineWidth = 1.2;
+    c.font = '600 11px system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+    for (let v = 25; v <= 125; v += 25) {
+      const y = base - this.hOf(v), long = v % 50 === 0;
+      c.beginPath(); c.ellipse(cx, y, R, ry, 0, Math.PI * (long ? .58 : .62), Math.PI * .72); c.stroke();
+      if (long) {
+        c.textAlign = 'right'; c.fillText(v + ' mL', cx - R - 6, y + ry * .55); c.textAlign = 'left';
+        c.beginPath(); c.moveTo(cx - R - 4, y + ry * .55); c.lineTo(cx - R, y + ry * .55); c.stroke();
+      }
+    }
+  }
+  drawParticles(c, filter, ox = 0, oy = 0, alphaMul = 1) {
+    const list = [];
+    for (const p of this.parts) {
+      if (!filter(p)) continue;
+      const [X, Y, zr] = this.proj(p.x, p.y, p.z);
+      list.push([zr, X + ox, Y + oy, p.st === 'solid']);
+    }
+    list.sort((a, b) => a[0] - b[0]);
+    for (const [zr, X, Y, solid] of list) {
+      const d = zr / this.R, r = PR * (1 + .2 * d);
+      c.globalAlpha = (solid ? 1 : .62 + .38 * (d + 1) / 2) * alphaMul;
+      c.drawImage(sprite, X - r, Y - r, 2 * r, 2 * r);
+    }
+    c.globalAlpha = 1;
+  }
+}
+
+/* ---------- bécher de solvant qu'on incline ---------- */
+function sourceSpout(bx, by, tilt) { const a = -tilt * Math.PI / 3, p = rot2(-36, -82, a); return { x: bx + p.x, y: by + p.y }; }
+function drawSource(c, bx, by, tilt, rem, pouring, target) {
+  const a = -tilt * Math.PI / 3, sp = rot2(-36, -82, a);
+  if (pouring) {
+    c.strokeStyle = `rgba(${C.water},0.75)`; c.lineWidth = 6; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(bx + sp.x, by + sp.y + 2);
+    c.quadraticCurveTo(bx + sp.x - 14, by + sp.y + 30, target.x, target.y); c.stroke(); c.lineCap = 'butt';
+  }
+  c.save(); c.translate(bx, by); c.rotate(a);
+  c.save(); c.beginPath(); c.rect(-34, -82, 68, 82); c.clip();
+  c.rotate(-a);
+  const lv = lerp(-70 * rem, sp.y + 3, ease(clamp(tilt, 0, 1)));
+  c.fillStyle = `rgba(${C.water},0.45)`; c.fillRect(-200, lv, 400, 400);
+  c.restore();
+  c.fillStyle = C.glassFill; c.fillRect(-36, -84, 72, 84);
+  c.strokeStyle = C.glass; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(-44, -90); c.lineTo(-36, -82); c.lineTo(-36, 0); c.lineTo(36, 0); c.lineTo(36, -84); c.stroke();
+  c.restore();
+}
+function label(c, text, x, y, color, size = 14, weight = 600) {
+  c.fillStyle = color || C.text; c.font = `${weight} ${size}px system-ui, sans-serif`;
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, x, y);
+}
+
+/* =====================================================================
+   1. DISSOLUTION
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const dsc = new Scene($('cv-diss'), 900, 545, $('d-rot'));
+const bD = new Beaker(dsc, { cx: 450, base: 470, R: 105, H: 240 });
+const DISH = { x: 150, y: 255 };
+const SRC_D = { x: 660, y: 205 };
+const D = { N: 150, phase: 'dish', off: { x: 0, y: 0 }, inside: false, stir: false, rod: 0,
+            tilt: 0, rem: 1, pouring: false, acc: 0, seq: new Seq(), order: [] };
+
+function makePile(N) {
+  const d = PR * 1.78, pts = [];
+  for (let j = 0; j < 16; j++) for (let i = -12; i <= 12; i++) for (let m = -12; m <= 12; m++) {
+    const x = (i + (j % 2) * .5) * d, z = (m + (j % 2) * .5) * d, y = PR + j * d * .86;
+    pts.push({ x, y, z, score: y * 1.35 + Math.hypot(x, z) });
+  }
+  pts.sort((a, b) => a.score - b.score);
+  return pts.slice(0, N).map(p => ({ x: p.x + (Math.random() - .5), y: p.y, z: p.z + (Math.random() - .5),
+    vx: 0, vy: 0, vz: 0, st: 'solid', score: p.score }));
+}
+function dPile() {
+  bD.parts = makePile(D.N);
+  D.order = bD.parts.slice().sort((a, b) => b.score - a.score);
+  D.off.x = DISH.x - bD.cx; D.off.y = DISH.y - bD.base; D.inside = false;
+}
+function dReset() {
+  D.seq.clear(); bD.V = 0; bD.agit = 0; bD.agitMin = 0; bD.swirl = 0;
+  D.stir = false; D.tilt = 0; D.rem = 1; D.pouring = false; D.acc = 0; D.phase = 'dish';
+  dPile(); dUI(true);
+}
+const dSolid = () => bD.parts.reduce((n, p) => n + (p.st === 'solid'), 0);
+
+$('d-n').addEventListener('input', e => { D.N = +e.target.value; if (D.phase === 'dish') { dPile(); dUI(true); } });
+$('d-b1').addEventListener('click', () => {
+  if (D.phase !== 'dish') return;
+  let x0, y0;
+  D.seq.add({ dur: 1.4, start() { D.phase = 'moving'; x0 = D.off.x; y0 = D.off.y; },
+    fn(k) { D.off.x = lerp(x0, 0, ease(k)); D.off.y = lerp(y0, 0, k * k) - Math.sin(Math.PI * k) * 90; D.inside = k > .8; },
+    end() { D.off.x = 0; D.off.y = 0; D.inside = true; D.phase = 'solid'; dUI(true); } });
+  dUI(true);
+});
+$('d-b2').addEventListener('click', () => {
+  if (D.phase !== 'solid') return;
+  D.seq.add({ dur: .7, start() { D.phase = 'pour'; dUI(true); }, fn(k) { D.tilt = ease(k); } })
+       .add({ dur: 3.6, start() { D.pouring = true; },
+              fn(k) { bD.V = 100 * k; D.rem = 1 - .75 * k; bD.agit = Math.max(bD.agit, .7); },
+              end() { D.pouring = false; } })
+       .add({ dur: .7, fn(k) { D.tilt = 1 - ease(k); }, end() { D.phase = 'dissolving'; dUI(true); } });
+  dUI(true);
+});
+$('d-b3').addEventListener('click', () => {
+  if (bD.V <= 0) return;
+  D.stir = !D.stir; bD.agitMin = D.stir ? .45 : 0; bD.swirl = D.stir ? 2.4 : 0; dUI(true);
+});
+$('d-reset').addEventListener('click', dReset);
+
+function dDetach() {
+  const lim = bD.h - PR;
+  for (const p of D.order) {
+    if (p.st === 'solid' && p.y < lim) {
+      p.st = 'free';
+      const r = Math.hypot(p.x, p.z) || 1;
+      p.vx = p.x / r * 45 + gauss() * 20; p.vz = p.z / r * 45 + gauss() * 20; p.vy = 25 + gauss() * 20;
+      return true;
+    }
+  }
+  return false;
+}
+function dUpdate(dt) {
+  D.seq.update(dt);
+  if (bD.V > 0) {
+    const n = dSolid();
+    if (n > 0) {
+      D.acc += dt * .2 * (1 + (D.stir ? 6 : 0) + bD.agit * 1.5) * Math.pow(n, 2 / 3);
+      while (D.acc >= 1) { D.acc -= 1; if (!dDetach()) { D.acc = 0; break; } }
+    } else if (D.phase === 'dissolving') { D.phase = 'done'; dUI(true); }
+  }
+  if (D.stir) D.rod += dt * 2.4;
+  bD.step(dt);
+}
+function dDraw() {
+  const c = dsc.begin();
+  const dissolved = bD.parts.length - dSolid();
+  const conc = bD.V > 0 ? dissolved * MG / (bD.V / 1000) : 0;
+  // coupelle
+  c.fillStyle = C.glassFill; c.strokeStyle = C.glass; c.lineWidth = 1.6;
+  c.beginPath(); c.ellipse(DISH.x, DISH.y + 6, 78, 17, 0, 0, Math.PI); c.ellipse(DISH.x, DISH.y + 6, 78, 9, 0, Math.PI, 0, true); c.fill(); c.stroke();
+  label(c, 'Coupelle', DISH.x, DISH.y + 42, C.muted, 13, 500);
+  // bécher
+  bD.drawBack(c);
+  bD.drawLiquid(c, conc);
+  bD.drawParticles(c, p => p.st === 'free' || (p.st === 'solid' && D.inside), D.inside ? D.off.x : 0, D.inside ? D.off.y : 0);
+  if (D.stir) { // agitateur en verre
+    const [x1, y1] = bD.proj(Math.cos(D.rod) * bD.R * .45, 22, Math.sin(D.rod) * bD.R * .45);
+    const [x2, y2] = bD.proj(Math.cos(D.rod) * bD.R * .3, bD.H + 70, Math.sin(D.rod) * bD.R * .3);
+    c.lineCap = 'round'; c.strokeStyle = C.glass; c.lineWidth = 7; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+    c.strokeStyle = C.glassHi; c.lineWidth = 2; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.lineCap = 'butt';
+  }
+  bD.drawSurface(c);
+  bD.drawFront(c);
+  if (!D.inside) bD.drawParticles(c, p => p.st === 'solid', D.off.x, D.off.y);
+  // bécher d'eau
+  const sp = sourceSpout(SRC_D.x, SRC_D.y, D.tilt);
+  drawSource(c, SRC_D.x, SRC_D.y, D.tilt, D.rem, D.pouring, { x: bD.cx + 72, y: bD.base - bD.h - 2 });
+  label(c, 'Eau = solvant', SRC_D.x, SRC_D.y - 108, C.muted, 13, 500);
+  // étiquettes
+  const st = { dish: 'Bécher vide', moving: 'Bécher vide', solid: 'Soluté seul (solide)', pour: 'Soluté + solvant',
+               dissolving: 'Dissolution en cours…', done: 'Solution homogène' }[D.phase];
+  label(c, st, bD.cx, 528);
+  if (D.phase === 'dish') label(c, 'Soluté (solide)', DISH.x, DISH.y - 70, C.text, 14);
+}
+function dUI(force) {
+  const m = D.N * MG, n = bD.parts.length, solid = dSolid();
+  $('d-n-out').textContent = fmt(m, 2) + ' g';
+  $('d-m').textContent = fmt(m, 2) + ' g';
+  $('d-pct').textContent = bD.V > 0 ? Math.round(100 * (n - solid) / n) + ' %' : '0 %';
+  $('d-v').textContent = bD.V > 0 ? vol(bD.V) : '0 mL (pas encore de solvant)';
+  if (D.phase === 'done') {
+    $('d-c').innerHTML = `C<sub>m</sub> = m / V = ${fmt(m, 2)} g / 0,100 L = <strong>${sf3(m / 0.1)} g/L</strong>`;
+  } else {
+    $('d-c').innerHTML = `C<sub>m</sub> = m / V : calculable quand tout le soluté est dissous dans 100 mL`;
+  }
+  const busy = D.seq.busy;
+  $('d-n').disabled = D.phase !== 'dish';
+  $('d-b1').disabled = D.phase !== 'dish' || busy;
+  $('d-b2').disabled = D.phase !== 'solid' || busy;
+  $('d-b3').disabled = !(bD.V > 0);
+  $('d-b3').textContent = D.stir ? '③ Arrêter d\'agiter' : '③ Agiter';
+  if (!force) return;
+  const T = {
+    dish: 'Le <strong>soluté</strong> est un solide, posé dans une coupelle. Choisis sa masse avec le curseur, puis mets-le dans le bécher vide.',
+    moving: 'On verse le solide dans le bécher…',
+    solid: 'Le solide est au fond du bécher : pour l\'instant, ce n\'est pas une solution. Ajoute le <strong>solvant</strong> (l\'eau).',
+    pour: 'Le solvant arrive au contact du solide : les entités du soluté commencent à se détacher.',
+    dissolving: 'Les entités du soluté quittent le solide <strong>une par une</strong> et se dispersent dans tout le solvant. Agiter accélère la dissolution.',
+    done: 'Tout le solide est dissous : on obtient une <strong>solution homogène</strong>. Le soluté n\'a pas disparu : il est dispersé, trop petit pour être vu à l\'œil nu. Sa masse se retrouve entièrement dans la solution.'
+  };
+  $('d-text').innerHTML = T[D.phase];
+}
+
+/* =====================================================================
+   2. DILUTION
+   ===================================================================== */
+const lsc = new Scene($('cv-dil'), 900, 680, $('l-rot'));
+const bM = new Beaker(lsc, { cx: 240, base: 600, R: 100, H: 225, V: 100 });
+const bF = new Beaker(lsc, { cx: 640, base: 600, R: 100, H: 225, V: 0 });
+const SRC_L = { x: 838, y: 300 };
+const PIP_L = 280, REST_Y = 330, TIP_DOWN = 600 - 18;
+const Ld = { N: 200, Vp: 20, phase: 'idle', pip: { x: 240, y: REST_Y, fill: 0 }, pp: [], pending: [], n: 0, cap: 0, rel: 0,
+             tilt: 0, rem: 1, pouring: false, seq: new Seq(), tA: 0 };
+const bulb = () => ({ w: 16 + Ld.Vp * .6, h: 50 + Ld.Vp * 1.0 });
+
+function lReset() {
+  Ld.seq.clear();
+  Ld.N = +$('l-n').value; Ld.Vp = +$('l-vp').value;
+  bM.V = 100; bM.parts = []; for (let i = 0; i < Ld.N; i++) bM.parts.push(bM.randomPoint(bM.h));
+  bF.V = 0; bF.parts = []; bF.agit = 0; bM.agit = 0;
+  Ld.pip = { x: bM.cx, y: REST_Y, fill: 0 }; Ld.pp = []; Ld.pending = []; Ld.n = 0; Ld.cap = 0; Ld.rel = 0;
+  Ld.tilt = 0; Ld.rem = 1; Ld.pouring = false; Ld.phase = 'idle';
+  lUI(true);
+}
+$('l-n').addEventListener('input', () => { if (!Ld.seq.busy) lReset(); });
+$('l-vp').addEventListener('change', () => { if (!Ld.seq.busy) lReset(); });
+$('l-reset').addEventListener('click', lReset);
+
+function bulbPoint() {
+  const b = bulb(); let u, v;
+  do { u = Math.random() * 2 - 1; v = Math.random() * 2 - 1; } while (u * u + v * v > 1);
+  return { u: u * (b.w / 2 - 4), v: -(95 + b.h / 2) + v * (b.h / 2 - 4) };
+}
+
+$('l-b1').addEventListener('click', () => {
+  if (Ld.phase !== 'idle' || Ld.seq.busy) return;
+  Ld.seq
+    .add({ dur: 1.0, start() { Ld.phase = 'asp'; lUI(true); }, fn(k) { Ld.pip.y = lerp(REST_Y, TIP_DOWN, ease(k)); } })
+    .add({ dur: 2.6,
+      start() {
+        Ld.n = Ld.N * Ld.Vp / 100; Ld.cap = 0;
+        const cand = bM.parts.map(p => ({ p, s: Math.hypot(p.x, p.y - 18, p.z) + Math.random() * 60 }))
+          .sort((a, b) => a.s - b.s).slice(0, Ld.n);
+        Ld.pending = cand.map((c, i) => ({ p: c.p, delay: i / Math.max(1, Ld.n) * 1.8 }));
+      },
+      fn(k) {
+        const t = k * 2.6;
+        while (Ld.pending.length && Ld.pending[0].delay <= t) {
+          const { p } = Ld.pending.shift();
+          const [X, Y] = bM.proj(p.x, p.y, p.z);
+          p.st = 'gone';
+          Ld.pp.push(Object.assign(bulbPoint(), { fx: X, fy: Y, t: 0, mode: 'in', ph: Math.random() * TAU }));
+          Ld.cap++;
+          bM.V = 100 - Ld.Vp * Ld.cap / Ld.n;
+        }
+        bM.parts = bM.parts.filter(p => p.st !== 'gone');
+        Ld.pip.fill = Math.min(1, k * 1.15);
+      } })
+    .add({ dur: 1.0, fn(k) { Ld.pip.y = lerp(TIP_DOWN, REST_Y, ease(k)); }, end() { Ld.phase = 'aspirated'; lUI(true); } });
+});
+$('l-b2').addEventListener('click', () => {
+  if (Ld.phase !== 'aspirated' || Ld.seq.busy) return;
+  Ld.seq
+    .add({ dur: 1.4, start() { Ld.phase = 'transfer'; lUI(true); }, fn(k) { Ld.pip.x = lerp(bM.cx, bF.cx, ease(k)); } })
+    .add({ dur: 1.0, fn(k) { Ld.pip.y = lerp(REST_Y, TIP_DOWN, ease(k)); } })
+    .add({ dur: 2.6,
+      start() { Ld.rel = 0; Ld.pp.forEach((q, i) => { q.relDelay = i / Math.max(1, Ld.pp.length) * 1.9; }); },
+      fn(k) {
+        const t = k * 2.6;
+        for (const q of Ld.pp) if (q.mode === 'in' && t >= q.relDelay) {
+          q.mode = 'out'; q.t = 0; q.fx = Ld.pip.x + q.u; q.fy = Ld.pip.y + q.v;
+        }
+      } })
+    .add({ dur: 1.0, fn(k) { Ld.pip.y = lerp(TIP_DOWN, REST_Y, ease(k)); } })
+    .add({ dur: .8, fn(k) { Ld.pip.x = lerp(bF.cx, 440, ease(k)); }, end() { Ld.phase = 'transferred'; lUI(true); } });
+});
+$('l-b3').addEventListener('click', () => {
+  if (Ld.phase !== 'transferred' || Ld.seq.busy) return;
+  let v0;
+  Ld.seq
+    .add({ dur: .7, start() { Ld.phase = 'pour'; lUI(true); }, fn(k) { Ld.tilt = ease(k); } })
+    .add({ dur: 3.6, start() { Ld.pouring = true; v0 = bF.V; },
+      fn(k) { bF.V = lerp(v0, 100, k); Ld.rem = 1 - .75 * k; bF.agit = Math.max(bF.agit, 1); },
+      end() { Ld.pouring = false; } })
+    .add({ dur: .7, fn(k) { Ld.tilt = 1 - ease(k); }, end() { Ld.phase = 'done'; lUI(true); } });
+});
+
+function lUpdate(dt) {
+  Ld.seq.update(dt);
+  for (const q of Ld.pp) {
+    q.t += dt; q.ph += dt * 3;
+    if (q.mode === 'out' && q.t >= .35) {
+      const r = 12 * Math.sqrt(Math.random()), a = Math.random() * TAU;
+      bF.parts.push({ x: r * Math.cos(a), z: r * Math.sin(a), y: 14, vx: gauss() * 40, vy: gauss() * 20, vz: gauss() * 40, st: 'free' });
+      q.mode = 'done'; Ld.rel++;
+      bF.V = Ld.Vp * Ld.rel / Ld.n;
+      Ld.pip.fill = 1 - Ld.rel / Ld.n;
+    }
+  }
+  if (Ld.pp.some(q => q.mode === 'done')) Ld.pp = Ld.pp.filter(q => q.mode !== 'done');
+  bM.step(dt); bF.step(dt);
+}
+
+function pipPath(b) {
+  const p = new Path2D();
+  p.moveTo(-3, -22); p.lineTo(3, -22); p.lineTo(1.3, 0); p.lineTo(-1.3, 0); p.closePath();
+  p.rect(-3, -PIP_L, 6, PIP_L - 22);
+  p.ellipse(0, -95 - b.h / 2, b.w / 2, b.h / 2, 0, 0, TAU);
+  return p;
+}
+function drawPipette(c) {
+  const { x, y, fill } = Ld.pip, b = bulb();
+  c.save(); c.translate(x, y);
+  const path = pipPath(b);
+  c.fillStyle = C.glassFill; c.fill(path);
+  // liquide
+  const lv = fill * (PIP_L - 45);
+  if (lv > 0.5) {
+    c.save(); c.clip(path);
+    c.fillStyle = `rgba(${C.water},0.30)`; c.fillRect(-40, -lv, 80, lv + 1);
+    const conc = Ld.N * MG / 0.1;
+    c.fillStyle = `rgba(${C.solute},${clamp(conc / 30, 0, 1) * .42})`; c.fillRect(-40, -lv, 80, lv + 1);
+    c.restore();
+  }
+  // points dans la pipette
+  for (const q of Ld.pp) if (q.mode === 'in' && q.t >= .6) {
+    const r = 2.9;
+    c.drawImage(sprite, q.u + Math.sin(q.ph) * .8 - r, q.v + Math.cos(q.ph * 1.3) * .8 - r, 2 * r, 2 * r);
+  }
+  // contour
+  c.strokeStyle = C.glass; c.lineWidth = 1.6;
+  const bb = -95, bt = -95 - b.h;
+  c.beginPath(); c.moveTo(-1.3, 0); c.lineTo(-3, -22); c.lineTo(-3, bb + 1); c.moveTo(1.3, 0); c.lineTo(3, -22); c.lineTo(3, bb + 1); c.stroke();
+  c.beginPath(); c.ellipse(0, -95 - b.h / 2, b.w / 2, b.h / 2, 0, 0, TAU); c.stroke();
+  c.beginPath(); c.moveTo(-3, bt - 1); c.lineTo(-3, -PIP_L); c.moveTo(3, bt - 1); c.lineTo(3, -PIP_L); c.stroke();
+  // trait de jauge
+  c.strokeStyle = C.text; c.lineWidth = 1.4; c.beginPath(); c.moveTo(-8, -(PIP_L - 45)); c.lineTo(8, -(PIP_L - 45)); c.stroke();
+  // propipette
+  c.fillStyle = C.rubber;
+  c.beginPath(); c.roundRect ? c.roundRect(-5, -PIP_L - 8, 10, 12, 3) : c.rect(-5, -PIP_L - 8, 10, 12); c.fill();
+  c.beginPath(); c.ellipse(0, -PIP_L - 26, 14, 20, 0, 0, TAU); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.28)'; c.beginPath(); c.ellipse(-5, -PIP_L - 32, 4, 8, -.3, 0, TAU); c.fill();
+  // étiquette
+  c.fillStyle = C.muted; c.font = '500 12px system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+  c.fillText(`pipette jaugée ${Ld.Vp} mL`, b.w / 2 + 8, -95 - b.h / 2);
+  c.restore();
+  // points en transit
+  for (const q of Ld.pp) {
+    let X, Y;
+    if (q.mode === 'in' && q.t < .6) {
+      const k = q.t / .6;
+      if (k < .5) { X = lerp(q.fx, x, ease(k * 2)); Y = lerp(q.fy, y, ease(k * 2)); }
+      else { X = lerp(x, x + q.u, ease(k * 2 - 1)); Y = lerp(y, y + q.v, ease(k * 2 - 1)); }
+    } else if (q.mode === 'out') {
+      const k = clamp(q.t / .35, 0, 1); X = lerp(q.fx, x, ease(k)); Y = lerp(q.fy, y, ease(k));
+    } else continue;
+    const r = 3.4; c.drawImage(sprite, X - r, Y - r, 2 * r, 2 * r);
+  }
+}
+const concOf = b => b.V > 0.05 ? b.parts.length * MG / (b.V / 1000) : 0;
+function lDraw() {
+  const c = lsc.begin();
+  for (const b of [bM, bF]) { b.drawBack(c); b.drawLiquid(c, concOf(b)); b.drawParticles(c, p => p.st === 'free'); }
+  drawPipette(c);
+  for (const b of [bM, bF]) { b.drawSurface(c); b.drawFront(c); }
+  drawSource(c, SRC_L.x, SRC_L.y, Ld.tilt, Ld.rem, Ld.pouring, { x: bF.cx + 62, y: bF.base - bF.h - 2 });
+  label(c, 'Eau = solvant', SRC_L.x - 10, SRC_L.y - 108, C.muted, 13, 500);
+  label(c, 'Solution mère', bM.cx, 658);
+  label(c, bF.V > 0 ? 'Solution fille' : 'Bécher vide', bF.cx, 658);
+}
+function lUI(force) {
+  const nM = bM.parts.length, nF = bF.parts.length, nP = Ld.pp.length;
+  const cM = Ld.N * MG / 0.1;
+  $('l-n-out').textContent = sf3(cM) + ' g/L';
+  $('lm-n').textContent = nM; $('lm-m').textContent = fmt(nM * MG, 2) + ' g';
+  $('lm-v').textContent = vol(bM.V); $('lm-c').textContent = bM.V > 0 ? sf3(concOf(bM)) + ' g/L' : '—';
+  const inPip = Ld.phase === 'aspirated' || Ld.phase === 'transfer' || (Ld.phase === 'asp' && nP > 0);
+  $('lp-n').textContent = nP; $('lp-v').textContent = inPip ? Ld.Vp + ' mL' : '0 mL';
+  $('lp-c').textContent = (Ld.phase === 'aspirated' || (Ld.phase === 'transfer' && nP === Ld.n)) ? sf3(cM) + ' g/L (comme la mère)' : '—';
+  $('lf-n').textContent = nF; $('lf-m').textContent = fmt(nF * MG, 2) + ' g';
+  $('lf-v').textContent = vol(bF.V); $('lf-c').textContent = bF.V > 0.05 ? sf3(concOf(bF)) + ' g/L' : '—';
+  const busy = Ld.seq.busy;
+  $('l-b1').disabled = Ld.phase !== 'idle' || busy;
+  $('l-b2').disabled = Ld.phase !== 'aspirated' || busy;
+  $('l-b3').disabled = Ld.phase !== 'transferred' || busy;
+  $('l-n').disabled = $('l-vp').disabled = busy;
+  if (!force) return;
+  const F = 100 / Ld.Vp, cF = cM / F, n = Ld.N * Ld.Vp / 100;
+  const T = {
+    idle: 'Plus il y a de points, plus la solution mère est <strong>concentrée</strong>. Choisis le volume à prélever puis prélève avec la pipette jaugée.',
+    asp: 'La pipette aspire une partie de la solution mère…',
+    aspirated: `La pipette contient ${n} points dans ${Ld.Vp} mL : c'est <strong>la même concentration</strong> que la solution mère. Prélever ne change pas la concentration ! Il reste d'ailleurs la même concentration dans le bécher de départ.`,
+    transfer: 'On verse le prélèvement dans le bécher vide : les points sont tous là, mais dans un petit volume.',
+    transferred: `Le bécher contient ${n} points dans ${Ld.Vp} mL. On complète maintenant avec le <strong>solvant</strong> jusqu'à 100 mL.`,
+    pour: 'On ajoute de l\'eau : le nombre de points ne change pas, mais ils se répartissent dans un volume plus grand.',
+    done: `<strong>Même nombre de points</strong> (même masse de soluté), mais dans un volume ${fmt(F, F % 1 ? 1 : 0)} fois plus grand : la concentration est divisée par ${fmt(F, F % 1 ? 1 : 0)}. C'est la <strong>dilution</strong>. La solution fille est moins colorée.`
+  };
+  $('l-text').innerHTML = T[Ld.phase];
+  $('l-rel').innerHTML = Ld.phase === 'done'
+    ? `Facteur de dilution : F = C<sub>mère</sub> / C<sub>fille</sub> = ${sf3(cM)} / ${sf3(cF)} = <strong>${sf3(F)}</strong> &nbsp;et&nbsp; F = V<sub>fille</sub> / V<sub>prélevé</sub> = 100 / ${Ld.Vp} = <strong>${sf3(F)}</strong>.<br>
+       Conservation de la masse de soluté : C<sub>mère</sub> × V<sub>prélevé</sub> = ${sf3(cM)} × ${fmt(Ld.Vp / 1000, 3)} = ${fmt(n * MG, 2)} g = C<sub>fille</sub> × V<sub>fille</sub> = ${sf3(cF)} × 0,100.`
+    : '';
+}
+
+/* ---------- plein écran ---------- */
+document.querySelectorAll('button.fs').forEach(btn => {
+  const el = $(btn.dataset.target);
+  if (!el.requestFullscreen) { btn.hidden = true; return; }
+  btn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen());
+});
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('button.fs').forEach(b => b.textContent = document.fullscreenElement === $(b.dataset.target) ? 'Quitter le plein écran' : 'Plein écran');
+});
+
+/* ---------- boucle ---------- */
+dReset(); lReset();
+let last = performance.now(), uiT = 0;
+function frame(now) {
+  const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
+  dsc.tick(dt); lsc.tick(dt);
+  dUpdate(dt); lUpdate(dt);
+  if (dsc.visible) dDraw();
+  if (lsc.visible) lDraw();
+  uiT += dt; if (uiT > .1) { uiT = 0; dUI(false); lUI(false); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
