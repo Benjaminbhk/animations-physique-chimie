@@ -19,6 +19,15 @@ window.CATALOGUE = [
     statut: "en-ligne"
   },
   {
+    dossier: "mole",
+    titre: "Visualiser une mole",
+    resume: "Zoomer dans un cube d'eau jusqu'aux molécules, passer de la masse à la quantité de matière puis au nombre d'entités, et comparer 6,02 × 10²³ à d'autres grands nombres.",
+    theme: "matiere",
+    chapitre: "Quantité de matière",
+    mots: ["mole", "nombre d'Avogadro", "masse molaire", "quantité de matière"],
+    statut: "en-ligne"
+  },
+  {
     dossier: "reactif-limitant",
     titre: "Le réactif limitant",
     resume: "Régler les quantités initiales, voir les atomes se réorganiser réaction après réaction jusqu'à l'épuisement d'un réactif. Recette du sandwich, combustions, précipitation, et un exercice « qui est le limitant ? » corrigé.",
