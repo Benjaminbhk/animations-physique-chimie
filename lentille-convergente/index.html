@@ -126,7 +126,7 @@ footer strong{color:var(--text)}
   </header>
   <p class="lead">Déplace l'objet <strong>AB</strong> (attrape le point B ou le pied A) et les foyers F et F' pour voir comment se construit
     l'image <strong>A'B'</strong> avec les trois rayons particuliers. Les onglets <em>L'œil</em> et <em>L'appareil photo</em> montrent
-    comment ces deux systèmes obtiennent une image nette. Des exercices corrigés t'attendent en bas de la page.</p>
+    comment ces deux systèmes obtiennent une image nette, avec un œil normal, myope ou hypermétrope. Des exercices corrigés t'attendent en bas de la page.</p>
 
   <section class="scene" id="sc" aria-label="Simulation de la lentille convergente">
     <div class="tabs" role="tablist">
@@ -175,6 +175,11 @@ footer strong{color:var(--text)}
         <div data-mode="eye" hidden>
           <div>
             <h2>Réglages</h2>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
+              <label for="etype" style="font-weight:600;font-size:.92rem">Œil</label>
+              <select id="etype"><option value="normal">normal</option><option value="myope">myope</option><option value="hyper">hypermétrope</option></select>
+              <label class="check"><input type="checkbox" id="ecorr" disabled>Lentille correctrice</label>
+            </div>
             <div class="sl">
               <label for="de">Objet</label><input id="de" type="range" min="0" max="100" step="1" value="50"><output id="de-o"></output>
             </div>
@@ -285,6 +290,34 @@ footer strong{color:var(--text)}
         b) La distance focale de l'objectif est fixe : pour un objet proche, l'image se forme plus loin derrière l'objectif,
         donc on <strong>éloigne l'objectif du capteur</strong>. C'est la <em>mise au point</em>. Vérifie-le avec les onglets « L'œil » et « L'appareil photo ».</div>
     </div>
+    <div class="exo" id="ex5">
+      <h3><span>Exercice 5.</span> Œil myope, œil hypermétrope</h3>
+      <div class="qcm">
+        <p style="margin:.2rem 0"><strong>a) Pour un œil myope qui n'accommode pas, l'image d'un objet très éloigné se forme…</strong></p>
+        <label><input type="radio" name="q5a" value="a">devant la rétine</label>
+        <label><input type="radio" name="q5a" value="b">sur la rétine</label>
+        <label><input type="radio" name="q5a" value="c">derrière la rétine</label>
+        <p style="margin:.4rem 0 .2rem"><strong>b) Un œil myope voit flou…</strong></p>
+        <label><input type="radio" name="q5b" value="a">les objets proches</label>
+        <label><input type="radio" name="q5b" value="b">les objets éloignés</label>
+        <p style="margin:.4rem 0 .2rem"><strong>c) On corrige un œil myope avec une lentille…</strong></p>
+        <label><input type="radio" name="q5c" value="a">convergente</label>
+        <label><input type="radio" name="q5c" value="b">divergente</label>
+        <p style="margin:.4rem 0 .2rem"><strong>d) On corrige un œil hypermétrope avec une lentille…</strong></p>
+        <label><input type="radio" name="q5d" value="a">convergente</label>
+        <label><input type="radio" name="q5d" value="b">divergente</label>
+      </div>
+      <div class="row">
+        <button id="ex5-check" type="button">Vérifier</button>
+        <button id="ex5-corr" class="ghost" type="button">Correction</button>
+      </div>
+      <div class="fb" id="ex5-fb"></div>
+      <div class="corr" id="ex5-c"><b class="t">Correction.</b> a) L'œil myope est <strong>trop convergent</strong> (ou trop long) : l'image d'un objet éloigné se forme
+        <strong>devant la rétine</strong>. b) Il voit donc flou <strong>les objets éloignés</strong> (mais net de près). c) On le corrige avec une
+        <strong>lentille divergente</strong>, qui rend l'ensemble moins convergent. d) L'œil hypermétrope n'est <strong>pas assez convergent</strong> (ou trop court) :
+        l'image se forme derrière la rétine, il voit flou de près. On le corrige avec une <strong>lentille convergente</strong>.
+        Vérifie-le dans l'onglet « L'œil » en choisissant le type d'œil et en ajoutant la lentille correctrice.</div>
+    </div>
   </section>
 </div>
 <footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Modèle de la lentille mince, rayons proches de l'axe.</span></footer>
@@ -341,7 +374,7 @@ const S = {
   f: 4, oa: 12, ab: 2, xs: 9,
   r1: true, r2: true, r3: true, beam: false, grid: true, screen: false, alg: false, conj: false,
   anim: null, drag: null,
-  eye: { v: 50, auto: true, fMan: 17, fCur: 17 },
+  eye: { v: 50, auto: true, fMan: 17, fCur: 17, type: 'normal', corr: false },
   cam: { v: 40, s: 50, sCur: 50, N: 2.8 }
 };
 
@@ -565,16 +598,39 @@ function consMsg(op) {
 /* =========================================================
    2. L'ŒIL (œil réduit)
    ========================================================= */
-const RET = 17, PUP = 2, TAN_E = 0.15, PP = 250, EK = 15, ELX = 470; // mm, px/mm
+const PUP = 2, TAN_E = 0.15, PP = 250, EK = 15, ELX = 470; // mm, px/mm
 const dEye = v => v >= 100 ? Infinity : 100 * Math.pow(200, v / 99);     // 10 cm → 20 m
 const dCam = v => v >= 100 ? Infinity : 300 * Math.pow(100, v / 99);     // 30 cm → 30 m
 const imgPos = (f, d) => isFinite(d) ? 1 / (1 / f - 1 / d) : f;
 const fmtD = d => !isFinite(d) ? 'à l\'infini' : d < 1000 ? sig(d / 10, 2) + ' cm' : sig(d / 1000, 2) + ' m';
-const fMin = 1 / (1 / RET + 1 / PP);
+const F_REL = 17, XC = -6.6;                         // cristallin au repos ; lentille de contact sur la cornée
+const RETS = { normal: 17, myope: 18, hyper: 16.4 }; // distance cristallin–rétine (mm)
+const fMin = 1 / (1 / F_REL + 1 / PP);               // accommodation maximale (même amplitude pour les 3 yeux)
+const ret = () => RETS[S.eye.type];
+// distance focale de la lentille correctrice (mm) : son foyer image est placé au punctum remotum
+function fCorr() {
+  if (!S.eye.corr || S.eye.type === 'normal') return Infinity;
+  const xPR = 1 / (1 / ret() - 1 / F_REL);
+  return xPR - XC;
+}
+// position (algébrique, depuis le cristallin) de l'objet vu par le cristallin
+function x1Of(d) {
+  const fc = fCorr();
+  if (!isFinite(fc)) return isFinite(d) ? -d : -Infinity;
+  if (!isFinite(d)) return XC + fc;
+  const u = -d - XC; return XC + 1 / (1 / fc + 1 / u);
+}
 function eyeTarget() {
-  const d = dEye(S.eye.v);
   if (!S.eye.auto) return S.eye.fMan;
-  return clamp(isFinite(d) ? 1 / (1 / RET + 1 / d) : RET, fMin, RET);
+  const x1 = x1Of(dEye(S.eye.v)), R = ret();
+  return clamp(isFinite(x1) ? 1 / (1 / R - 1 / x1) : R, fMin, F_REL);
+}
+// rayon issu de B, passant à la hauteur yc dans le plan de la lentille correctrice (x = XC)
+function traceEye(d, yc, fc, f) {
+  const m = isFinite(d) ? (yc - d * TAN_E) / (XC + d) : -TAN_E;
+  const m2 = isFinite(fc) ? m - yc / fc : m;
+  const y0 = yc + m2 * (0 - XC);
+  return { m, m2, y0, m3: m2 - y0 / f };
 }
 function beamThrough(c, Lx, k, Y0, d, tanA, f, yp, stopX, col, xLeft) {
   // d en mm (peut être infini), rayons dans le repère lentille (mm)
@@ -597,10 +653,17 @@ function drawObjectIcon(c, Y0, d, extra) {
   line(c, 8, Y0, 92, Y0); line(c, 112, Y0, W - 14, Y0);
   line(c, 90, Y0 + 9, 98, Y0 - 9); line(c, 106, Y0 + 9, 114, Y0 - 9);
 }
+function lensSymbol(c, x, Y0, h, conv, col) {
+  c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 3;
+  line(c, x, Y0 - h, x, Y0 + h);
+  if (conv) { arrowHead(c, x, Y0 - h + 10, x, Y0 - h - 3, 11); arrowHead(c, x, Y0 + h - 10, x, Y0 + h + 3, 11); }
+  else { arrowHead(c, x, Y0 - h - 10, x, Y0 - h + 3, 11); arrowHead(c, x, Y0 + h + 10, x, Y0 + h - 3, 11); }
+}
 function drawEye(o) {
   const c = o.c, Y0 = o.h / 2, k = EK, Lx = ELX;
-  const d = dEye(S.eye.v), f = S.eye.fCur;
-  const ecx = Lx + 5.5 * k, R = 11.5 * k;
+  const d = dEye(S.eye.v), f = S.eye.fCur, RT = ret(), fc = fCorr();
+  const cxm = (RT - 6) / 2, rm = (RT + 6) / 2;       // globe : de -6 mm à la rétine
+  const ecx = Lx + cxm * k, R = rm * k;
   drawObjectIcon(c, Y0, d, 'taille et distance hors échelle');
   // globe
   c.fillStyle = C.eye; c.strokeStyle = C['eye-line']; c.lineWidth = 2;
@@ -611,62 +674,97 @@ function drawEye(o) {
   c.strokeStyle = C.retina; c.lineWidth = 6;
   c.beginPath(); c.arc(ecx, Y0, R - 3, -.95, .58); c.stroke();
   label(c, 'rétine', ecx + R + 8, Y0 - R * .75, C.retina, 'left', 'middle', 15);
+  if (S.eye.type !== 'normal') { // position de la rétine d'un œil normal, pour comparer
+    c.setLineDash([5, 5]); c.strokeStyle = C.muted; c.lineWidth = 1.5;
+    c.beginPath(); c.arc(Lx + 5.5 * k, Y0, 11.5 * k, -.5, .5); c.stroke(); c.setLineDash([]);
+    label(c, 'œil normal', Lx + 17 * k + (S.eye.type === 'myope' ? -6 : 6), Y0 - 6.2 * k, C.muted, S.eye.type === 'myope' ? 'right' : 'left', 'middle', 12);
+  }
   // nerf optique
   c.strokeStyle = C['eye-line']; c.lineWidth = 2; c.fillStyle = C.eye;
   const na = .62, nb = .85;
   c.beginPath(); c.moveTo(ecx + R * Math.cos(na), Y0 + R * Math.sin(na)); c.lineTo(ecx + R * Math.cos(na) + 70, Y0 + R * Math.sin(na) + 28);
   c.lineTo(ecx + R * Math.cos(nb) + 70, Y0 + R * Math.sin(nb) + 28); c.lineTo(ecx + R * Math.cos(nb), Y0 + R * Math.sin(nb)); c.fill(); c.stroke();
   label(c, 'nerf optique', ecx + R * Math.cos(nb) + 74, Y0 + R * Math.sin(nb) + 20, C.muted, 'left', 'middle', 13);
-  // rayons (faisceau issu de B)
-  const stop = (yp, mo) => { // intersection avec le globe (repère mm, centre 5,5 ; rayon 11,5 - 0,2)
-    const r = 11.3, A = 1 + mo * mo, B = -11 + 2 * yp * mo, Cc = 30.25 + yp * yp - r * r;
-    return (-B + Math.sqrt(B * B - 4 * A * Cc)) / (2 * A);
+  // rayons
+  const stop = (y0, m3) => { const r = rm - 0.2, A = 1 + m3 * m3, B = -2 * cxm + 2 * y0 * m3, Cc = cxm * cxm + y0 * y0 - r * r; return (-B + Math.sqrt(B * B - 4 * A * Cc)) / (2 * A); };
+  const xL = -(Lx - 112) / k;
+  const P = (x, y) => [Lx + x * k, Y0 - y * k];
+  const ray = (yc, col, w) => {
+    const t = traceEye(d, yc, fc, f), xe = stop(t.y0, t.m3);
+    c.strokeStyle = col; c.lineWidth = w;
+    path(c, [P(xL, yc + t.m * (xL - XC)), P(XC, yc), P(0, t.y0), P(xe, t.y0 + t.m3 * xe)], 1, false);
+    return { t, xe };
   };
-  c.lineWidth = 1.8;
-  const xi = imgPos(f, d), yi = -xi * TAN_E;
-  let last;
-  for (let i = 0; i <= 8; i++) { const yp = -PUP + 2 * PUP * i / 8; last = beamThrough(c, Lx, k, Y0, d, TAN_E, f, yp, stop, C.beam, -(Lx - 112) / k); }
-  // rayon central (par O) en couleur
-  c.lineWidth = 2.4;
-  beamThrough(c, Lx, k, Y0, d, TAN_E, f, 0, stop, C.r1, -(Lx - 112) / k);
-  // point image
-  const hit = stop(0, -TAN_E);
-  if (xi > hit + 0.05) { // derrière la rétine : pointillés
+  const ends = [];
+  for (let i = 0; i <= 8; i++) ends.push(ray(-PUP + 2 * PUP * i / 8, C.beam, 1.8));
+  ray(0, C.r1, 2.4);
+  // image B' : intersection de deux rayons émergents
+  const a = traceEye(d, -1, fc, f), b = traceEye(d, 1, fc, f);
+  const xi = (b.y0 - a.y0) / (a.m3 - b.m3), yi = a.y0 + a.m3 * xi;
+  const hitX = stop(0, -TAN_E);
+  if (isFinite(xi) && xi > hitX + 0.05 && xi < 60) {
     c.setLineDash([4, 5]); c.strokeStyle = C.beam; c.lineWidth = 1.4;
-    for (const yp of [-PUP, PUP]) { const mo = (isFinite(d) ? yp / d - TAN_E : -TAN_E) - yp / f; const xe = stop(yp, mo); line(c, Lx + xe * k, Y0 - (yp + mo * xe) * k, Lx + xi * k, Y0 - yi * k); }
+    for (const e of [ends[0], ends[8]]) line(c, ...P(e.xe, e.t.y0 + e.t.m3 * e.xe), ...P(xi, yi));
     c.setLineDash([]);
   }
-  c.fillStyle = C.img; c.beginPath(); c.arc(Lx + xi * k, Y0 - yi * k, 4.5, 0, 7); c.fill();
-  label(c, "B'", Lx + xi * k + 8, Y0 - yi * k + 14, C.img, 'left', 'middle', 15);
+  if (isFinite(xi) && xi > 0 && xi < 60) {
+    c.fillStyle = C.img; c.beginPath(); c.arc(...P(xi, yi), 4.5, 0, 7); c.fill();
+    label(c, "B'", P(xi, yi)[0] + 8, P(xi, yi)[1] + 14, C.img, 'left', 'middle', 15);
+  }
+  // tache sur la rétine (hauteurs des rayons extrêmes dans le plan de la rétine)
+  const yAt = yc => { const t = traceEye(d, yc, fc, f); return t.y0 + t.m3 * RT; };
+  const spot = Math.abs(yAt(PUP) - yAt(-PUP));
   // iris
   c.strokeStyle = C.iris; c.lineWidth = 6;
-  line(c, Lx - 0.8 * k, Y0 - PUP * k - 2, Lx - 0.8 * k, Y0 - 6.2 * k);
-  line(c, Lx - 0.8 * k, Y0 + PUP * k + 2, Lx - 0.8 * k, Y0 + 6.2 * k);
+  line(c, Lx - 0.8 * k, Y0 - PUP * k - 4, Lx - 0.8 * k, Y0 - 6.2 * k);
+  line(c, Lx - 0.8 * k, Y0 + PUP * k + 4, Lx - 0.8 * k, Y0 + 6.2 * k);
   label(c, 'iris', Lx - 0.8 * k, Y0 - 6.2 * k - 14, C.iris, 'center', 'middle', 14);
   // cristallin (plus bombé quand f diminue)
   const th = 1.1 + (17.5 - f) / 2.5 * 1.4;
   c.fillStyle = C['lens-fill']; c.strokeStyle = C.lens; c.lineWidth = 2.2;
   c.beginPath(); c.ellipse(Lx, Y0, th * k, 4.6 * k, 0, 0, 7); c.fill(); c.stroke();
   label(c, 'cristallin', Lx, Y0 + 4.6 * k + 16, C.lens, 'center', 'middle', 14);
-  return { d, f, xi, spot: 2 * PUP * Math.abs(RET - xi) / xi };
+  // lentille correctrice
+  if (isFinite(fc)) {
+    const x = Lx + XC * k - 3;
+    lensSymbol(c, x, Y0, 5.2 * k, fc > 0, C.accent);
+    label(c, fc > 0 ? 'lentille convergente' : 'lentille divergente', x - 8, Y0 - 5.2 * k - 24, C.accent, 'right', 'middle', 14);
+    label(c, 'C = ' + sig(1000 / fc, 2).replace('-', '−') + ' δ', x - 8, Y0 - 5.2 * k - 6, C.accent, 'right', 'middle', 13);
+  }
+  return { d, f, xi, spot, fc };
 }
+const TYPE_NOM = { normal: 'normal', myope: 'myope', hyper: 'hypermétrope' };
 function eyeInfo(r) {
-  const net = r.spot < 0.015;
-  $('res-eye').innerHTML = `<table>
+  const net = r.spot < 0.015, RT = ret(), ty = S.eye.type;
+  const xPR = 1 / (1 / RT - 1 / F_REL), xPP = 1 / (1 / RT - 1 / fMin);
+  const PRtxt = !isFinite(xPR) || Math.abs(xPR) > 1e6 ? '∞' : xPR < 0 ? fmtD(-xPR) : '∞ (en accommodant)';
+  const PPtxt = fmtD(-xPP);
+  let rows = `<tr><td>Œil</td><td>${TYPE_NOM[ty]}</td></tr>
     <tr><td>Distance de l'objet</td><td>${fmtD(r.d).replace('à l\'infini', '∞')}</td></tr>
     <tr><td>Distance focale du cristallin f'</td><td>${sig(r.f)} mm</td></tr>
-    <tr><td>Distance cristallin–rétine (fixe)</td><td>${dec(RET, 1)} mm</td></tr>
-    <tr><td>Image B' à</td><td>${sig(r.xi)} mm</td></tr>
-    <tr><td>Image sur la rétine</td><td>${net ? '<span class="tag ok">nette</span>' : '<span class="tag ko">floue</span>'}</td></tr></table>`;
+    <tr><td>Distance cristallin–rétine (fixe)</td><td>${dec(RT, 1)} mm</td></tr>
+    <tr><td>Image B' à</td><td>${isFinite(r.xi) && r.xi > 0 && r.xi < 1e4 ? sig(r.xi) + ' mm' : '∞'}</td></tr>
+    <tr><td>Vision nette sans lentille : de</td><td>${PPtxt} à ${PRtxt}</td></tr>`;
+  if (isFinite(r.fc)) rows += `<tr><td>Lentille correctrice</td><td>f' = ${sig(r.fc / 10, 2).replace('-', '−')} cm ; C = ${sig(1000 / r.fc, 2).replace('-', '−')} δ</td></tr>`;
+  rows += `<tr><td>Image sur la rétine</td><td>${net ? '<span class="tag ok">nette</span>' : '<span class="tag ko">floue</span>'}</td></tr>`;
+  $('res-eye').innerHTML = `<table>${rows}</table>`;
   let m;
+  const avant = r.xi < RT;
   if (S.eye.auto) {
-    if (!isFinite(r.d)) m = 'Objet à l\'infini : l\'œil <strong>n\'accommode pas</strong>. Le cristallin est le moins bombé (f\' = 17,0 mm) et l\'image se forme dans son plan focal, sur la rétine.';
-    else if (r.d >= PP - 0.5) m = `L'œil <strong>accommode</strong> : le cristallin se bombe et sa distance focale diminue (f' = ${sig(r.f)} mm) pour que l'image se forme <strong>sur la rétine</strong>, qui reste à 17,0 mm.`;
-    else m = `L'objet est plus près que le <strong>punctum proximum</strong> (environ 25 cm) : même en accommodant au maximum (f' = ${sig(r.f)} mm), l'image se forme <strong>derrière la rétine</strong>. On voit flou.`;
+    if (net && Math.abs(r.f - F_REL) < 0.01) m = 'L\'œil <strong>n\'accommode pas</strong> : le cristallin est le moins bombé (f\' = 17,0 mm) et l\'image se forme sur la rétine.';
+    else if (net) m = `L'œil <strong>accommode</strong> : le cristallin se bombe, sa distance focale diminue (f' = ${sig(r.f)} mm) et l'image se forme <strong>sur la rétine</strong>.`;
+    else if (avant) m = `Même avec le cristallin le moins bombé, l'image se forme <strong>devant la rétine</strong> : l'objet est au-delà du punctum remotum (${PRtxt}). On voit flou.`;
+    else m = `Même en accommodant au maximum (f' = ${sig(r.f)} mm), l'image se forme <strong>derrière la rétine</strong> : l'objet est plus près que le punctum proximum (${isFinite(r.fc) ? 'avec la lentille' : PPtxt}). On voit flou.`;
   } else {
     m = net ? 'Avec ce réglage du cristallin, l\'image se forme sur la rétine : elle est nette.'
-      : `L'image se forme <strong>${r.xi < RET ? 'devant' : 'derrière'} la rétine</strong> : on voit une tache floue. ${r.xi < RET ? 'Augmente' : 'Diminue'} la distance focale du cristallin.`;
+      : `L'image se forme <strong>${avant ? 'devant' : 'derrière'} la rétine</strong> : on voit une tache floue. ${avant ? 'Augmente' : 'Diminue'} la distance focale du cristallin.`;
   }
+  if (ty === 'myope') m += isFinite(r.fc)
+    ? ` La <strong>lentille divergente</strong> fait diverger les rayons avant l'œil : un objet lointain donne de nouveau une image sur la rétine.`
+    : ` <em>Œil myope :</em> trop convergent (ou trop long), il voit net de près mais flou de loin. On le corrige avec une <strong>lentille divergente</strong>.`;
+  if (ty === 'hyper') m += isFinite(r.fc)
+    ? ` La <strong>lentille convergente</strong> aide le cristallin : l'œil voit de loin sans accommoder et voit net plus près.`
+    : ` <em>Œil hypermétrope :</em> pas assez convergent (ou trop court), il doit accommoder même pour voir de loin et voit flou de près. On le corrige avec une <strong>lentille convergente</strong>.`;
   say(m);
   return r.spot;
 }
@@ -782,7 +880,7 @@ const MEMO = {
   eye: [
     ['Modèle de l\'œil réduit', 'Iris → diaphragme. Cristallin → lentille convergente. Rétine → écran.'],
     ['Accommodation', 'La distance cristallin–rétine est fixe (environ 17 mm). Pour voir net de près, le cristallin se bombe : sa distance focale diminue.'],
-    ['Limites', 'Un œil normal voit net de l\'infini (punctum remotum) jusqu\'à environ 25 cm (punctum proximum).']
+    ['Myopie et hypermétropie', 'Œil normal : net de l\'infini (punctum remotum) à 25 cm environ (punctum proximum). Œil myope : trop convergent, flou de loin, corrigé par une lentille divergente. Œil hypermétrope : pas assez convergent, flou de près, corrigé par une lentille convergente.']
   ],
   cam: [
     ['Œil ↔ appareil photo', 'Iris ↔ diaphragme. Cristallin ↔ objectif. Rétine ↔ capteur.'],
@@ -890,6 +988,8 @@ function syncEye() {
   dirty = true;
 }
 $('de').addEventListener('input', e => { S.eye.v = +e.target.value; syncEye(); });
+$('etype').addEventListener('change', e => { S.eye.type = e.target.value; $('ecorr').disabled = S.eye.type === 'normal'; if (S.eye.type === 'normal') { S.eye.corr = false; $('ecorr').checked = false; } syncEye(); });
+$('ecorr').addEventListener('change', e => { S.eye.corr = e.target.checked; syncEye(); });
 $('acc').addEventListener('change', e => { S.eye.auto = e.target.checked; if (!S.eye.auto) { S.eye.fMan = Math.round(S.eye.fCur * 20) / 20; $('fe').value = S.eye.fMan; } syncEye(); });
 $('fe').addEventListener('input', e => { S.eye.fMan = +e.target.value; syncEye(); });
 function syncCam() {
@@ -1025,6 +1125,16 @@ $('ex4-check').addEventListener('click', () => {
   fb('ex4-fb', ok1 && ok2, ok1 && ok2 ? 'Bravo, c\'est juste.' : `a) ${ok1 ? 'juste' : 'faux'} ; b) ${ok2 ? 'juste' : 'faux'}.`);
 });
 $('ex4-corr').addEventListener('click', () => $('ex4-c').classList.add('on'));
+// Exercice 5
+$('ex5-check').addEventListener('click', () => {
+  const rep = { q5a: 'a', q5b: 'b', q5c: 'b', q5d: 'a' }, L = { q5a: 'a', q5b: 'b', q5c: 'c', q5d: 'd' };
+  const vals = Object.keys(rep).map(q => document.querySelector(`input[name=${q}]:checked`));
+  if (vals.some(v => !v)) return fb('ex5-fb', false, 'Réponds aux quatre questions.');
+  const res = Object.keys(rep).map((q, i) => [L[q], vals[i].value === rep[q]]);
+  const ok = res.every(r => r[1]);
+  fb('ex5-fb', ok, ok ? 'Bravo, tout est juste.' : res.map(([l, b]) => `${l}) ${b ? 'juste' : 'faux'}`).join(' ; ') + '.');
+});
+$('ex5-corr').addEventListener('click', () => $('ex5-c').classList.add('on'));
 
 /* ---------- démarrage ---------- */
 readTheme(); syncCons(); syncEye(); syncCam(); setMemo(); newEx1(); newEx2();
