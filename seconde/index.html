@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulations Seconde</title>
+<meta name="description" content="Simulations interactives de physique-chimie pour la classe de Seconde, réalisées par Benjamin Barre.">
+<link rel="stylesheet" href="../commun/style.css">
+</head>
+<body data-niveau="seconde">
+<div class="wrap">
+  <a class="crumb" href="../">← Choisir un niveau</a>
+  <header class="hero">
+    <h1>Simulations de physique-chimie · Seconde</h1>
+    <p>Des animations interactives pour visualiser les notions du programme de Seconde. Elles fonctionnent sur ordinateur, tablette et téléphone, sans installation ni compte.</p>
+  </header>
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="Rechercher (ex. dilution, mole, Lewis…)" aria-label="Rechercher une simulation">
+    <div class="chips" id="chips" role="group" aria-label="Filtrer par thème"></div>
+  </div>
+  <main id="list"></main>
+  <p class="none" id="none" hidden>Aucune simulation ne correspond à cette recherche.</p>
+</div>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Programme de Seconde</span>
+</footer>
+<script src="../niveaux.js"></script>
+<script src="../catalogue.js"></script>
+<script src="../commun/liste.js"></script>
+</body>
+</html>

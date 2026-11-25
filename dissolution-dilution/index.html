@@ -93,12 +93,13 @@ footer strong{color:var(--text)}
 }
 @media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto} }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
   <header class="top">
     <h1>Dissolution et dilution</h1>
-    <a href="../">← Toutes les animations</a>
+    <a href="../seconde/">← Toutes les animations</a>
   </header>
   <p class="lead">Deux façons d'obtenir une solution, à ne pas confondre. Les points violets représentent les entités du soluté
     (modèle : 1 point = 10 mg de soluté). Fais glisser une image vers la gauche ou la droite pour faire tourner les béchers.</p>
@@ -195,6 +196,13 @@ footer strong{color:var(--text)}
     </table>
     </div>
     <p class="small">Ici on utilise des béchers pour bien voir les points. Au laboratoire, la solution est préparée dans une fiole jaugée pour que le volume soit précis.</p>
+  </section>
+
+  <!-- ============ EXERCICES ============ -->
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Clique sur « Nouvel exercice » autant de fois que tu veux.</p>
+    <div id="exo-dd"></div>
   </section>
 </div>
 <footer>
@@ -801,6 +809,86 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+})();
+</script>
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const { pick, rnd, fmt, res, fr, etape, texte } = Exo;
+const SOLUTES = ['de sucre (saccharose)', 'de sel (chlorure de sodium)', 'de sulfate de cuivre', 'de glucose', 'de permanganate de potassium'];
+const FIOLES = [50, 100, 200, 250, 500];               // mL
+const csV = V => V >= 100 ? 4 : 3;                     // 50,0 mL ; 100,0 mL
+const vml = V => `${fmt(V, csV(V))} mL`;
+const vl = V => `${fmt(V / 1000, csV(V))} L`;
+const CM = 'C<sub>m</sub>', U = 'g/L';
+const RAPPEL = `<p>Concentration en masse : <strong>${CM} = m / V</strong>, avec m en g, V en L et ${CM} en g/L. Donc m = ${CM} × V.</p>
+  <p>Dilution : la masse de soluté prélevée se retrouve dans la solution fille, donc <strong>C<sub>mère</sub> × V<sub>prélevé</sub> = C<sub>fille</sub> × V<sub>fille</sub></strong>.
+  Facteur de dilution : F = C<sub>mère</sub> / C<sub>fille</sub> = V<sub>fille</sub> / V<sub>prélevé</sub>.</p>
+  <p>Conversions : 1 mL = 10<sup>−3</sup> L et 1 mg = 10<sup>−3</sup> g.</p>`;
+
+Exo.monter('exo-dd', [
+  { id: 'cm', label: 'Calculer une concentration', rappel: RAPPEL, gen() {
+    const sol = pick(SOLUTES), V = pick(FIOLES), enMg = Math.random() < .4;
+    const m = enMg ? rnd(50, 950) : rnd(0.5, 25);
+    const mg = enMg ? m / 1000 : m, C = mg / (V / 1000);
+    return {
+      enonce: `<p>On dissout une masse <strong>m = ${fmt(m)} ${enMg ? 'mg' : 'g'}</strong> ${sol} dans de l'eau distillée,
+        dans une fiole jaugée de volume <strong>V = ${vml(V)}</strong>.</p>`,
+      questions: [{ label: `Calcule la concentration en masse ${CM} de la solution obtenue.`, unite: U, rep: C, cs: 3 }],
+      correction: etape({
+        note: `Conversions : ${enMg ? `m = ${fmt(m)} mg = ${fmt(mg)} g ; ` : ''}V = ${vml(V)} = ${vl(V)}.`,
+        lit: `${CM} = m / V`, an: `${CM} = ${fmt(mg)} / ${fmt(V / 1000, csV(V))}`,
+        res: `${CM} = ${res(C, 3, U)} (3 chiffres significatifs, comme la masse m)` })
+    };
+  } },
+  { id: 'm', label: 'Quelle masse peser ?', rappel: RAPPEL, gen() {
+    const sol = pick(SOLUTES), V = pick(FIOLES), C = rnd(1, 60), m = C * V / 1000;
+    return {
+      enonce: `<p>On veut préparer un volume <strong>V = ${vml(V)}</strong> d'une solution ${sol} de concentration en masse
+        <strong>${CM} = ${fmt(C)} g/L</strong>.</p>`,
+      questions: [{ label: 'Quelle masse m de soluté faut-il peser ?', unite: 'g', rep: m, cs: 3 }],
+      correction: etape({
+        note: `Conversion : V = ${vml(V)} = ${vl(V)}.`,
+        lit: `${CM} = m / V donc m = ${CM} × V`, an: `m = ${fmt(C)} × ${fmt(V / 1000, csV(V))}`,
+        res: `m = ${res(m, 3, 'g')}` })
+    };
+  } },
+  { id: 'vp', label: 'Quel volume prélever ?', rappel: RAPPEL, gen() {
+    const combos = [];
+    [5, 10, 20, 25, 50].forEach(Vp => FIOLES.forEach(Vf => { const F = Vf / Vp; if (F >= 2 && F <= 50 && Number.isInteger(F)) combos.push([Vp, Vf]); }));
+    const [Vp0, Vf] = pick(combos);
+    const Cm = rnd(10, 150), Cf = Exo.round(Cm * Vp0 / Vf, 3), Vp = Cf * Vf / Cm;
+    return {
+      enonce: `<p>On dispose d'une solution mère de concentration en masse <strong>C<sub>mère</sub> = ${fmt(Cm)} g/L</strong>.
+        On veut préparer <strong>V<sub>fille</sub> = ${vml(Vf)}</strong> de solution fille de concentration
+        <strong>C<sub>fille</sub> = ${fmt(Cf)} g/L</strong>.</p>`,
+      questions: [{ label: 'Quel volume V<sub>prélevé</sub> de solution mère faut-il prélever ?', unite: 'mL', rep: Vp, cs: 3 }],
+      correction: etape({
+        note: 'Au cours d’une dilution, la masse de soluté se conserve : m<sub>prélevée</sub> = m<sub>fille</sub>.',
+        lit: `C<sub>mère</sub> × V<sub>prélevé</sub> = C<sub>fille</sub> × V<sub>fille</sub> donc V<sub>prélevé</sub> = C<sub>fille</sub> × V<sub>fille</sub> / C<sub>mère</sub>`,
+        an: `V<sub>prélevé</sub> = ${fmt(Cf)} × ${fmt(Vf, csV(Vf))} / ${fmt(Cm)}`,
+        res: `V<sub>prélevé</sub> = ${res(Vp, 3, 'mL')}. On utilise une pipette jaugée de ${fmt(Vp0, 3)} mL.` })
+    };
+  } },
+  { id: 'f', label: 'Facteur de dilution', rappel: RAPPEL, gen() {
+    const Vp = pick([5, 10, 20, 25]), Vf = pick(FIOLES.filter(v => v / Vp >= 2 && Number.isInteger(v / Vp)));
+    const Cm = rnd(5, 200), F = Vf / Vp, Cf = Cm / F;
+    return {
+      enonce: `<p>On prélève <strong>V<sub>prélevé</sub> = ${fmt(Vp, 3)} mL</strong> d'une solution mère de concentration
+        <strong>C<sub>mère</sub> = ${fmt(Cm)} g/L</strong> avec une pipette jaugée. On les verse dans une fiole jaugée de
+        <strong>${vml(Vf)}</strong>, puis on complète avec de l'eau distillée jusqu'au trait de jauge.</p>`,
+      questions: [
+        { label: '1. Calcule le facteur de dilution F.', rep: F, cs: 0 },
+        { label: '2. Calcule la concentration en masse C<sub>fille</sub> de la solution fille.', unite: U, rep: Cf, cs: 3 }
+      ],
+      correction: etape({ q: '1.', lit: 'F = V<sub>fille</sub> / V<sub>prélevé</sub>', an: `F = ${fmt(Vf, csV(Vf))} / ${fmt(Vp, 3)}`,
+          res: `<span class="exo-res">F = ${fr(F, 0)}</span> : la solution est diluée ${fr(F, 0)} fois (F n'a pas d'unité).` }) +
+        etape({ q: '2.', lit: 'F = C<sub>mère</sub> / C<sub>fille</sub> donc C<sub>fille</sub> = C<sub>mère</sub> / F',
+          an: `C<sub>fille</sub> = ${fmt(Cm)} / ${fr(F, 0)}`, res: `C<sub>fille</sub> = ${res(Cf, 3, U)}` })
+    };
+  } }
+]);
 })();
 </script>
 </body>

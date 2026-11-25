@@ -11,8 +11,6 @@
   --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
   --ok:#2f8f6b; --ko:#c8423a; --ok-soft:#e3f4ec; --ko-soft:#fbe7e5; --warn:#b7791f; --warn-soft:#fdf3e1;
   --model-bg:#fbfcff;
-  /* fond des sections d'exercices (bleu ciel) */
-  --exo-bg:#e4f2fc; --exo-border:#a9d3f0; --exo-ink:#145a8a; --exo-card:#f5fbff;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -20,7 +18,6 @@
     --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
     --ok:#4cc597; --ko:#ef7a70; --ok-soft:#173327; --ko-soft:#3a1d1b; --warn:#f0b35a; --warn-soft:#3a2c14;
     --model-bg:#141821;
-    --exo-bg:#11283a; --exo-border:#24506f; --exo-ink:#8fd0ff; --exo-card:#0f2131;
   }
 }
 :root[data-theme="dark"]{
@@ -28,7 +25,6 @@
   --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
   --ok:#4cc597; --ko:#ef7a70; --ok-soft:#173327; --ko-soft:#3a1d1b; --warn:#f0b35a; --warn-soft:#3a2c14;
   --model-bg:#141821;
-  --exo-bg:#11283a; --exo-border:#24506f; --exo-ink:#8fd0ff; --exo-card:#0f2131;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -108,18 +104,15 @@ table.st tbody tr:hover,table.st tbody tr.sel{background:var(--accent-soft)}
 .no{color:var(--ko);font-weight:800}
 .hint{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.5rem .75rem;border-radius:0 10px 10px 0;margin:.5rem 0 0;min-height:2.6em}
 
-/* ---------- exercices (fond bleu ciel) ---------- */
-.scene.exos{background:var(--exo-bg);border-color:var(--exo-border)}
-.scene.exos .tag{background:var(--exo-ink);color:var(--exo-bg)}
-.scene.exos h2{color:var(--exo-ink)}
-.exo-badge{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--exo-ink);
-  border:1.5px solid var(--exo-ink);border-radius:999px;padding:.05rem .5rem}
-.exo{background:var(--exo-card);border:1px solid var(--exo-border);border-radius:12px;padding:.8rem .9rem;margin:12px 0 0}
+/* ---------- exercices : fond bleu ciel commun (../commun/exercices.css) ---------- */
+.scene.exercices .tag{background:var(--ex-chip);color:var(--ex-chip-ink)}
+.exo{background:var(--ex-card);border:1px solid var(--ex-edge);border-radius:12px;padding:.8rem .9rem;margin:12px 0 0}
 .exo h3{margin:0 0 .3rem;font-size:1.05rem}
 .ex-eq{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 8px;font-size:clamp(1.15rem,3.2vw,1.5rem);font-weight:600;margin:10px 0}
 .ex-eq .op{color:var(--muted)}
+.ex-eq > span > .op{margin:0 .3em}
 .ex-eq input{font:inherit;font-weight:800;color:var(--accent);width:2.4ch;text-align:center;padding:.1rem .1rem;border-radius:8px;
-  border:1.5px solid var(--exo-border);background:var(--surface)}
+  border:1.5px solid var(--ex-edge);background:var(--surface)}
 .ex-eq input.bad{border-color:var(--ko);background:var(--ko-soft)}
 .ex-eq input.good{border-color:var(--ok);background:var(--ok-soft)}
 .ex-eq .co{color:var(--accent);font-weight:800}
@@ -131,8 +124,8 @@ table.st tbody tr:hover,table.st tbody tr.sel{background:var(--accent-soft)}
 .correction h4{margin:0 0 .3rem;color:var(--ok);font-size:1rem}
 .score{color:var(--muted);font-size:.92rem;margin:.5rem 0 0}
 .lvl{display:flex;flex-wrap:wrap;gap:6px}
-.lvl button{min-height:36px;padding:.3rem .7rem;font-size:.92rem;background:transparent;color:var(--exo-ink);border-color:var(--exo-border)}
-.lvl button[aria-pressed="true"]{background:var(--exo-ink);color:var(--exo-card);border-color:var(--exo-ink)}
+.lvl button{min-height:36px;padding:.3rem .7rem;font-size:.92rem;background:transparent;color:var(--ex-ink);border-color:var(--ex-edge)}
+.lvl button[aria-pressed="true"]{background:var(--ex-chip);color:var(--ex-chip-ink);border-color:var(--ex-chip)}
 .yn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 
 .retenir{border:1px solid var(--border);border-radius:10px;padding:.2rem 1rem .6rem;background:var(--bg)}
@@ -147,6 +140,7 @@ footer strong{color:var(--text)}
   .bigop{flex-basis:100%;text-align:center;transform:rotate(90deg);line-height:1}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -206,10 +200,10 @@ footer strong{color:var(--text)}
   </section>
 
   <!-- ============ EXERCICES ============ -->
-  <section class="scene exos" id="sc-ex" aria-labelledby="t-ex">
+  <section class="scene exercices" id="sc-ex" aria-labelledby="t-ex">
     <div class="head">
       <div>
-        <h2 id="t-ex"><span class="tag">2</span> À toi de t'entraîner <span class="exo-badge">Exercices</span></h2>
+        <h2 id="t-ex"><span class="tag">2</span> À toi de t'entraîner <span class="ex-badge">✎ Exercices</span></h2>
         <p class="sub">Des équations tirées au hasard, de plus en plus difficiles. La correction est immédiate.</p>
       </div>
       <button class="ghost fs" data-target="sc-ex" type="button">Plein écran</button>
