@@ -190,7 +190,7 @@ window.CATALOGUE = [
   {
     dossier: "vitesse-lumiere",
     titre: "La vitesse de la lumière",
-    resume: "Envoyer un éclair de lumière vers la Lune, les planètes et les étoiles avec une horloge en temps réel, découvrir l'année-lumière, puis mesurer la distance d'un orage avec le décalage entre l'éclair et le tonnerre. Exercices corrigés.",
+    resume: "Envoyer un éclair de lumière vers la Lune, les planètes et les étoiles avec une horloge en temps réel, découvrir l'année-lumière, mesurer la distance d'un orage avec le décalage entre l'éclair et le tonnerre, et comprendre que voir loin, c'est voir dans le passé (une étoile qui bouge, vue avec retard). Exercices corrigés.",
     theme: "signaux-4",
     niveau: "quatrieme",
     chapitre: "Lumière et son : propagation",
@@ -215,6 +215,16 @@ window.CATALOGUE = [
     niveau: "quatrieme",
     chapitre: "Mouvements, interactions et gravitation",
     mots: ["gravitation", "Système solaire", "poids", "masse", "P = m × g", "trajectoire", "vitesse", "référentiel", "action à distance", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "retrogradation-mars",
+    titre: "La rétrogradation de Mars",
+    resume: "Pourquoi Mars, vue de la Terre, fait-elle un aller-retour devant les étoiles ? La Terre et Mars autour du Soleil avec les lignes de visée, le ciel vu de la Terre, puis la boucle de Mars dans le référentiel géocentrique. Exercices corrigés.",
+    theme: "mouvement-4",
+    niveau: "quatrieme",
+    chapitre: "Mouvements dans le Système solaire",
+    mots: ["rétrogradation", "Mars", "référentiel", "héliocentrique", "géocentrique", "ligne de visée", "opposition", "exercices"],
     statut: "en-ligne"
   }
 ];

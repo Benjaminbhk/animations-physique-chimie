@@ -106,6 +106,7 @@ footer strong{color:var(--text)}
     <div class="tabs" role="group" aria-label="Choisir l'expérience">
       <button type="button" class="seg" data-mode="voyage" aria-pressed="true">☀ Voyage de la lumière</button>
       <button type="button" class="seg" data-mode="orage" aria-pressed="false">⚡ L'éclair et le tonnerre</button>
+      <button type="button" class="seg" data-mode="passe" aria-pressed="false">🔭 Voir loin, c'est voir dans le passé</button>
     </div>
     <div class="layout">
       <div>
@@ -133,6 +134,20 @@ footer strong{color:var(--text)}
           </div>
           <h3 style="margin-top:14px">2. Ce qu'on mesure</h3>
           <div class="info" id="calc2"></div>
+        </div>
+        <div id="p-passe" hidden>
+          <h3>1. Placer l'étoile</h3>
+          <div class="row"><label for="pd">Distance</label><input id="pd" type="range" min="2" max="7" step="0.5" value="5"><output id="pd-out" for="pd"></output></div>
+          <h3 style="margin-top:14px">2. Envoyer la lumière</h3>
+          <div class="grid2">
+            <button id="pemit" type="button">✦ Envoyer un éclair</button>
+            <button id="pclear" class="ghost" type="button">Effacer</button>
+          </div>
+          <label class="check" style="margin-top:8px"><input type="checkbox" id="pauto"> L'étoile brille en continu (un éclair toutes les 0,5 années)</label>
+          <label class="check" style="margin-top:6px"><input type="checkbox" id="pghost" checked> Montrer où est vraiment l'étoile</label>
+          <label class="check" style="margin-top:6px"><input type="checkbox" id="pmove" checked> L'étoile se déplace</label>
+          <h3 style="margin-top:14px">3. Ce qu'on voit</h3>
+          <div class="info" id="calc3"></div>
         </div>
       </div>
     </div>
@@ -378,20 +393,115 @@ function drawOrage() {
 function draw() {
   ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
   ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
-  mode === 'voyage' ? drawVoyage() : drawOrage();
+  mode === 'voyage' ? drawVoyage() : mode === 'orage' ? drawOrage() : drawPasse();
 }
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   if (mode === 'voyage' && run && !done) { run.t += dt; if (run.t >= run.anim) { run.t = run.anim; arrive(); } }
+  if (mode === 'passe') tickPasse(dt);
   if (mode === 'orage' && storm) { storm.t += dt; if (!storm.heard && storm.t >= storm.dt) heard(); }
   draw(); requestAnimationFrame(loop);
 }
+
+/* ---------- mode 3 : voir loin, c'est voir dans le passé ---------- */
+// Unités du modèle : 1 s d'animation = 1 an ; distances en années-lumière (al) ; la lumière avance donc de 1 al par seconde.
+const PXA = 74, OBX = 70, OBY = 160, PER = 14, AMP = 105, SKX0 = 640, SKW = 165;
+const PS = { t: 0, ts: 0, pulses: [], seen: null, acc: 0, n: 0 };
+const pStarX = () => OBX + +$('pd').value * PXA;
+const pStarY = ts => OBY - AMP * Math.sin(2 * Math.PI * ts / PER);
+function pEmit() { PS.n++; const x = pStarX(), y = pStarY(PS.ts); PS.pulses.push({ x, y, t0: PS.t, n: PS.n, age: Math.hypot(x - OBX, y - OBY) / PXA }); }
+function pClear() { PS.pulses = []; PS.seen = null; PS.n = 0; calc3(); }
+function tickPasse(dt) {
+  PS.t += dt; if ($('pmove').checked) PS.ts += dt;
+  if ($('pauto').checked) { PS.acc += dt; if (PS.acc >= .5) { PS.acc = 0; pEmit(); } }
+  let changed = false;
+  PS.pulses = PS.pulses.filter(p => {
+    const done = PS.t - p.t0 >= p.age;
+    if (done) { PS.seen = p; changed = true; }
+    return !done;
+  });
+  if (changed) calc3();
+}
+function calc3() {
+  const d = +$('pd').value;
+  $('pd-out').textContent = fmt(d, 2) + ' al';
+  let h = `Dans ce modèle, <b>1 seconde = 1 an</b> et la lumière parcourt <b>1 année-lumière par an</b>.<br>`;
+  if (PS.seen) {
+    const age = PS.seen.age;
+    h += `La lumière que l'observateur reçoit est partie de l'étoile il y a <b>${fmt(age, 2)} ans</b> (éclair n° ${PS.seen.n}).<br>Il voit donc l'étoile <b>là où elle était il y a ${fmt(age, 2)} ans</b>, pas là où elle est maintenant.`;
+  } else h += `Aucune lumière n'est encore arrivée : l'observateur ne voit rien ! Il faut environ ${fmt(d, 2)} ans pour que la lumière arrive.`;
+  h += `<br><span style="color:var(--muted)">Vitesse de l'étoile très exagérée pour qu'on voie son déplacement.</span>`;
+  $('calc3').innerHTML = h;
+}
+function skyY(x, y) { return 220 - Math.atan2(OBY - y, x - OBX) * 180 / Math.PI * 4.2; }
+function drawPasse() {
+  ctx.fillStyle = '#070b1c'; ctx.fillRect(0, 0, W, H);
+  STARS.forEach(([x, y, r]) => { ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(x, y, r, r); });
+  const sx = pStarX(), sy = pStarY(PS.ts);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  // trajectoire de l'étoile
+  ctx.setLineDash([4, 6]); ctx.strokeStyle = 'rgba(200,215,255,.3)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(sx, OBY - AMP - 14); ctx.lineTo(sx, OBY + AMP + 14); ctx.stroke(); ctx.setLineDash([]);
+  // échelle de distance
+  ctx.strokeStyle = '#9fb3e8'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(OBX, 300); ctx.lineTo(sx, 300); ctx.stroke();
+  ctx.fillStyle = '#9fb3e8';
+  for (let k = 0; k <= +$('pd').value; k++) { ctx.fillRect(OBX + k * PXA - .5, 295, 1, 10); }
+  ctx.font = '600 14px system-ui, sans-serif'; ctx.fillText(`d = ${fmt(+$('pd').value, 2)} années-lumière`, (OBX + sx) / 2, 322);
+  // éclairs en route
+  PS.pulses.forEach(p => {
+    const L = Math.hypot(p.x - OBX, p.y - OBY), u = Math.min(1, (PS.t - p.t0) * PXA / L);
+    const px = p.x + (OBX - p.x) * u, py = p.y + (OBY - p.y) * u;
+    ctx.strokeStyle = 'rgba(255,230,140,.35)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(px, py); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,230,140,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, 7); ctx.stroke();
+    const g = ctx.createRadialGradient(px, py, 0, px, py, 10); g.addColorStop(0, 'rgba(255,250,210,1)'); g.addColorStop(1, 'rgba(255,210,90,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, 10, 0, 7); ctx.fill();
+  });
+  // position vue en ce moment
+  if (PS.seen) {
+    ctx.strokeStyle = '#ffb86b'; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(PS.seen.x, PS.seen.y, 13, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#ffcf99'; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillText('position vue', PS.seen.x - 18, PS.seen.y + 4); ctx.textAlign = 'center';
+  }
+  // étoile et observateur
+  const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 24); g.addColorStop(0, 'rgba(255,255,230,1)'); g.addColorStop(.3, 'rgba(255,220,120,.8)'); g.addColorStop(1, 'rgba(255,200,80,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, 24, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ffe9a8'; ctx.font = '600 13px system-ui, sans-serif'; ctx.fillText('étoile (maintenant)', sx, sy - 26);
+  body(OBX, OBY, 'terre');
+  ctx.fillStyle = '#dfe7ff'; ctx.font = '600 13px system-ui, sans-serif'; ctx.fillText('observateur', OBX, OBY - 26);
+  // horloge
+  ctx.fillStyle = '#9fb3e8'; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(`temps : année ${fmt(PS.t, 2)}   ·   1 s = 1 an`, 14, 24);
+  // lunette de l'observateur
+  ctx.fillStyle = '#02040c'; ctx.strokeStyle = '#3b4a75'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(SKX0, 36, SKW, 370, 14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#cfdaf5'; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('Ce que voit l’observateur', SKX0 + SKW / 2, 28);
+  ctx.save(); ctx.beginPath(); ctx.roundRect(SKX0, 36, SKW, 370, 14); ctx.clip();
+  for (let k = 0; k < 40; k++) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(SKX0 + (k * 53) % SKW, 40 + (k * 97) % 360, 1.2, 1.2); }
+  const cx = SKX0 + SKW / 2;
+  if ($('pghost').checked) {
+    const gy = skyY(sx, sy);
+    ctx.strokeStyle = 'rgba(160,200,255,.8)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, gy, 10, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(160,200,255,.9)'; ctx.font = '11px system-ui, sans-serif'; ctx.fillText('vraie position', cx, gy + 24);
+  }
+  if (PS.seen) {
+    const vy = skyY(PS.seen.x, PS.seen.y);
+    const h = ctx.createRadialGradient(cx, vy, 0, cx, vy, 16); h.addColorStop(0, 'rgba(255,255,235,1)'); h.addColorStop(.35, 'rgba(255,220,120,.85)'); h.addColorStop(1, 'rgba(255,200,80,0)');
+    ctx.fillStyle = h; ctx.beginPath(); ctx.arc(cx, vy, 16, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffe9a8'; ctx.font = '600 11px system-ui, sans-serif'; ctx.fillText(`telle qu'il y a ${fmt(PS.seen.age, 2)} ans`, cx, vy - 20);
+  } else { ctx.fillStyle = '#7f8db3'; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('rien… pas encore', cx, 220); ctx.fillText('de lumière reçue', cx, 236); }
+  ctx.restore();
+}
+$('pemit').addEventListener('click', () => { pEmit(); $('msg').innerHTML = 'Un éclair part de l’étoile. Regarde : pendant que la lumière voyage, l’étoile continue d’avancer. Quand la lumière arrive, l’observateur voit l’étoile à l’endroit d’où l’éclair est parti.'; });
+$('pclear').addEventListener('click', pClear);
+$('pd').addEventListener('input', pClear);
+$('pauto').addEventListener('change', () => { if ($('pauto').checked) $('msg').innerHTML = 'L’étoile brille en continu. Dans la lunette, l’observateur la voit bouger… avec <strong>du retard</strong> : il voit toujours l’étoile telle qu’elle était quand la lumière est partie. Augmente la distance : le retard augmente. C’est pour cela que <strong>voir loin, c’est voir dans le passé</strong>.'; });
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
   mode = b.dataset.mode;
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
-  $('p-voyage').hidden = mode !== 'voyage'; $('p-orage').hidden = mode !== 'orage';
+  $('p-voyage').hidden = mode !== 'voyage'; $('p-orage').hidden = mode !== 'orage'; $('p-passe').hidden = mode !== 'passe';
   if (mode === 'voyage') voyageMsg();
+  else if (mode === 'passe') { $('msg').innerHTML = 'Une étoile se déplace loin de l’observateur. Envoie des éclairs de lumière (ou fais-la briller en continu) : la lumière met du temps à arriver, et pendant ce temps l’étoile continue d’avancer. Dans la lunette, à droite, tu ne la vois que quand sa lumière arrive.'; calc3(); }
   else { storm = null; calc2(); $('msg').innerHTML = 'Pendant un orage, on voit l’éclair avant d’entendre le tonnerre. Règle la distance de l’orage puis clique sur « Éclair ! ».'; }
 }));
 $('go').addEventListener('click', startVoyage);

@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La rétrogradation de Mars</title>
+<meta name="description" content="Simulation interactive : pourquoi Mars, vu depuis la Terre, semble faire un aller-retour dans le ciel. Lignes de visée, ciel vu de la Terre, référentiels héliocentrique et géocentrique (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f6fae; --accent-soft:#e4f0fa; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#6db6ec; --accent-soft:#132a3d; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#6db6ec; --accent-soft:#132a3d; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/660}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.badge{display:inline-block;padding:.05rem .5rem;border-radius:999px;font-weight:700;font-size:.85rem}
+.badge.dir{background:#dff3e6;color:#1d6b3e}
+.badge.retro{background:#fde3e0;color:#a5281d}
+[hidden]{display:none!important}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>La rétrogradation de Mars</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Observée nuit après nuit, Mars se déplace devant les étoiles… puis s'arrête, <strong>repart en arrière</strong>, s'arrête encore
+    et reprend sa route : c'est la <strong>rétrogradation</strong>. Pourtant Mars tourne toujours dans le même sens autour du Soleil !
+    Lance l'animation et suis les <strong>lignes de visée</strong> depuis la Terre pour comprendre.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de la rétrogradation de Mars">
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="En haut, la Terre et Mars autour du Soleil vus de dessus ; en bas, le ciel vu depuis la Terre avec les positions successives de Mars"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div>
+          <h3>1. Animer</h3>
+          <div class="grid3">
+            <button id="play" type="button">▶ Lecture</button>
+            <button id="step" class="ghost" type="button">+ 15 jours</button>
+            <button id="reset" class="ghost" type="button">Recommencer</button>
+          </div>
+          <div class="row"><label for="spd" style="min-width:5em">Vitesse</label><input id="spd" type="range" min="5" max="45" step="1" value="18"><output id="spd-out" for="spd" style="min-width:8ch"></output></div>
+        </div>
+        <div>
+          <h3>2. Choisir le point de vue</h3>
+          <div class="grid2" id="ref" role="group" aria-label="Référentiel">
+            <button type="button" class="seg" data-r="helio" aria-pressed="true">Soleil fixe (héliocentrique)</button>
+            <button type="button" class="seg" data-r="geo" aria-pressed="false">Terre fixe (géocentrique)</button>
+          </div>
+          <label class="check"><input type="checkbox" id="lines" checked> Lignes de visée Terre → Mars</label>
+          <label class="check"><input type="checkbox" id="nums" checked> Numéroter les positions (tous les 15 jours)</label>
+        </div>
+        <div>
+          <h3>3. Ce qu'on observe</h3>
+          <div class="info" id="info"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Deux planètes, deux vitesses</h3>La Terre tourne autour du Soleil en 365 jours, Mars en 687 jours. La Terre, plus proche du Soleil, va <strong>plus vite</strong> (30 km/s contre 24 km/s) sur une orbite plus petite.</div>
+      <div><h3>Le dépassement</h3>Quand la Terre <strong>double</strong> Mars (vers l'opposition), la direction Terre → Mars recule devant les étoiles lointaines : comme une voiture plus lente qui semble reculer quand on la double sur l'autoroute.</div>
+      <div><h3>Une question de référentiel</h3>Dans le référentiel <strong>héliocentrique</strong>, Mars décrit un cercle. Dans le référentiel <strong>géocentrique</strong> (Terre fixe), sa trajectoire fait une <strong>boucle</strong>. Le mouvement dépend du référentiel.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Utilise d = v × t et la simulation ci-dessus.</p>
+    <div id="exo-retro"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Orbites circulaires ; inclinaison de l'orbite de Mars (1,85°) prise en compte ; tailles non à l'échelle.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 660, TOP = 440;                 // vue de dessus : 0 → TOP ; ciel : TOP → H
+const TE = 365.25, TM = 686.98, AM = 1.524, INC = 1.85 * Math.PI / 180, NODE = -30 * Math.PI / 180, UA = 1.496e8;
+const T0 = -90, T1 = 90, DT = 15;
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const S = { t: T0, play: false, ref: 'helio' };
+
+/* ---------- positions (UA), t en jours depuis l'opposition ---------- */
+const earth = t => { const a = 2 * Math.PI * t / TE; return [Math.cos(a), Math.sin(a), 0]; };
+const mars = t => { const a = 2 * Math.PI * t / TM; return [AM * Math.cos(a), AM * Math.sin(a), AM * Math.sin(INC) * Math.sin(a - NODE)]; };
+function sky(t) {                                       // direction de Mars vue de la Terre (degrés)
+  const E = earth(t), M = mars(t), dx = M[0] - E[0], dy = M[1] - E[1], dz = M[2] - E[2], d = Math.hypot(dx, dy);
+  return { lon: Math.atan2(dy, dx) * 180 / Math.PI, lat: Math.atan2(dz, d) * 180 / Math.PI, dist: Math.hypot(dx, dy, dz) };
+}
+const MARKS = []; for (let t = T0; t <= T1 + 1e-9; t += DT) MARKS.push(t);
+const STARS = Array.from({ length: 170 }, () => [Math.random() * W, Math.random(), Math.random() * 1.4 + .4, Math.random()]);
+const SKYSTARS = Array.from({ length: 90 }, () => [Math.random() * W, TOP + 22 + Math.random() * (H - TOP - 40), Math.random() * 1.6 + .5]);
+const CONST = [[120, TOP + 70], [175, TOP + 48], [232, TOP + 64], [290, TOP + 52], [330, TOP + 88]];   // une « constellation » repère
+
+/* ---------- dessin ---------- */
+function ball(x, y, r, c1, c2) {
+  const g = ctx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
+  g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+}
+function label(txt, x, y, color, font = '600 12px system-ui, sans-serif', align = 'center') {
+  ctx.fillStyle = color; ctx.font = font; ctx.textAlign = align; ctx.fillText(txt, x, y);
+}
+function drawTop() {
+  ctx.fillStyle = '#060a1a'; ctx.fillRect(0, 0, W, TOP);
+  const tw = performance.now() / 1000;
+  STARS.forEach(([x, y, r, p]) => { ctx.fillStyle = `rgba(255,255,255,${.25 + .3 * Math.sin(tw + p * 6)})`; ctx.fillRect(x, y * TOP, r, r); });
+  const geo = S.ref === 'geo';
+  const K = geo ? 270 : 125;                              // pixels par UA
+  const OX = geo ? 90 : 250, OY = 225;
+  const E = earth(S.t);
+  // en géocentrique, chaque position est repérée par rapport à la Terre au même instant
+  const P = (p, t = S.t) => { if (!geo) return [OX + K * p[0], OY - K * p[1]]; const e = earth(t); return [OX + K * (p[0] - e[0]), OY - K * (p[1] - e[1])]; };
+  const past = MARKS.filter(m => m <= S.t + 1e-6);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, TOP); ctx.clip();
+  if (!geo) {
+    ctx.strokeStyle = 'rgba(120,170,255,.35)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(OX, OY, K, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,140,110,.35)'; ctx.beginPath(); ctx.arc(OX, OY, K * AM, 0, 7); ctx.stroke();
+  } else {
+    // trajectoire du Soleil et de Mars vues depuis la Terre fixe
+    ctx.strokeStyle = 'rgba(255,210,120,.35)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(OX, OY, K, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,120,90,.8)'; ctx.lineWidth = 2; ctx.beginPath();
+    for (let t = T0; t <= S.t; t += 1) { const M = mars(t), e = earth(t), x = OX + K * (M[0] - e[0]), y = OY - K * (M[1] - e[1]); t === T0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    ctx.stroke();
+  }
+  // lignes de visée
+  if ($('lines').checked) {
+    past.concat(S.t).forEach((t, k, arr) => {
+      const e = earth(t), m = mars(t), [ex, ey] = P(e, t), [mx, my] = P(m, t), n = Math.hypot(mx - ex, my - ey), L = 900;
+      const cur = k === arr.length - 1;
+      ctx.strokeStyle = cur ? 'rgba(255,220,120,.9)' : 'rgba(255,220,120,.28)'; ctx.lineWidth = cur ? 1.8 : 1;
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + (mx - ex) / n * L, ey + (my - ey) / n * L); ctx.stroke();
+    });
+  }
+  // positions passées numérotées
+  past.forEach((t, k) => {
+    const [ex, ey] = P(earth(t), t), [mx, my] = P(mars(t), t);
+    if (!geo) { ctx.fillStyle = 'rgba(110,170,255,.8)'; ctx.beginPath(); ctx.arc(ex, ey, 3, 0, 7); ctx.fill(); }
+    ctx.fillStyle = 'rgba(255,130,100,.85)'; ctx.beginPath(); ctx.arc(mx, my, 3, 0, 7); ctx.fill();
+    if ($('nums').checked) {
+      if (!geo) label(String(k + 1), ex + (ex - 250) * .12, ey - (225 - ey) * .12 + 4, '#9cc4ff', '600 11px system-ui, sans-serif');
+      label(String(k + 1), mx + (mx - P([0, 0])[0]) * .07 + 6, my + 14, '#ffb4a3', '600 11px system-ui, sans-serif');
+    }
+  });
+  // astres
+  const [sx, sy] = P([0, 0]);
+  const g = ctx.createRadialGradient(sx, sy, 4, sx, sy, 40); g.addColorStop(0, 'rgba(255,220,120,.7)'); g.addColorStop(1, 'rgba(255,180,60,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, 40, 0, 7); ctx.fill();
+  ball(sx, sy, 16, '#fff6b0', '#ffa516'); label('Soleil', sx, sy + 30, '#ffe9a8');
+  const [ex, ey] = P(E), [mx, my] = P(mars(S.t));
+  ball(ex, ey, 8, '#9fd6ff', '#1f5fae'); label('Terre', ex, ey - 13, '#bfe0ff');
+  ball(mx, my, 6.5, '#ffab85', '#b4431f'); label('Mars', mx, my - 12, '#ffc2a8');
+  ctx.restore();
+  label(geo ? 'Référentiel géocentrique : la Terre est fixe au centre' : 'Vue de dessus : référentiel héliocentrique (Soleil fixe)', 14, 22, '#9fb0d8', '13px system-ui, sans-serif', 'left');
+  label(geo ? 'zoom sur la trajectoire de Mars vue depuis la Terre (le Soleil est hors du cadre)' : 'sens de rotation : inverse des aiguilles d’une montre', 14, TOP - 14, '#7f8db3', '12px system-ui, sans-serif', 'left');
+  if (!geo) label('vers les étoiles lointaines →', W - 14, 22, '#9fb0d8', '12px system-ui, sans-serif', 'right');
+}
+const SKX = lon => W / 2 - lon * 36, SKY = lat => TOP + (H - TOP) / 2 + 12 - (lat - 1.4) * 34;
+function drawSky() {
+  const y0 = TOP;
+  const g = ctx.createLinearGradient(0, y0, 0, H); g.addColorStop(0, '#0b1430'); g.addColorStop(1, '#16224a');
+  ctx.fillStyle = g; ctx.fillRect(0, y0, W, H - y0);
+  ctx.fillStyle = '#2b3a66'; ctx.fillRect(0, y0, W, 2);
+  SKYSTARS.forEach(([x, y, r]) => { ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.arc(x, y, r * .7, 0, 7); ctx.fill(); });
+  ctx.strokeStyle = 'rgba(160,190,255,.35)'; ctx.lineWidth = 1; ctx.beginPath(); CONST.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+  CONST.forEach(([x, y]) => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 7); ctx.fill(); });
+  label('Le ciel vu depuis la Terre, devant les étoiles lointaines', 14, y0 + 20, '#cfdaf5', '600 13px system-ui, sans-serif', 'left');
+  label('← Est', 14, H - 12, '#9fb0d8', '12px system-ui, sans-serif', 'left');
+  label('Ouest →', W - 14, H - 12, '#9fb0d8', '12px system-ui, sans-serif', 'right');
+  // trace continue
+  ctx.strokeStyle = 'rgba(255,140,110,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]); ctx.beginPath();
+  for (let t = T0; t <= S.t; t += 1) { const s = sky(t); t === T0 ? ctx.moveTo(SKX(s.lon), SKY(s.lat)) : ctx.lineTo(SKX(s.lon), SKY(s.lat)); }
+  ctx.stroke(); ctx.setLineDash([]);
+  MARKS.filter(m => m <= S.t + 1e-6).forEach((t, k) => {
+    const s = sky(t), x = SKX(s.lon), y = SKY(s.lat);
+    ctx.fillStyle = '#ff8a6a'; ctx.beginPath(); ctx.arc(x, y, 4, 0, 7); ctx.fill();
+    if ($('nums').checked) label(String(k + 1), x, y - 9, '#ffc2a8', '600 11px system-ui, sans-serif');
+  });
+  const s = sky(S.t), x = SKX(s.lon), y = SKY(s.lat);
+  const gl = ctx.createRadialGradient(x, y, 0, x, y, 16); gl.addColorStop(0, 'rgba(255,150,110,.8)'); gl.addColorStop(1, 'rgba(255,120,80,0)');
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, 16, 0, 7); ctx.fill();
+  ball(x, y, 5.5, '#ffc3a8', '#c2502a');
+}
+function draw() {
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  drawTop(); drawSky();
+}
+
+/* ---------- panneau ---------- */
+let lastPhase = '';
+function info() {
+  const s = sky(S.t), s2 = sky(S.t + .5), retro = s2.lon < s.lon;
+  const j = Math.round(S.t);
+  const quand = j === 0 ? 'jour de l’<strong>opposition</strong> (Soleil, Terre et Mars alignés)' : j < 0 ? `${-j} jours avant l’opposition` : `${j} jours après l’opposition`;
+  $('info').innerHTML = `Date : ${quand}<br>Mouvement apparent de Mars : <span class="badge ${retro ? 'retro' : 'dir'}">${retro ? 'rétrograde (vers l’ouest)' : 'direct (vers l’est)'}</span><br>
+    Distance Terre-Mars : <b>${f(s.dist, 2)} UA</b> ≈ ${Exo.sci(s.dist * UA, 3)} km<br>
+    <span style="color:var(--muted)">Mars, elle, tourne toujours dans le même sens autour du Soleil.</span>`;
+  const phase = S.t >= T1 - 1e-6 ? 'fin' : retro ? 'retro' : (S.t < 0 ? 'avant' : 'apres');
+  if (phase !== lastPhase) {
+    lastPhase = phase;
+    $('msg').innerHTML = {
+      avant: 'Mars avance devant les étoiles vers l’est (vers la gauche dans le ciel), comme d’habitude. Mais la Terre, plus rapide, rattrape Mars sur la piste intérieure.',
+      retro: 'La Terre <strong>double</strong> Mars : les lignes de visée se croisent et la direction de Mars recule. Dans le ciel, Mars semble <strong>repartir en arrière</strong> (vers l’ouest) : c’est la rétrogradation. Elle dure environ 72 jours.',
+      apres: 'La Terre a fini de doubler Mars : la direction de Mars avance de nouveau vers l’est. Mars reprend son mouvement direct.',
+      fin: 'Bilan : Mars a fait un aller-retour (une boucle) devant les étoiles, alors qu’elle a toujours tourné dans le même sens autour du Soleil. Passe en « Terre fixe » pour voir la boucle de sa trajectoire dans le référentiel géocentrique.'
+    }[phase];
+  }
+}
+function setPlay(p) { S.play = p; $('play').textContent = p ? '⏸ Pause' : '▶ Lecture'; }
+$('play').addEventListener('click', () => { if (S.t >= T1 - 1e-6) S.t = T0; setPlay(!S.play); });
+$('step').addEventListener('click', () => { setPlay(false); S.t = Math.min(T1, (Math.floor((S.t - T0) / DT + 1e-6) + 1) * DT + T0); info(); });
+$('reset').addEventListener('click', () => { setPlay(false); S.t = T0; lastPhase = ''; info(); });
+$('spd').addEventListener('input', () => { $('spd-out').textContent = `${$('spd').value} j / s`; });
+$('ref').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  S.ref = b.dataset.r; $('ref').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  if (S.ref === 'geo') $('msg').innerHTML = 'La Terre est maintenant fixe au centre : le Soleil semble tourner autour d’elle, et Mars décrit une <strong>boucle</strong> au moment de la rétrogradation. C’est le même mouvement, décrit dans un autre référentiel.';
+  else { lastPhase = ''; info(); }
+}));
+['lines', 'nums'].forEach(id => $(id).addEventListener('change', draw));
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (S.play) { S.t += dt * +$('spd').value; if (S.t >= T1) { S.t = T1; setPlay(false); } info(); }
+  draw(); requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); $('spd-out').textContent = `${$('spd').value} j / s`; info();
+requestAnimationFrame(loop);
+window.__R = { sky, S };
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, fmt, res, shuffle, etape, texte, sci } = Exo;
+const RAPPEL = `Vitesse moyenne : v = d / t. Longueur d'une orbite circulaire de rayon r : L = 2 × π × r. 1 jour = 86 400 s.
+  Vitesse de la lumière : c = 3,00 × 10<sup>5</sup> km/s. Le résultat garde autant de chiffres significatifs que la donnée qui en a le moins.`;
+const PLA = [
+  { nom: 'la Terre', r: 1.50e8, T: 365 }, { nom: 'Mars', r: 2.28e8, T: 687 }, { nom: 'Vénus', r: 1.08e8, T: 225 }, { nom: 'Jupiter', r: 7.78e8, T: 4.33e3 }
+];
+Exo.monter('exo-retro', [
+  { id: 'v', label: 'Vitesse sur l’orbite', rappel: RAPPEL, gen() {
+    const P = pick(PLA.slice(1)), T = PLA[0];
+    const vT = 2 * Math.PI * T.r / (T.T * 86400), vP = 2 * Math.PI * P.r / (P.T * 86400);
+    return {
+      enonce: `<p>On modélise les orbites par des cercles. La Terre tourne à <strong>r = ${sci(T.r, 3)} km</strong> du Soleil et fait un tour en <strong>${fmt(T.T, 3)} jours</strong>.
+        ${P.nom.replace(/^./, c => c.toUpperCase())} tourne à <strong>r = ${sci(P.r, 3)} km</strong> et fait un tour en <strong>${fmt(P.T, 3)} jours</strong>.</p>`,
+      questions: [
+        { label: '1. Calcule la vitesse de la Terre sur son orbite, en km/s.', unite: 'km/s', rep: vT, cs: 3 },
+        { label: `2. Calcule la vitesse de ${P.nom}, en km/s.`, unite: 'km/s', rep: vP, cs: 3 },
+        { label: '3. Quelle planète va le plus vite ?', choix: ['La Terre', P.nom.replace(/^./, c => c.toUpperCase())], rep: vT > vP ? 0 : 1 }
+      ],
+      correction: etape({ q: '1.', note: 'En un tour, la Terre parcourt L = 2 × π × r pendant T jours = T × 86 400 s.', lit: 'v = 2 × π × r / t', an: `v = 2 × π × ${sci(T.r, 3)} / (${fmt(T.T, 3)} × 86 400)`, res: `v = ${res(vT, 3, 'km/s')}` }) +
+        etape({ q: '2.', lit: 'v = 2 × π × r / t', an: `v = 2 × π × ${sci(P.r, 3)} / (${fmt(P.T, 3)} × 86 400)`, res: `v = ${res(vP, 3, 'km/s')}` }) +
+        texte('3.', vT > vP ? `<strong>La Terre</strong> va plus vite : c'est pour cela qu'elle « double » ${P.nom}, qui semble alors reculer dans le ciel.` : `<strong>${P.nom.replace(/^./, c => c.toUpperCase())}</strong> va plus vite que la Terre : c'est elle qui double la Terre.`)
+    };
+  } },
+  { id: 'opp', label: 'Mars à l’opposition', rappel: RAPPEL, gen() {
+    const dM = rnd(2.07e8, 2.49e8, 3), dT = 1.50e8, d = dM - dT, t = d / 3.00e5;
+    return {
+      enonce: `<p>Le jour de l'opposition, le Soleil, la Terre et Mars sont alignés, la Terre entre les deux. Mars est alors à <strong>${sci(dM, 3)} km</strong> du Soleil et la Terre à <strong>${sci(dT, 3)} km</strong>.</p>`,
+      questions: [
+        { label: '1. Calcule la distance Terre-Mars ce jour-là.', unite: 'km', rep: d, cs: 3, marge: 1.5 },
+        { label: '2. Combien de temps met un signal radio (à la vitesse de la lumière) pour aller de la Terre à Mars ?', unite: 's', rep: t, cs: 3, marge: 1.5 }
+      ],
+      correction: etape({ q: '1.', note: 'Les trois astres sont alignés, la Terre entre le Soleil et Mars : on fait une différence.', lit: 'd = d<sub>Soleil-Mars</sub> − d<sub>Soleil-Terre</sub>', an: `d = ${sci(dM, 3)} − ${sci(dT, 3)}`, res: `d = ${res(d, 3, 'km')}` }) +
+        etape({ q: '2.', lit: 't = d / c', an: `t = ${sci(d, 3)} / 3,00 × 10<sup>5</sup>`, res: `t = ${res(t, 3, 's')}` })
+    };
+  } },
+  { id: 'ang', label: 'Qui est en avance ?', rappel: RAPPEL, gen() {
+    const j = pick([30, 45, 60, 90, 120, 150, 180]), aT = 360 * j / 365, aM = 360 * j / 687;
+    return {
+      enonce: `<p>Un jour d'opposition, la Terre et Mars sont alignés avec le Soleil. La Terre fait un tour (360°) en 365 jours, Mars en 687 jours. On attend <strong>${j} jours</strong>.</p>`,
+      questions: [
+        { label: '1. De quel angle la Terre a-t-elle tourné autour du Soleil ?', unite: '°', rep: aT, cs: 3 },
+        { label: '2. De quel angle Mars a-t-elle tourné ?', unite: '°', rep: aM, cs: 3 },
+        { label: '3. Laquelle est en avance sur l’autre ?', choix: ['La Terre', 'Mars', 'Aucune, elles restent alignées'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', note: 'L’angle parcouru est proportionnel à la durée.', lit: 'angle = 360° × durée / période', an: `angle = 360 × ${j} / 365`, res: `angle = ${res(aT, 3, '°')}` }) +
+        etape({ q: '2.', lit: 'angle = 360° × durée / période', an: `angle = 360 × ${j} / 687`, res: `angle = ${res(aM, 3, '°')}` }) +
+        texte('3.', `<strong>La Terre</strong> a tourné de ${fmt(aT - aM, 3)}° de plus : elle a dépassé Mars. Vue depuis la Terre qui la double, Mars a semblé reculer devant les étoiles.`)
+    };
+  } },
+  { id: 'qcm', label: 'Comprendre la rétrogradation', gen() {
+    const POOL = [
+      { q: 'Pendant sa rétrogradation, Mars…', c: ['semble reculer, mais tourne toujours dans le même sens autour du Soleil', 'fait vraiment demi-tour sur son orbite', 's’arrête de tourner autour du Soleil'], e: 'Le recul n’est qu’<strong>apparent</strong> : Mars tourne toujours dans le même sens autour du Soleil.' },
+      { q: 'Pourquoi Mars semble-t-elle reculer ?', c: ['Parce que la Terre, plus rapide, la double', 'Parce que Mars ralentit', 'Parce que le Soleil la repousse'], e: 'La Terre va plus vite sur une orbite plus petite : quand elle <strong>double</strong> Mars, la direction de Mars recule.' },
+      { q: 'La rétrogradation se produit autour de…', c: ['l’opposition (Soleil, Terre, Mars alignés, Terre au milieu)', 'la conjonction (Mars derrière le Soleil)', 'n’importe quel moment de l’année'], e: 'C’est au moment où la Terre double Mars, autour de l’<strong>opposition</strong>.' },
+      { q: 'Dans le référentiel géocentrique, la trajectoire de Mars…', c: ['fait une boucle', 'est un cercle centré sur le Soleil', 'est une ligne droite'], e: 'Vue depuis la Terre immobile, la trajectoire de Mars fait une <strong>boucle</strong> à chaque rétrogradation.' },
+      { q: 'Dans le référentiel héliocentrique, la trajectoire de Mars est…', c: ['presque un cercle', 'une boucle', 'une ligne droite'], e: 'Autour du Soleil, Mars décrit <strong>presque un cercle</strong>.' },
+      { q: 'Quelle planète va le plus vite sur son orbite ?', c: ['La Terre', 'Mars', 'Elles vont à la même vitesse'], e: 'Plus une planète est proche du Soleil, plus elle va vite : <strong>la Terre</strong> (30 km/s) va plus vite que Mars (24 km/s).' },
+      { q: 'Une situation de la vie courante qui ressemble à la rétrogradation :', c: ['Une voiture lente semble reculer quand on la double', 'Une balle qui rebondit', 'Un ascenseur qui monte'], e: 'Quand on <strong>double une voiture plus lente</strong>, elle semble reculer par rapport au paysage lointain.' },
+      { q: 'Le mouvement d’un objet…', c: ['dépend du référentiel choisi', 'est le même dans tous les référentiels', 'ne dépend que de sa vitesse'], e: 'Le mouvement est <strong>relatif</strong> : il dépend du référentiel.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>
