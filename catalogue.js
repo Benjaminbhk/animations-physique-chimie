@@ -62,5 +62,14 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "circuits-electriques",
+    titre: "Circuits électriques",
+    resume: "Construire un circuit (générateur, résistances, lampe, DEL, interrupteur), brancher ampèremètres et voltmètres, vérifier la loi des nœuds et la loi des mailles, puis tracer et modéliser la caractéristique U = f(I) d'un dipôle. Exercices corrigés.",
+    theme: "ondes",
+    chapitre: "Signaux et capteurs",
+    mots: ["loi des nœuds", "loi des mailles", "loi d'Ohm", "caractéristique", "ampèremètre", "voltmètre", "DEL", "série", "dérivation"],
+    statut: "en-ligne"
   }
 ];
