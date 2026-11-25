@@ -28,6 +28,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | La vitesse de la lumière (4e) | https://benjaminbhk.github.io/animations-physique-chimie/vitesse-lumiere/ |
 | Série, dérivation et loi d'Ohm (4e) | https://benjaminbhk.github.io/animations-physique-chimie/circuits-serie-derivation/ |
 | Mouvements et interactions dans l'espace (4e) | https://benjaminbhk.github.io/animations-physique-chimie/mecanique-espace/ |
+| La rétrogradation de Mars (4e) | https://benjaminbhk.github.io/animations-physique-chimie/retrogradation-mars/ |
 
 ## Organisation
 

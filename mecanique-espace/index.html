@@ -88,6 +88,12 @@ footer strong{color:var(--text)}
 .grid4 button,.grid3 button,.grid2 button.seg{font-size:.86rem;padding:.35rem .3rem}
 .lbl{font-weight:600;font-size:.92rem;margin:8px 0 4px}
 [hidden]{display:none!important}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+.seg.good{background:#1f8a52!important;border-color:#1f8a52!important;color:#fff!important}
+.seg.bad{background:#c8323a!important;border-color:#c8323a!important;color:#fff!important}
 </style>
 <link rel="stylesheet" href="../commun/exercices.css">
 </head>
@@ -149,6 +155,7 @@ footer strong{color:var(--text)}
           <div class="lbl">Vitesse</div>
           <div class="grid2" id="q-vit" role="group" aria-label="Vitesse"></div>
           <button id="verif" type="button" style="width:100%;margin-top:10px">Vérifier</button>
+          <div class="res" id="mvres" aria-live="polite" hidden></div>
           <div class="info" id="mvinfo" style="margin-top:10px"></div>
         </div>
       </div>
@@ -405,20 +412,26 @@ function scButtons() {
   $('scen').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.s = +b.dataset.i; scButtons(); startMV(); }));
   $('q-traj').innerHTML = TRAJ.map((t, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${MV.a === i}">${t}</button>`).join('');
   $('q-vit').innerHTML = VIT.map((t, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${MV.b === i}">${t}</button>`).join('');
-  $('q-traj').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.a = +b.dataset.i; scButtons(); }));
-  $('q-vit').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.b = +b.dataset.i; scButtons(); }));
+  $('q-traj').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.a = +b.dataset.i; scButtons(); $('mvres').hidden = true; }));
+  $('q-vit').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.b = +b.dataset.i; scButtons(); $('mvres').hidden = true; }));
 }
 function startMV() {
-  MV.t = 0; MV.a = null; MV.b = null; scButtons();
+  MV.t = 0; MV.a = null; MV.b = null; scButtons(); $('mvres').hidden = true;
   const s = SC[MV.s];
   $('mvinfo').innerHTML = `Référentiel : <b>${s.ref}</b><br>Durée entre deux positions : <b>Δt = ${s.dt}</b>`;
   $('msg').innerHTML = `Chronophotographie : la position de l’objet est enregistrée à intervalles de temps réguliers (Δt = ${s.dt}). Observe la forme de la trajectoire et l’écart entre les points, puis décris le mouvement.`;
 }
+function showRes(cls, html) { const r = $('mvres'); r.hidden = false; r.className = 'res ' + cls; r.innerHTML = html; }
 function checkMV() {
   const s = SC[MV.s];
-  if (MV.a === null || MV.b === null) { $('msg').innerHTML = 'Choisis d’abord une trajectoire et une évolution de la vitesse.'; return; }
+  if (MV.a === null || MV.b === null) { showRes('mid', 'Choisis d’abord une trajectoire <strong>et</strong> une évolution de la vitesse, puis clique sur « Vérifier ».'); return; }
   const ok1 = MV.a === s.traj, ok2 = MV.b === s.vit;
-  $('msg').innerHTML = (ok1 && ok2 ? '<strong>Bravo !</strong> ' : `<strong>${ok1 ? 'Trajectoire juste' : 'Trajectoire fausse'}, ${ok2 ? 'vitesse juste' : 'vitesse fausse'}.</strong> `) + s.expl;
+  // le résultat s'affiche juste sous le bouton (et les boutons choisis passent en vert ou rouge)
+  $('q-traj').querySelector(`[data-i="${MV.a}"]`).classList.add(ok1 ? 'good' : 'bad');
+  $('q-vit').querySelector(`[data-i="${MV.b}"]`).classList.add(ok2 ? 'good' : 'bad');
+  const html = (ok1 && ok2 ? '<strong>Bravo, c’est juste !</strong> ' : `<strong>${ok1 ? 'Trajectoire juste' : 'Trajectoire fausse'}, ${ok2 ? 'vitesse juste' : 'vitesse fausse'}.</strong> `) + s.expl;
+  showRes(ok1 && ok2 ? 'ok' : 'ko', html);
+  $('msg').innerHTML = html;
 }
 function drawMV() {
   space();
