@@ -12,7 +12,17 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Le réactif limitant | https://benjaminbhk.github.io/animations-physique-chimie/reactif-limitant/ |
 | Schémas de Lewis | https://benjaminbhk.github.io/animations-physique-chimie/schemas-lewis/ |
 | Colonne de densités | https://benjaminbhk.github.io/animations-physique-chimie/colonne-densites/ |
+| Ajuster une équation de réaction | https://benjaminbhk.github.io/animations-physique-chimie/ajuster-equations/ |
 | Spectres lumineux | https://benjaminbhk.github.io/animations-physique-chimie/spectres-lumineux/ |
+| Réfraction et réflexion totale | https://benjaminbhk.github.io/animations-physique-chimie/refraction/ |
+| Lentille convergente, œil et appareil photo | https://benjaminbhk.github.io/animations-physique-chimie/lentille-convergente/ |
+| Interaction gravitationnelle | https://benjaminbhk.github.io/animations-physique-chimie/interaction-gravitationnelle/ |
+| Transformations nucléaires | https://benjaminbhk.github.io/animations-physique-chimie/transformations-nucleaires/ |
+| Le principe d'inertie | https://benjaminbhk.github.io/animations-physique-chimie/principe-inertie/ |
+| Circuits électriques | https://benjaminbhk.github.io/animations-physique-chimie/circuits-electriques/ |
+| Modéliser une action par une force | https://benjaminbhk.github.io/animations-physique-chimie/forces/ |
+| Le vecteur vitesse | https://benjaminbhk.github.io/animations-physique-chimie/vecteur-vitesse/ |
+| Chronophotographie et référentiels | https://benjaminbhk.github.io/animations-physique-chimie/chronophotographie/ |
 | Transformations physiques | https://benjaminbhk.github.io/animations-physique-chimie/transformations-physiques/ |
 
 ## Organisation
