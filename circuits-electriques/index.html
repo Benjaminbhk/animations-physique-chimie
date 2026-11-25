@@ -467,14 +467,39 @@ function solve(C) {
     it.I = Iab(C, it); if (Math.abs(it.I) < 1e-7) it.I = 0;   // fuites numériques
     out[it.a] += it.I; out[it.b] -= it.I;
   }
-  // courants dans les conducteurs parfaits : L·φ = −out, un point fixé par nœud électrique
+  /* Courants dans les conducteurs (règles, de la plus forte à la plus faible) :
+     – un fil ou un interrupteur fermé a une résistance nulle ;
+     – un ampèremètre a une résistance très petite, mais pas nulle : un fil branché en parallèle le court-circuite (il indique 0) ;
+     – entre plusieurs fils en parallèle, le courant se partage comme dans de vrais fils (plus il y a de longueur, moins il en passe) ;
+     – une boucle de fils sans générateur n'est parcourue par aucun courant.
+     On résout L·φ = −(courant sortant par les dipôles), un point fixé par groupe. */
   const conds = items.filter(isCond);
   if (conds.length) {
-    const A = Array.from({ length: N }, () => new Float64Array(N)), J = new Float64Array(N);
-    for (const it of conds) { const a = it.a, b = it.b; A[a][a] += 1; A[b][b] += 1; A[a][b] -= 1; A[b][a] -= 1; }
-    for (let n = 0; n < N; n++) { J[n] = -out[n]; if (find(n) === n) A[n][n] += 1; }
-    const phi = gauss(A, J);
-    for (const it of conds) { it.I = phi[it.a] - phi[it.b]; if (Math.abs(it.I) < 1e-7) it.I = 0; }
+    const isWire = it => it.type === 'fil' || it.type === 'inter';
+    const p0 = Int32Array.from({ length: N }, (_, k) => k);
+    const find0 = k => { while (p0[k] !== k) { p0[k] = p0[p0[k]]; k = p0[k]; } return k; };
+    for (const it of conds) if (isWire(it)) { const ra = find0(it.a), rb = find0(it.b); if (ra !== rb) p0[ra] = rb; }
+    const lap = (edges, inj, pinned) => {
+      const A = Array.from({ length: N }, () => new Float64Array(N)), J = Float64Array.from(inj);
+      for (const [a, b] of edges) { A[a][a] += 1; A[b][b] += 1; A[a][b] -= 1; A[b][a] -= 1; }
+      for (let n = 0; n < N; n++) if (pinned(n)) A[n][n] += 1;
+      return gauss(A, J);
+    };
+    // 1) ampèremètres, entre groupes de points reliés par des fils
+    const amps = conds.filter(it => it.type === 'amp');
+    const inj0 = new Float64Array(N);
+    for (let n = 0; n < N; n++) inj0[find0(n)] -= out[n];
+    const ampE = amps.filter(it => find0(it.a) !== find0(it.b)).map(it => [find0(it.a), find0(it.b)]);
+    const phiA = lap(ampE, inj0, n => find0(n) !== n || find0(find(n)) === n);
+    for (const it of amps) it.I = find0(it.a) === find0(it.b) ? 0 : phiA[find0(it.a)] - phiA[find0(it.b)];
+    // 2) fils, à l'intérieur de chaque groupe
+    const inj = new Float64Array(N);
+    for (let n = 0; n < N; n++) inj[n] = -out[n];
+    for (const it of amps) { inj[it.a] -= it.I; inj[it.b] += it.I; }
+    const wires = conds.filter(isWire);
+    const phiW = lap(wires.map(it => [it.a, it.b]), inj, n => find0(n) === n);
+    for (const it of wires) it.I = phiW[it.a] - phiW[it.b];
+    for (const it of conds) if (Math.abs(it.I) < 1e-7) it.I = 0;
   }
   C.warn = [];
   for (const it of items) {
@@ -615,7 +640,12 @@ function drawItem(c, C, it, sel, t) {
   if (C.showUI && it.type !== 'fil') s += (s ? '  ' : '') + `${fmtU(Uab(C, it))} ; ${fmtI(Math.abs(it.I))}`;
   if (!s) return;
   if (horiz) text(c, s, mx, my + oy * 36, 'center', 'middle', K.muted, 600, 13.5);
-  else text(c, s, mx + ox * 30, my, ox > 0 ? 'left' : 'right', 'middle', K.muted, 600, 13.5);
+  else {
+    c.font = FONT(600); const w = c.measureText(s).width;
+    if (ox > 0 && mx + 30 + w > C.W - 4) ox = -1;
+    if (ox < 0 && mx - 30 - w < 4) ox = 1;
+    text(c, s, mx + ox * 30, my, ox > 0 ? 'left' : 'right', 'middle', K.muted, 600, 13.5);
+  }
 }
 /* Porteurs de charge animés le long des fils.
    mode « elec » : électrons, dans le sens inverse du courant (à l'extérieur du générateur, de la borne − vers la borne +).
