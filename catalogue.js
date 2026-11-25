@@ -26,5 +26,41 @@ window.CATALOGUE = [
     chapitre: "Solutions aqueuses",
     mots: ["fiole jaugée", "protocole", "concentration en masse", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "mole",
+    titre: "Visualiser une mole",
+    resume: "Zoomer dans un cube d'eau jusqu'aux molécules, passer de la masse à la quantité de matière puis au nombre d'entités, et comparer 6,02 × 10²³ à d'autres grands nombres.",
+    theme: "matiere",
+    chapitre: "Quantité de matière",
+    mots: ["mole", "nombre d'Avogadro", "masse molaire", "quantité de matière"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "reactif-limitant",
+    titre: "Le réactif limitant",
+    resume: "Régler les quantités initiales, voir les atomes se réorganiser réaction après réaction jusqu'à l'épuisement d'un réactif. Recette du sandwich, combustions, précipitation, et un exercice « qui est le limitant ? » corrigé.",
+    theme: "matiere",
+    chapitre: "Transformations chimiques",
+    mots: ["réactif limitant", "réactif en excès", "mélange stœchiométrique", "équation de réaction", "quantité de matière"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "schemas-lewis",
+    titre: "Schémas de Lewis",
+    resume: "Placer des atomes de Lewis, tracer les liaisons simples, doubles ou triples, puis vérifier les règles du duet et de l'octet sur des molécules à construire.",
+    theme: "matiere",
+    chapitre: "Entités chimiques et molécules",
+    mots: ["schéma de Lewis", "doublet liant", "doublet non liant", "électrons de valence", "règle de l'octet", "règle du duet"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "colonne-densites",
+    titre: "Colonne de densités",
+    resume: "Verser 2 à 4 liquides non miscibles dans n'importe quel ordre : ils se rangent selon leur masse volumique. Des objets coulent puis se stabilisent aux interfaces.",
+    theme: "matiere",
+    chapitre: "Corps purs et mélanges",
+    mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
+    statut: "en-ligne"
   }
 ];

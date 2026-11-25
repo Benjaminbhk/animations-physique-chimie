@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colonne de densités</title>
+<meta name="description" content="Simulation interactive : des liquides non miscibles se rangent selon leur masse volumique, et des objets se stabilisent aux interfaces (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+  --glass-hi:rgba(255,255,255,0.75);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+    --glass-hi:rgba(255,255,255,0.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  --glass-hi:rgba(255,255,255,0.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;aspect-ratio:820/660;border-radius:10px;background:var(--canvas);
+  border:1px solid var(--border);touch-action:none}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:1rem;margin:0 0 .35rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.item{display:flex;align-items:center;gap:8px;text-align:left;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);font-weight:600;font-size:.88rem;line-height:1.2;padding:.4rem .5rem}
+button.item:hover:not(:disabled){border-color:var(--accent)}
+button.item .sw{flex:none;width:20px;height:20px;border-radius:6px;border:1px solid rgba(0,0,0,.25)}
+button.item .sw.ball{border-radius:50%}
+button.item small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row label{font-weight:600;font-size:.92rem}
+select{font:inherit;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:7ch}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+.scene:fullscreen .layout{grid-template-columns:auto 360px;justify-content:center}
+.scene:fullscreen canvas{height:calc(100vh - 120px);width:auto;max-width:calc(100vw - 420px)}
+.scene:fullscreen .explain{margin-top:8px}
+.scene:fullscreen .memo{display:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Colonne de densités</h1>
+    <a href="../">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Verse 2, 3 ou 4 liquides qui ne se mélangent pas, dans l'ordre que tu veux : ils se rangent d'eux-mêmes selon leur
+    <strong>masse volumique</strong>. Lâche ensuite des objets : ils coulent puis se stabilisent à un niveau précis.
+    Tu peux attraper un objet à la souris (ou au doigt) pour le remonter.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de la colonne de densités">
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Colonne de verre contenant des couches de liquides et des objets"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div>
+          <h2>1. Verser un liquide <small id="nliq">0 / 4 liquides</small></h2>
+          <div class="grid2" id="liqs"></div>
+          <div class="row" style="margin-top:8px">
+            <label for="vol">Volume versé</label>
+            <select id="vol"><option value="25">25 mL</option><option value="50" selected>50 mL</option></select>
+          </div>
+        </div>
+        <div>
+          <h2>2. Agir sur la colonne</h2>
+          <div class="grid2">
+            <button id="shake" type="button">Agiter</button>
+            <button id="empty" class="ghost" type="button">Vider la colonne</button>
+          </div>
+        </div>
+        <div>
+          <h2>3. Lâcher un objet <small id="nobj"></small></h2>
+          <div class="grid2" id="objs"></div>
+          <div class="row" style="margin-top:8px">
+            <label for="myst">Objet mystère</label>
+            <input id="myst" type="range" min="0.10" max="2.00" step="0.01" value="1.10">
+            <output id="myst-out" for="myst"></output>
+          </div>
+          <div class="grid2" style="margin-top:6px">
+            <button id="drop-myst" type="button">Lâcher l'objet mystère</button>
+            <button id="clear-obj" class="ghost" type="button">Retirer les objets</button>
+          </div>
+        </div>
+        <div>
+          <label class="check"><input type="checkbox" id="hide"> Cacher les masses volumiques (mode devinette)</label>
+          <div class="row" style="margin-top:8px">
+            <button id="fs" class="ghost" type="button">Plein écran</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Masse volumique</h3>ρ = m / V, en g/mL (ou g/cm³). L'eau : ρ = 1,00 g/mL. La densité d'un corps par rapport à l'eau est d = ρ / ρ<sub>eau</sub> (sans unité).</div>
+      <div><h3>Liquides non miscibles</h3>Le liquide de plus faible masse volumique se place au-dessus. L'ordre final ne dépend pas de l'ordre dans lequel on verse.</div>
+      <div><h3>Objets</h3>Un objet flotte sur un liquide plus dense que lui et coule dans un liquide moins dense : il se stabilise à l'interface entre les deux.</div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Modèle simplifié : on suppose que les liquides ne se mélangent jamais. En réalité, le miel, le sirop, le liquide vaisselle et l'eau finissent par se mélanger lentement. Les couleurs sont ajoutées pour la visualisation.</p>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Valeurs de ρ approximatives, à 20 °C.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const fmt = (x, d = 2) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const rhoTxt = r => 'ρ = ' + fmt(r, r >= 5 ? 1 : 2) + ' g/mL';
+
+/* ---------- données ---------- */
+const LIQ = [
+  { id: 'miel',  art: 'le miel', il: 'il', nom: 'Miel',               rho: 1.42, rgb: [214, 140, 26],  a: .80, visc: 4 },
+  { id: 'sirop', art: 'le sirop de grenadine', il: 'il', nom: 'Sirop de grenadine', rho: 1.30, rgb: [205, 28, 62],   a: .72, visc: 2.2 },
+  { id: 'vais',  art: 'le liquide vaisselle', il: 'il', nom: 'Liquide vaisselle',  rho: 1.06, rgb: [52, 172, 78],   a: .62, visc: 1.8 },
+  { id: 'eau',   art: "l'eau", il: 'elle', nom: 'Eau',                rho: 1.00, rgb: [45, 120, 225],  a: .45, visc: 1 },
+  { id: 'huile', art: "l'huile", il: 'elle', nom: 'Huile de tournesol', rho: 0.92, rgb: [236, 198, 30],  a: .58, visc: 1.5 },
+  { id: 'cyclo', art: 'le cyclohexane', il: 'il', nom: 'Cyclohexane',        rho: 0.78, rgb: [168, 104, 214], a: .40, visc: 1 }
+];
+const OBJ = [
+  { nom: 'Bouchon de liège',        rho: 0.24, rgb: [178, 128, 78],  r: 14 },
+  { nom: 'Bille de polypropylène',  rho: 0.90, rgb: [235, 235, 228], r: 12 },
+  { nom: 'Bouchon en PEHD',         rho: 0.95, rgb: [250, 120, 40],  r: 13 },
+  { nom: 'Bille de polystyrène',    rho: 1.04, rgb: [235, 70, 170],  r: 12 },
+  { nom: 'Bille de nylon',          rho: 1.14, rgb: [110, 205, 235], r: 12 },
+  { nom: 'Morceau de PET',          rho: 1.38, rgb: [70, 80, 200],   r: 12 },
+  { nom: "Bille d'acier",           rho: 7.80, rgb: [165, 172, 185], r: 10 }
+];
+const byId = Object.fromEntries(LIQ.map(l => [l.id, l]));
+
+/* ---------- géométrie (unités logiques) ---------- */
+const W = 820, H = 660;
+const CX = 380, BASE = 612, R = 104, CH = 482, TOP = BASE - CH, K = 0.2, RY = R * K;
+const CAP = 250, MAXV = 225, MAXOBJ = 10;
+const hOf = V => V / CAP * CH * 0.92;
+const G = 1300;
+
+/* ---------- état ---------- */
+const S = {
+  arr: {}, emul: {}, transit: {}, disp: {},  // volumes (mL) et épaisseurs affichées (px)
+  drops: [], objs: [], pour: null, shake: 0, clock: 0, hide: false
+};
+LIQ.forEach(l => { S.arr[l.id] = 0; S.emul[l.id] = 0; S.transit[l.id] = 0; S.disp[l.id] = 0; });
+
+const totV = id => S.arr[id] + S.emul[id];
+const presentIds = () => LIQ.filter(l => totV(l.id) + S.transit[l.id] > 1e-6 || S.disp[l.id] > .05).map(l => l.id);
+const settledIds = () => LIQ.filter(l => S.arr[l.id] + S.emul[l.id] > 1e-6).map(l => l.id);
+const distinctUsed = () => LIQ.filter(l => totV(l.id) + S.transit[l.id] > 1e-6 || (S.pour && S.pour.id === l.id)).length;
+const volumeUsed = () => LIQ.reduce((s, l) => s + totV(l.id) + S.transit[l.id], 0) + (S.pour ? S.pour.V * (1 - S.pour.out) : 0);
+
+/* Couches de bas en haut (masse volumique décroissante), avec épaisseurs affichées */
+function layout() {
+  const ids = presentIds().sort((a, b) => byId[b].rho - byId[a].rho);
+  let y = 0; const bands = [];
+  for (const id of ids) { const t = S.disp[id]; bands.push({ id, y0: y, y1: y + t }); y += t; }
+  return { bands, level: y };
+}
+function emulFrac() {
+  let e = 0, t = 0;
+  for (const l of LIQ) { e += S.emul[l.id]; t += totV(l.id); }
+  return t > 0 ? e / t : 0;
+}
+function emulMix() {
+  let e = 0, rho = 0, r = 0, g = 0, b = 0, a = 0;
+  for (const l of LIQ) {
+    const v = S.emul[l.id]; if (v <= 0) continue;
+    e += v; rho += v * l.rho; r += v * l.rgb[0]; g += v * l.rgb[1]; b += v * l.rgb[2]; a += v * l.a;
+  }
+  return e > 0 ? { rho: rho / e, rgb: [r / e, g / e, b / e], a: a / e } : null;
+}
+/* milieu à la hauteur y : masse volumique et viscosité */
+function medium(L, y, mix, f) {
+  if (y > L.level || !L.bands.length) return { rho: 0.0012, visc: 0, liq: null };
+  let band = L.bands[0];
+  for (const b of L.bands) if (y >= b.y0) band = b;
+  const l = byId[band.id];
+  let rho = l.rho, visc = l.visc;
+  if (mix && f > 0) { rho = lerp(rho, mix.rho, f); visc = lerp(visc, 1.5, f); }
+  return { rho, visc, liq: l };
+}
+
+/* ---------- thème ---------- */
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = { canvas: g('--canvas'), glass: g('--glass'), glassFill: g('--glass-fill'), glassHi: g('--glass-hi'),
+        text: g('--text'), muted: g('--muted'), accent: g('--accent') };
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+
+/* ---------- canvas ---------- */
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(cv); resize();
+
+/* ---------- messages ---------- */
+const msg = $('msg');
+function say(html) { msg.innerHTML = html; }
+const rn = r => S.hide ? '' : ` (${rhoTxt(r)})`;
+const listFr = a => a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' et ' + a.slice(-1);
+const art = id => byId[id].art;
+
+/* ---------- versement ---------- */
+function startPour(id) {
+  if (S.pour || S.shake > 0) return;
+  const V = +$('vol').value;
+  if (volumeUsed() + V > MAXV + 1e-6) return;
+  const l = byId[id];
+  const others = settledIds().filter(x => x !== id);
+  let t;
+  if (totV(id) + S.transit[id] > 0) t = `On ajoute encore ${art(id).replace(/^le /,'du ').replace(/^l'/,"de l'")} : la couche correspondante s'épaissit.`;
+  else if (!others.length) t = `${cap(art(id))}${rn(l.rho)} est le premier liquide : ${l.il} occupe le fond de la colonne.`;
+  else {
+    const lighter = others.filter(x => byId[x].rho < l.rho), denser = others.filter(x => byId[x].rho > l.rho);
+    if (!lighter.length) t = `${cap(art(id))}${rn(l.rho)} est moins dense que tous les liquides présents : ${l.il} reste au-dessus.`;
+    else if (!denser.length) t = `${cap(art(id))}${rn(l.rho)} est plus dense que ${lighter.length > 1 ? 'tous les liquides présents : ' + l.il + ' les traverse' : art(lighter[0]) + ' : ' + l.il + ' passe à travers'} et tombe au fond.`;
+    else t = `${cap(art(id))}${rn(l.rho)} est plus dense que ${listFr(lighter.map(art))} mais moins dense que ${listFr(denser.map(art))} : ${l.il} traverse ${lighter.length > 1 ? 'les liquides du dessus' : listFr(lighter.map(art))} et se pose sur ${art(denser.sort((a, b) => byId[a].rho - byId[b].rho)[0])}.`;
+  }
+  say(t);
+  S.pour = { id, V, t: 0, out: 0, acc: 0, dur: 1.1 + V / 50 * 1.3 };
+  refreshUI();
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const IN = 0.7, OUT = 0.6, ANG = 1.85;
+function pourGeom(p) {
+  const t = p.t;
+  let ang, slide;
+  if (t < IN) { const k = t / IN; slide = (1 - k) * 150; ang = k * k * ANG; }
+  else if (t < IN + p.dur) { slide = 0; ang = ANG + 0.25 * ((t - IN) / p.dur); }
+  else { const k = clamp((t - IN - p.dur) / OUT, 0, 1); slide = k * 150; ang = (1 - k) * (ANG + .25); }
+  return { sx: CX + 40 + slide, sy: TOP - 26 - slide * .3, ang };
+}
+function updatePour(dt, L) {
+  const p = S.pour; if (!p) return;
+  p.t += dt;
+  if (p.t > IN && p.out < 1) {
+    const k = clamp((p.t - IN) / p.dur, 0, 1), dv = (k - p.out) * p.V; p.out = k;
+    S.transit[p.id] += dv; p.acc += dv;
+    while (p.acc >= 0.5) {
+      p.acc -= 0.5;
+      S.drops.push({ id: p.id, v: 0.5, x: 40 + rnd(-10, 10), z: rnd(-R * .4, R * .4), y: L.level + rnd(-4, 2), kind: 'pour', delay: 0, age: 0, r: rnd(3, 5.2), jx: rnd(0, TAU) });
+    }
+    if (k >= 1 && p.acc > 0) { S.drops.push({ id: p.id, v: p.acc, x: 40, z: 0, y: L.level, kind: 'pour', delay: 0, age: 0, r: 3, jx: 0 }); p.acc = 0; }
+  }
+  if (p.t > IN + p.dur + OUT) { S.pour = null; refreshUI(); }
+}
+
+/* ---------- agitation ---------- */
+function startShake() {
+  if (S.pour || S.shake > 0 || !settledIds().length) return;
+  S.shake = 1.3;
+  const L = layout();
+  for (const l of LIQ) {
+    let v = S.arr[l.id]; if (v <= 0) continue;
+    S.emul[l.id] += v; S.arr[l.id] = 0;
+    const n = Math.max(1, Math.round(v / 0.5)), dv = v / n;
+    for (let i = 0; i < n; i++) {
+      const rr = (R - 10) * Math.sqrt(Math.random()), a = Math.random() * TAU;
+      S.drops.push({ id: l.id, v: dv, x: rr * Math.cos(a), z: rr * Math.sin(a), y: rnd(3, Math.max(4, L.level - 3)), kind: 'emul',
+        delay: 1.3 + rnd(0.3, 3.2), age: 0, r: rnd(2.6, 4.8), jx: rnd(0, TAU) });
+    }
+  }
+  for (const o of S.objs) { o.vy = rnd(-150, 250); o.vx = rnd(-150, 150); o.rest = 0; o.told = false; }
+  say(S.hide
+    ? "On agite : les liquides se dispersent en fines gouttelettes. Observe comment ils se séparent au repos."
+    : "On agite : les liquides se dispersent en fines gouttelettes. Au repos, chaque liquide retrouve sa place : l'ordre final ne dépend que des masses volumiques, pas de l'ordre dans lequel on a versé.");
+  refreshUI();
+}
+
+/* ---------- gouttelettes ---------- */
+function updateDrops(dt, L, mix, f) {
+  const keep = [];
+  for (const d of S.drops) {
+    d.age += dt;
+    if (d.kind === 'emul' && S.shake > 0) { d.x += Math.sin(S.clock * 30 + d.jx) * 2; keep.push(d); continue; }
+    const band = L.bands.find(b => b.id === d.id);
+    if (!band) { arrive(d); continue; }
+    const m = medium(L, clamp(d.y, 0, L.level), mix, f);
+    const drho = Math.abs(byId[d.id].rho - m.rho);
+    const sp = clamp((45 + 320 * drho) / Math.max(1, m.visc || 1), 18, 240);
+    const inside = d.y >= band.y0 - 1 && d.y <= band.y1 + 1;
+    if (inside && d.age >= d.delay) { arrive(d); continue; }
+    if (d.y > band.y1) d.y = Math.max(band.y1 - .5, d.y - sp * dt);
+    else if (d.y < band.y0) d.y = Math.min(band.y0 + .5, d.y + sp * dt);
+    else d.y += Math.sin(S.clock * 3 + d.jx) * 6 * dt;
+    d.x += Math.sin(S.clock * 2.3 + d.jx) * 8 * dt;
+    const rr = Math.hypot(d.x, d.z), rm = R - 8;
+    if (rr > rm) { d.x *= rm / rr; d.z *= rm / rr; }
+    keep.push(d);
+  }
+  S.drops = keep;
+}
+function arrive(d) {
+  if (d.kind === 'pour') S.transit[d.id] = Math.max(0, S.transit[d.id] - d.v);
+  else S.emul[d.id] = Math.max(0, S.emul[d.id] - d.v);
+  S.arr[d.id] += d.v;
+  if (d.kind === 'emul' && emulFrac() < 1e-6) { LIQ.forEach(l => S.emul[l.id] = 0); }
+}
+
+/* ---------- objets ---------- */
+function addObject(o) {
+  if (S.objs.length >= MAXOBJ) return;
+  const used = S.objs.map(b => b.x);
+  let x = 0, best = -1;
+  for (let i = 0; i < 12; i++) {
+    const c = rnd(-R + 26, R - 26), dmin = used.length ? Math.min(...used.map(u => Math.abs(u - c))) : 99;
+    if (dmin > best) { best = dmin; x = c; }
+  }
+  S.objs.push({ ...o, x, y: CH + 40, vx: 0, vy: 0, rest: 0, told: false, drag: false });
+  say(`${o.nom}${S.hide ? '' : ' (' + rhoTxt(o.rho) + ')'} : lâché au-dessus de la colonne…`);
+  refreshUI();
+}
+function theory(o) {
+  const ids = settledIds().sort((a, b) => byId[b].rho - byId[a].rho); // bas → haut
+  if (!ids.length) return 'repose au fond de la colonne vide.';
+  const lighter = ids.filter(i => byId[i].rho < o.rho), denser = ids.filter(i => byId[i].rho > o.rho);
+  if (!lighter.length) return `flotte à la surface : sa masse volumique est plus faible que celle de tous les liquides, même ${art(ids[ids.length - 1])}.`;
+  if (!denser.length) return `coule jusqu'au fond : sa masse volumique est plus grande que celle de tous les liquides, même ${art(ids[0])}.`;
+  const up = lighter[0], down = denser[denser.length - 1];
+  return `se stabilise à l'interface entre ${art(up)} et ${art(down)} : sa masse volumique est comprise entre les leurs. Il traverse ${art(up)} (moins dense) et flotte sur ${art(down)} (plus dense).`.replace('Il traverse', 'L\'objet traverse');
+}
+function updateObjects(dt, L, mix, f) {
+  const n = 4, h = dt / n;
+  for (let s = 0; s < n; s++) {
+    for (const o of S.objs) {
+      if (o.drag) continue;
+      // poussée d'Archimède : intégration sur des tranches horizontales de la sphère
+      let disp = 0, wsum = 0;
+      for (let i = 0; i < 14; i++) {
+        const u = -1 + (i + .5) / 7, w = 1 - u * u, y = o.y + u * o.r;
+        disp += w * medium(L, y, mix, f).rho; wsum += w;
+      }
+      disp /= wsum;
+      const m = medium(L, o.y, mix, f), x = disp / o.rho - 1;
+      if (disp < 0.01) { o.vy -= G * h; o.vx *= 1 - h; }          // chute libre dans l'air
+      else {
+        // vitesse limite dans le liquide : dépend du signe de (ρ déplacé − ρ objet), freinée par la viscosité
+        const vt = Math.sign(x) * Math.pow(Math.min(1, Math.abs(x) / 0.12), 0.6) * 240 / (0.6 + 0.4 * (m.visc || 1));
+        o.vy += (vt - o.vy) * Math.min(1, 7 * h);
+        o.vx *= 1 - Math.min(1, 5 * h);
+      }
+      o.y += o.vy * h; o.x += o.vx * h;
+      if (o.y < o.r + 2) { o.y = o.r + 2; if (o.vy < 0) o.vy = 0; }
+      const xm = R - o.r - 5;
+      if (Math.abs(o.x) > xm) { o.x = Math.sign(o.x) * xm; o.vx *= -.3; }
+    }
+    // contacts entre objets
+    for (let i = 0; i < S.objs.length; i++) for (let j = i + 1; j < S.objs.length; j++) {
+      const a = S.objs[i], b = S.objs[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), md = a.r + b.r + 1;
+      if (d < md && d > 1e-6) {
+        const p = (md - d) / 2, nx = dx / d, ny = dy / d;
+        if (!a.drag) { a.x -= nx * p; a.y -= ny * p; }
+        if (!b.drag) { b.x += nx * p; b.y += ny * p; }
+      } else if (d <= 1e-6) { b.x += 1; }
+    }
+  }
+  for (const o of S.objs) {
+    if (o.drag) { o.rest = 0; continue; }
+    if (Math.abs(o.vy) < 4 && S.shake <= 0 && emulFrac() < .02) o.rest += dt; else o.rest = 0;
+    if (o.rest > .7 && !o.told) { o.told = true; say(`${o.nom}${S.hide ? '' : ' (' + rhoTxt(o.rho) + ')'} ${theory(o)}`); }
+  }
+}
+
+/* ---------- interactions souris / doigt ---------- */
+let dragging = null, dragOff = 0;
+function toLogical(e) {
+  const r = cv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+}
+cv.addEventListener('pointerdown', e => {
+  const p = toLogical(e);
+  let best = null, bd = 1e9;
+  for (const o of S.objs) {
+    const d = Math.hypot(p.x - (CX + o.x), p.y - (BASE - o.y));
+    if (d < o.r + 14 && d < bd) { bd = d; best = o; }
+  }
+  if (!best) return;
+  dragging = best; best.drag = true; best.vx = best.vy = 0; best.told = false;
+  cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing';
+});
+cv.addEventListener('pointermove', e => {
+  const p = toLogical(e);
+  if (!dragging) {
+    const over = S.objs.some(o => Math.hypot(p.x - (CX + o.x), p.y - (BASE - o.y)) < o.r + 14);
+    cv.style.cursor = over ? 'grab' : ''; return;
+  }
+  dragging.x = clamp(p.x - CX, -R + dragging.r + 5, R - dragging.r - 5);
+  dragging.y = clamp(BASE - p.y, dragging.r + 2, CH + 60);
+});
+const release = () => { if (dragging) { dragging.drag = false; dragging.vy = 0; dragging = null; } cv.style.cursor = ''; };
+cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', release);
+
+/* ---------- dessin ---------- */
+function bandPath(c, y0, y1, Ri) {
+  const s0 = BASE - y0, s1 = BASE - y1, ry = Ri * K;
+  c.beginPath(); c.moveTo(CX - Ri, s1); c.lineTo(CX - Ri, s0);
+  c.ellipse(CX, s0, Ri, ry, 0, Math.PI, 0, true);
+  c.lineTo(CX + Ri, s1);
+  c.ellipse(CX, s1, Ri, ry, 0, 0, Math.PI, true);
+  c.closePath();
+}
+function drawGlassBack(c) {
+  c.fillStyle = C.glassFill;
+  c.beginPath(); c.ellipse(CX, TOP, R, RY, 0, Math.PI, TAU); c.lineTo(CX + R, BASE);
+  c.ellipse(CX, BASE, R, RY, 0, 0, Math.PI); c.closePath(); c.fill();
+  c.strokeStyle = C.glass; c.lineWidth = 1.6;
+  c.beginPath(); c.ellipse(CX, TOP, R, RY, 0, Math.PI, TAU); c.stroke();
+  c.globalAlpha = .45; c.beginPath(); c.ellipse(CX, BASE, R, RY, 0, Math.PI, TAU); c.stroke(); c.globalAlpha = 1;
+  // pied
+  c.fillStyle = C.glassFill; c.strokeStyle = C.glass; c.lineWidth = 1.6;
+  c.beginPath(); c.ellipse(CX, BASE + 22, R + 48, (R + 48) * K, 0, 0, TAU); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(CX - R + 10, BASE + 6); c.lineTo(CX - R - 6, BASE + 18); c.moveTo(CX + R - 10, BASE + 6); c.lineTo(CX + R + 6, BASE + 18); c.stroke();
+}
+function drawGlassFront(c) {
+  c.strokeStyle = C.glass; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(CX - R, TOP); c.lineTo(CX - R, BASE); c.moveTo(CX + R, TOP); c.lineTo(CX + R, BASE); c.stroke();
+  c.beginPath(); c.ellipse(CX, BASE, R, RY, 0, 0, Math.PI); c.stroke();
+  c.lineWidth = 2.4; c.beginPath(); c.ellipse(CX, TOP, R, RY, 0, 0, Math.PI); c.stroke();
+  const g = c.createLinearGradient(CX - R, 0, CX - R + 40, 0);
+  g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, C.glassHi); g.addColorStop(1, 'rgba(255,255,255,0)');
+  c.fillStyle = g; c.globalAlpha = .5; c.fillRect(CX - R + 12, TOP + RY + 10, 16, CH - RY - 24); c.globalAlpha = 1;
+  // graduations
+  c.fillStyle = C.muted; c.strokeStyle = C.glass; c.lineWidth = 1.2;
+  c.font = '600 12px system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+  for (let v = 25; v <= 225; v += 25) {
+    const y = BASE - hOf(v), long = v % 50 === 0;
+    c.beginPath(); c.ellipse(CX, y, R, RY, 0, Math.PI * (long ? .22 : .28), Math.PI * .42); c.stroke();
+    if (long) c.fillText(v + ' mL', CX + R * .5, y + RY * .9 + 9);
+  }
+}
+function drawSphere(c, x, y, r, rgb, alpha = 1) {
+  const g = c.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r);
+  g.addColorStop(0, rgba(rgb.map(v => Math.min(255, v + 90)), alpha));
+  g.addColorStop(.5, rgba(rgb, alpha));
+  g.addColorStop(1, rgba(rgb.map(v => v * .45), alpha));
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+}
+function drawPour(c) {
+  const p = S.pour; if (!p) return;
+  const l = byId[p.id], { sx, sy, ang } = pourGeom(p), BW = 62, BH = 82;
+  const rem = 1 - p.out;
+  // filet de liquide
+  if (p.t > IN * .85 && p.out < 1) {
+    const L = layout(), yEnd = BASE - L.level + RY * .4;
+    c.strokeStyle = rgba(l.rgb, Math.min(1, l.a + .25)); c.lineCap = 'round';
+    c.lineWidth = 3 + 3 * rem; c.beginPath(); c.moveTo(sx, sy);
+    for (let y = sy; y <= yEnd; y += 12) c.lineTo(sx + Math.sin(y * .08 + S.clock * 14) * .8, y);
+    c.lineTo(sx, yEnd); c.stroke(); c.lineCap = 'butt';
+  }
+  c.save(); c.translate(sx, sy); c.rotate(-ang);
+  // contenu : surface horizontale dans le repère de l'écran
+  c.save(); c.beginPath(); c.rect(0, 0, BW, BH); c.clip();
+  c.rotate(ang);
+  const pts = [[0, 0], [BW, 0], [BW, BH], [0, BH]].map(([x, y]) => {
+    const co = Math.cos(-ang), si = Math.sin(-ang); return [x * co - y * si, x * si + y * co];
+  });
+  const ys = pts.map(q => q[1]), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const depth = (y1 - y0) * (p.t < IN ? .62 : .62 * Math.pow(Math.max(rem, 0), .8) + .02 * (rem > 0));
+  c.fillStyle = rgba(l.rgb, Math.min(1, l.a + .15));
+  c.fillRect(-200, y1 - depth, 400, depth + 2);
+  c.restore();
+  c.strokeStyle = C.glass; c.lineWidth = 2; c.fillStyle = C.glassFill;
+  c.beginPath(); c.moveTo(-4, -6); c.lineTo(0, 0); c.lineTo(0, BH); c.lineTo(BW, BH); c.lineTo(BW, 0); c.fill(); c.stroke();
+  c.restore();
+}
+function labelBlock(c, lines, x, y, align, color) {
+  c.textAlign = align; c.textBaseline = 'middle';
+  c.fillStyle = color; c.font = '700 15px system-ui, sans-serif'; c.fillText(lines[0], x, y - (lines[1] ? 9 : 0));
+  if (lines[1]) { c.fillStyle = C.muted; c.font = '600 13px system-ui, sans-serif'; c.fillText(lines[1], x, y + 9); }
+}
+function spread(items, minGap, lo, hi) { // répartit verticalement des étiquettes
+  items.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < items.length; i++) items[i].y = Math.max(items[i].y, items[i - 1].y + minGap);
+  const over = items.length ? items[items.length - 1].y - hi : 0;
+  if (over > 0) for (const it of items) it.y -= over;
+  for (let i = items.length - 2; i >= 0; i--) items[i].y = Math.min(items[i].y, items[i + 1].y - minGap);
+  for (const it of items) it.y = Math.max(lo, it.y);
+}
+function draw() {
+  const c = ctx;
+  c.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  c.fillStyle = C.canvas; c.fillRect(0, 0, W, H);
+  const L = layout(), f = emulFrac(), mix = emulMix();
+  const shx = S.shake > 0 ? Math.sin(S.clock * 38) * 9 * Math.min(1, S.shake) : 0;
+
+  c.save(); c.translate(shx, 0);
+  drawGlassBack(c);
+  for (const o of S.objs) drawSphere(c, CX + o.x, BASE - o.y, o.r, o.rgb);
+  // couches de liquide
+  const Ri = R - 1.5;
+  for (const b of L.bands) {
+    if (b.y1 - b.y0 < .05) continue;
+    const l = byId[b.id], tv = totV(b.id), fr = tv > 0 ? S.arr[b.id] / tv : 1;
+    bandPath(c, b.y0, b.y1, Ri);
+    c.fillStyle = rgba(l.rgb, Math.min(.66, l.a) * fr); c.fill();
+  }
+  if (mix && f > 0 && L.level > .5) {
+    bandPath(c, 0, L.level, Ri);
+    c.fillStyle = rgba(mix.rgb, Math.min(.6, mix.a) * f); c.fill();
+  }
+  // gouttelettes (de l'arrière vers l'avant)
+  const ds = S.drops.slice().sort((a, b) => a.z - b.z);
+  for (const d of ds) {
+    const l = byId[d.id], X = CX + d.x, Y = BASE - d.y + d.z * K;
+    c.fillStyle = rgba(l.rgb, Math.min(1, l.a + .35));
+    c.beginPath(); c.ellipse(X, Y, d.r, d.r * .9, 0, 0, TAU); c.fill();
+  }
+  // interfaces et surface libre
+  for (let i = 0; i < L.bands.length; i++) {
+    const b = L.bands[i]; if (b.y1 - b.y0 < .3) continue;
+    const l = byId[b.id], y = BASE - b.y1, top = i === L.bands.length - 1;
+    c.beginPath(); c.ellipse(CX, y, Ri, Ri * K, 0, 0, TAU);
+    if (top) { c.fillStyle = rgba(l.rgb, .18); c.fill(); }
+    c.strokeStyle = rgba(l.rgb.map(v => v * .7), .85); c.lineWidth = top ? 1.4 : 1.1; c.stroke();
+  }
+  // contours des objets visibles à travers le liquide
+  c.lineWidth = 1.5;
+  for (const o of S.objs) {
+    c.strokeStyle = rgba(o.rgb.map(v => v * .5), .75);
+    c.beginPath(); c.arc(CX + o.x, BASE - o.y, o.r, 0, TAU); c.stroke();
+    c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.arc(CX + o.x - o.r * .35, BASE - o.y - o.r * .4, o.r * .22, 0, TAU); c.fill();
+  }
+  drawGlassFront(c);
+
+  // étiquettes des liquides (à gauche)
+  const labs = L.bands.filter(b => b.y1 - b.y0 > 6).map(b => ({ b, y: BASE - (b.y0 + b.y1) / 2 }));
+  spread(labs, 40, 30, BASE);
+  for (const it of labs) {
+    const l = byId[it.b.id], ym = BASE - (it.b.y0 + it.b.y1) / 2, xr = CX - R - 52;
+    c.strokeStyle = rgba(l.rgb, .9); c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(CX - R - 4, ym); c.lineTo(xr + 10, ym); c.lineTo(xr + 4, it.y); c.stroke();
+    c.fillStyle = rgba(l.rgb, .95); c.fillRect(xr - 2, it.y - 13, 5, 26);
+    labelBlock(c, [l.nom, S.hide ? 'ρ = ?' : rhoTxt(l.rho)], xr - 10, it.y, 'right', C.text);
+  }
+  // étiquettes des objets (à droite)
+  const ol = S.objs.map(o => ({ o, y: BASE - o.y }));
+  spread(ol, 36, 24, H - 20);
+  for (const it of ol) {
+    const o = it.o, X = CX + o.x, Y = BASE - o.y, xl = CX + R + 60;
+    c.strokeStyle = C.muted; c.lineWidth = 1; c.globalAlpha = .8;
+    c.beginPath(); c.moveTo(X + o.r * .7, Y); c.lineTo(CX + R + 6, Y); c.lineTo(xl - 8, it.y); c.stroke(); c.globalAlpha = 1;
+    drawSphere(c, xl + 6, it.y, 7, o.rgb);
+    labelBlock(c, [o.nom, S.hide ? 'ρ = ?' : rhoTxt(o.rho)], xl + 20, it.y, 'left', C.text);
+  }
+  c.restore();
+
+  drawPour(c);
+
+  // volume total
+  const vt = LIQ.reduce((s, l) => s + totV(l.id) + S.transit[l.id], 0);
+  c.fillStyle = C.muted; c.font = '600 14px system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillText(`Volume de liquide : ${fmt(vt, 0)} mL`, 16, 14);
+  if (!S.objs.length && !L.bands.length && !S.pour) {
+    c.textAlign = 'center'; c.font = '600 17px system-ui, sans-serif'; c.fillStyle = C.muted;
+    c.fillText('Choisis un liquide à verser', CX, TOP - 60);
+  }
+}
+
+/* ---------- boucle ---------- */
+function update(dt) {
+  S.clock += dt;
+  if (S.shake > 0) S.shake = Math.max(0, S.shake - dt);
+  // épaisseurs affichées → cibles
+  for (const l of LIQ) {
+    const tgt = hOf(totV(l.id));
+    S.disp[l.id] += (tgt - S.disp[l.id]) * Math.min(1, dt * 7);
+    if (tgt === 0 && S.disp[l.id] < .05) S.disp[l.id] = 0;
+  }
+  const L = layout(), f = emulFrac(), mix = emulMix();
+  updatePour(dt, L);
+  updateDrops(dt, L, mix, f);
+  updateObjects(dt, L, mix, f);
+}
+let last = performance.now(), uiT = 0;
+function frame(now) {
+  const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
+  update(dt); draw();
+  uiT += dt; if (uiT > .25) { uiT = 0; refreshUI(); }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- interface ---------- */
+const liqBox = $('liqs'), objBox = $('objs');
+LIQ.forEach(l => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'item'; b.dataset.id = l.id;
+  b.innerHTML = `<span class="sw" style="background:${rgba(l.rgb, Math.min(1, l.a + .25))}"></span><span>${l.nom}<small data-rho="${l.rho}"></small></span>`;
+  b.addEventListener('click', () => startPour(l.id));
+  liqBox.appendChild(b);
+});
+OBJ.forEach(o => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'item';
+  b.innerHTML = `<span class="sw ball" style="background:${rgba(o.rgb, 1)}"></span><span>${o.nom}<small data-rho="${o.rho}"></small></span>`;
+  b.addEventListener('click', () => addObject(o));
+  objBox.appendChild(b);
+});
+$('myst').addEventListener('input', refreshUI);
+$('drop-myst').addEventListener('click', () => addObject({ nom: 'Objet mystère', rho: +$('myst').value, rgb: [60, 190, 160], r: 13 }));
+$('clear-obj').addEventListener('click', () => { S.objs = []; dragging = null; refreshUI(); say('Objets retirés.'); });
+$('shake').addEventListener('click', startShake);
+$('empty').addEventListener('click', () => {
+  S.drops = []; S.pour = null; LIQ.forEach(l => { S.arr[l.id] = S.emul[l.id] = S.transit[l.id] = 0; });
+  S.objs.forEach(o => { o.told = false; o.rest = 0; });
+  say('Colonne vidée. Choisis à nouveau 2, 3 ou 4 liquides, dans l\'ordre que tu veux.'); refreshUI();
+});
+$('hide').addEventListener('change', e => { S.hide = e.target.checked; refreshUI(); });
+const fsBtn = $('fs'), scene = $('sc');
+if (!scene.requestFullscreen) fsBtn.hidden = true;
+fsBtn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : scene.requestFullscreen());
+document.addEventListener('fullscreenchange', () => { fsBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'; });
+
+function refreshUI() {
+  const busy = !!S.pour || S.shake > 0, used = distinctUsed(), V = +$('vol').value, full = volumeUsed() + V > MAXV + 1e-6;
+  liqBox.querySelectorAll('button').forEach(b => {
+    const id = b.dataset.id, present = totV(id) + S.transit[id] > 1e-6;
+    b.disabled = busy || full || (!present && used >= 4);
+  });
+  document.querySelectorAll('small[data-rho]').forEach(s => { s.textContent = S.hide ? 'ρ = ?' : rhoTxt(+s.dataset.rho); });
+  $('nliq').textContent = `${used} / 4 liquides`;
+  $('shake').disabled = busy || !settledIds().length;
+  $('empty').disabled = !!S.pour || !LIQ.some(l => totV(l.id) + S.transit[l.id] > 0);
+  objBox.querySelectorAll('button').forEach(b => b.disabled = S.objs.length >= MAXOBJ);
+  $('drop-myst').disabled = S.objs.length >= MAXOBJ;
+  $('clear-obj').disabled = !S.objs.length;
+  $('nobj').textContent = `${S.objs.length} / ${MAXOBJ} objets`;
+  $('myst-out').textContent = S.hide ? 'ρ = ?' : rhoTxt(+$('myst').value);
+}
+$('vol').addEventListener('change', refreshUI);
+
+say('Commence par verser un liquide. Essaie ensuite de verser les autres dans un ordre « faux » : observe ce qui se passe.');
+refreshUI();
+requestAnimationFrame(frame);
+window.__S = S; // pour les tests
+})();
+</script>
+</body>
+</html>
