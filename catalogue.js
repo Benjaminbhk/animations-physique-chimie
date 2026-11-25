@@ -35,5 +35,14 @@ window.CATALOGUE = [
     chapitre: "Transformations chimiques",
     mots: ["réactif limitant", "réactif en excès", "mélange stœchiométrique", "équation de réaction", "quantité de matière"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "schemas-lewis",
+    titre: "Schémas de Lewis",
+    resume: "Placer des atomes de Lewis, tracer les liaisons simples, doubles ou triples, puis vérifier les règles du duet et de l'octet sur des molécules à construire.",
+    theme: "matiere",
+    chapitre: "Entités chimiques et molécules",
+    mots: ["schéma de Lewis", "doublet liant", "doublet non liant", "électrons de valence", "règle de l'octet", "règle du duet"],
+    statut: "en-ligne"
   }
 ];
