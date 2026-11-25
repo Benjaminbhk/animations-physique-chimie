@@ -62,5 +62,14 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "lentille-convergente",
+    titre: "Lentille convergente, œil et appareil photo",
+    resume: "Construire l'image d'un objet avec les trois rayons particuliers, calculer le grandissement, puis comprendre l'accommodation de l'œil et la mise au point de l'appareil photo. Exercices corrigés.",
+    theme: "ondes",
+    chapitre: "Vision et image",
+    mots: ["lentille convergente", "foyer", "distance focale", "grandissement", "image réelle", "œil", "accommodation", "appareil photo", "exercices"],
+    statut: "en-ligne"
   }
 ];

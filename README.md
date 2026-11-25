@@ -12,6 +12,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/
 | Le réactif limitant | https://benjaminbhk.github.io/animations-physique-chimie/reactif-limitant/ |
 | Schémas de Lewis | https://benjaminbhk.github.io/animations-physique-chimie/schemas-lewis/ |
 | Colonne de densités | https://benjaminbhk.github.io/animations-physique-chimie/colonne-densites/ |
+| Lentille convergente, œil et appareil photo | https://benjaminbhk.github.io/animations-physique-chimie/lentille-convergente/ |
 
 ## Organisation
 
