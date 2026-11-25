@@ -62,5 +62,15 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "interaction-gravitationnelle",
+    titre: "Interaction gravitationnelle",
+    resume: "Régler les masses et la distance de deux astres pour voir varier F = G·mA·mB/d², lancer un satellite en orbite, comparer le poids sur la Terre, la Lune, Mars ou Jupiter. Exercices d'application directe corrigés.",
+    theme: "mouvement",
+    niveau: "seconde",
+    chapitre: "Modéliser une action sur un système",
+    mots: ["interaction gravitationnelle", "force", "poids", "intensité de pesanteur", "orbite", "satellite", "exercices"],
+    statut: "en-ligne"
   }
 ];
