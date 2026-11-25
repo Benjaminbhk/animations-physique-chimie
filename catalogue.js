@@ -26,5 +26,14 @@ window.CATALOGUE = [
     chapitre: "Quantité de matière",
     mots: ["mole", "nombre d'Avogadro", "masse molaire", "quantité de matière"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "reactif-limitant",
+    titre: "Le réactif limitant",
+    resume: "Régler les quantités initiales, voir les atomes se réorganiser réaction après réaction jusqu'à l'épuisement d'un réactif. Recette du sandwich, combustions, précipitation, et un exercice « qui est le limitant ? » corrigé.",
+    theme: "matiere",
+    chapitre: "Transformations chimiques",
+    mots: ["réactif limitant", "réactif en excès", "mélange stœchiométrique", "équation de réaction", "quantité de matière"],
+    statut: "en-ligne"
   }
 ];
