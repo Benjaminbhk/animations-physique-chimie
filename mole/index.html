@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visualiser une mole</title>
+<meta name="description" content="Animation interactive pour se représenter la quantité de matière et le nombre d'Avogadro (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --edge:rgba(50,70,100,0.75); --grid:rgba(60,80,120,0.10); --grid2:rgba(60,80,120,0.22);
+  --water:110,170,230; --ox:214,58,48; --hy:236,240,246;
+  --c1:#d9822b; --c2:#2f8f6b; --c3:#1f7fbf;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+    --canvas:#141821; --edge:rgba(200,215,240,0.75); --grid:rgba(190,205,235,0.08); --grid2:rgba(190,205,235,0.20);
+    --water:80,140,215; --ox:232,88,76; --hy:228,232,240;
+    --c1:#f0a04b; --c2:#4cc597; --c3:#5fb2ec;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+  --canvas:#141821; --edge:rgba(200,215,240,0.75); --grid:rgba(190,205,235,0.08); --grid2:rgba(190,205,235,0.20);
+  --water:80,140,215; --ox:232,88,76; --hy:228,232,240;
+  --c1:#f0a04b; --c2:#4cc597; --c3:#5fb2ec;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.lead strong{color:var(--text)}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:16px;margin:0 0 22px}
+.scene h2{margin:0;font-size:1.35rem;display:flex;align-items:center;gap:.5rem}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;
+  padding:.15rem .5rem;border-radius:999px;color:#fff}
+.tag.t1{background:var(--c1)} .tag.t2{background:var(--c2)} .tag.t3{background:var(--c3)}
+.scene .sub{color:var(--muted);margin:.25rem 0 .8rem}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.head>div{flex:1 1 320px}
+.head>button{flex:0 0 auto}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);
+  touch-action:pan-y;border:1px solid var(--border)}
+#cv-zoom{aspect-ratio:900/540;cursor:grab} #cv-mass{aspect-ratio:900/470;cursor:pointer} #cv-echelle{aspect-ratio:900/300}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:12px 0 6px}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl label{font-weight:600;font-size:.95rem}
+.ctrl output{font-variant-numeric:tabular-nums;min-width:6ch;font-weight:600;color:var(--accent)}
+input[type=range]{width:min(260px,60vw);accent-color:var(--accent)}
+select{font:inherit;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+button{font:inherit;font-weight:600;padding:.55rem .9rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.chip{background:transparent;color:var(--text);border-color:var(--border);font-weight:500}
+button.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.small{font-size:.85rem;color:var(--muted)}
+.check{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--muted)}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:10px 0 0;min-height:3.2em}
+.scene.s1 .explain{border-color:var(--c1)} .scene.s2 .explain{border-color:var(--c2)} .scene.s3 .explain{border-color:var(--c3)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.cards.c4{grid-template-columns:repeat(4,1fr)}
+.card{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);min-width:0}
+.card h3{margin:0 0 .2rem;font-size:.9rem;color:var(--muted);font-weight:600}
+.card .v{font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.card .u{font-size:.85rem;color:var(--muted)}
+.calc{margin-top:10px;font-variant-numeric:tabular-nums;line-height:1.9}
+.digits{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.95rem;overflow-wrap:anywhere;
+  background:var(--bg);border:1px dashed var(--border);border-radius:8px;padding:.35rem .6rem;display:block;margin-top:4px}
+.fact{border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;background:var(--bg);margin-top:10px}
+.fact .big{font-size:1.2rem;font-weight:700;margin:0 0 .4rem}
+.fact .detail{margin:0;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.8}
+footer{max-width:1040px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:18px 28px}
+.scene:fullscreen canvas{max-height:68vh;width:auto;max-width:100%;margin:0 auto}
+@media (max-width:700px){
+  .cards,.cards.c4{grid-template-columns:1fr 1fr}
+  .scene{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Visualiser une mole</h1>
+    <a href="../">← Toutes les animations</a>
+  </header>
+  <p class="lead">On achète les œufs par <strong>douzaine</strong> (12 œufs) et le papier par <strong>ramette</strong> (500 feuilles).
+    Les chimistes comptent les entités (atomes, molécules, ions) par <strong>mole</strong> : une mole, c'est un paquet de
+    <strong>N<sub>A</sub> = 6,02 × 10<sup>23</sup></strong> entités. Ce nombre est tellement grand qu'il est difficile à imaginer :
+    voici trois façons de s'en faire une idée.</p>
+
+  <!-- ============ 1. ZOOM ============ -->
+  <section class="scene s1" id="sc-zoom" aria-labelledby="t-zoom">
+    <div class="head">
+      <div>
+        <h2 id="t-zoom"><span class="tag t1">1</span> Zoom dans l'eau</h2>
+        <p class="sub">On découpe un cube d'eau de plus en plus petit. Combien de molécules contient-il encore ?</p>
+      </div>
+      <button class="ghost fs" data-target="sc-zoom" type="button">Plein écran</button>
+    </div>
+    <canvas id="cv-zoom" role="img" aria-label="Cube d'eau dont on fait varier la taille, jusqu'à voir les molécules"></canvas>
+    <div class="controls">
+      <div class="ctrl">
+        <label for="z-s">Arête du cube</label>
+        <input id="z-s" type="range" min="-9.2" max="-2" step="0.01" value="-2">
+        <output id="z-s-out" for="z-s"></output>
+      </div>
+      <label class="check"><input type="checkbox" id="z-rot" checked> Rotation</label>
+    </div>
+    <div class="btns">
+      <button id="z-in" type="button">Zoomer : arête ÷ 10</button>
+      <button id="z-out" class="ghost" type="button">Dézoomer : arête × 10</button>
+      <button id="z-reset" class="ghost" type="button">Revenir à 1 cm</button>
+    </div>
+    <p class="explain" id="z-text" aria-live="polite"></p>
+    <div class="cards c4">
+      <div class="card"><h3>Volume V</h3><div class="v" id="z-v"></div></div>
+      <div class="card"><h3>Masse m</h3><div class="v" id="z-m"></div></div>
+      <div class="card"><h3>Quantité de matière n</h3><div class="v" id="z-n"></div></div>
+      <div class="card"><h3>Nombre de molécules N</h3><div class="v" id="z-N"></div></div>
+    </div>
+    <p class="small">Modèle : eau liquide de masse volumique ρ = 1,00 g/cm<sup>3</sup>, M(H<sub>2</sub>O) = 18,0 g/mol. Une molécule d'eau occupe en moyenne un petit cube d'arête 3,10 × 10<sup>−10</sup> m (0,310 nm).</p>
+  </section>
+
+  <!-- ============ 2. MASSE -> n -> N ============ -->
+  <section class="scene s2" id="sc-mass" aria-labelledby="t-mass">
+    <div class="head">
+      <div>
+        <h2 id="t-mass"><span class="tag t2">2</span> Une mole, ça pèse combien ?</h2>
+        <p class="sub">Une mole d'entités a une masse égale à la <strong>masse molaire M</strong>. On passe de la masse m à la quantité de matière n, puis au nombre d'entités N.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-mass" type="button">Plein écran</button>
+    </div>
+    <canvas id="cv-mass" role="img" aria-label="Échantillon de l'espèce choisie dessiné en vraie grandeur relative, à côté d'une mole de plusieurs espèces"></canvas>
+    <div class="controls">
+      <div class="ctrl">
+        <label for="m-sp">Espèce</label>
+        <select id="m-sp"></select>
+      </div>
+      <div class="ctrl">
+        <label for="m-m">Masse prélevée</label>
+        <input id="m-m" type="range" min="1" max="500" step="1" value="18">
+        <output id="m-m-out" for="m-m"></output>
+      </div>
+    </div>
+    <div class="btns">
+      <button id="m-one" type="button">Prendre exactement 1 mole</button>
+      <button id="m-half" class="ghost" type="button">0,500 mol</button>
+      <button id="m-two" class="ghost" type="button">2,00 mol</button>
+    </div>
+    <p class="small">Astuce : clique sur un cube à droite pour changer d'espèce. Les cubes sont dessinés à la même échelle (quadrillage : 1 carreau = 1 cm).</p>
+    <div class="calc" id="m-calc" aria-live="polite"></div>
+    <p class="explain" id="m-text"></p>
+  </section>
+
+  <!-- ============ 3. GRANDS NOMBRES ============ -->
+  <section class="scene s3" id="sc-ech" aria-labelledby="t-ech">
+    <div class="head">
+      <div>
+        <h2 id="t-ech"><span class="tag t3">3</span> <span>6,02 × 10<sup>23</sup>, c'est grand comment ?</span></h2>
+        <p class="sub">Sur cette échelle, chaque graduation multiplie par 10. Et si on avait une mole d'objets de la vie courante ?</p>
+      </div>
+      <button class="ghost fs" data-target="sc-ech" type="button">Plein écran</button>
+    </div>
+    <canvas id="cv-echelle" role="img" aria-label="Échelle des puissances de 10 avec des grands nombres repères jusqu'au nombre d'Avogadro"></canvas>
+    <div class="btns">
+      <button id="e-go" type="button">Parcourir l'échelle</button>
+    </div>
+    <p class="small" style="margin-top:12px"><strong>Une mole de…</strong></p>
+    <div class="btns" id="e-chips" role="group" aria-label="Choisir un objet"></div>
+    <div class="fact" aria-live="polite">
+      <p class="big" id="e-big"></p>
+      <p class="detail" id="e-detail"></p>
+    </div>
+    <p class="small">Ce sont des ordres de grandeur : les tailles des objets sont des valeurs moyennes, d'où seulement 2 chiffres significatifs.</p>
+  </section>
+</div>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Animation libre d'utilisation en classe</span>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const NA = 6.02e23;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const fmt = (x, d) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+/* ---------- écriture scientifique ---------- */
+function sciParts(x, sf = 3) {
+  if (!isFinite(x) || x === 0) return { m: '0', e: 0 };
+  let e = Math.floor(Math.log10(Math.abs(x)));
+  let r = +(x / Math.pow(10, e)).toFixed(sf - 1);
+  if (Math.abs(r) >= 10) { r /= 10; e++; }
+  return { m: fmt(r, sf - 1), e };
+}
+const sup = e => String(e).replace('-', '−');
+function sci(x, sf = 3) { // HTML
+  const p = sciParts(x, sf);
+  return p.e === 0 ? p.m : `${p.m} × 10<sup>${sup(p.e)}</sup>`;
+}
+function sciCanvas(c, x, sf, px, py, size, align = 'left', weight = '600') {
+  // dessine "m × 10^e" sur le canvas ; renvoie la largeur
+  const p = sciParts(x, sf);
+  const f1 = `${weight} ${size}px system-ui,sans-serif`, f2 = `${weight} ${Math.round(size * .68)}px system-ui,sans-serif`;
+  const a = p.e === 0 ? p.m : p.m + ' × 10';
+  c.font = f1; const w1 = c.measureText(a).width;
+  c.font = f2; const es = p.e === 0 ? '' : sup(p.e); const w2 = es ? c.measureText(es).width + 1 : 0;
+  const w = w1 + w2;
+  let x0 = align === 'center' ? px - w / 2 : align === 'right' ? px - w : px;
+  c.textAlign = 'left';
+  c.font = f1; c.fillText(a, x0, py);
+  if (es) { c.font = f2; c.fillText(es, x0 + w1 + 1, py - size * .42); }
+  return w;
+}
+function plainBig(N) { // écrit le nombre (arrondi à 3 chiffres significatifs) avec tous ses zéros
+  const p = sciParts(N, 3);
+  if (p.e < 2) return null;
+  const digits = p.m.replace(',', '');
+  let s = digits + '0'.repeat(Math.max(0, p.e - 2));
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+function dureeComptage(N) { // à 1 entité par seconde
+  const s = N, an = 3.156e7;
+  if (s < 60) return `${sci(s, 2)} s`;
+  if (s < 3600) return `${sci(s / 60, 2)} min`;
+  if (s < 86400) return `${sci(s / 3600, 2)} h`;
+  if (s < an) return `${sci(s / 86400, 2)} jours`;
+  return `${sci(s / an, 2)} ans`;
+}
+
+/* ---------- thème ---------- */
+let C = {}, spO = null, spH = null;
+function sprite(rgb) {
+  const s = 64, cv = document.createElement('canvas'); cv.width = cv.height = s;
+  const x = cv.getContext('2d'); const [r, g, b] = rgb.split(',').map(Number);
+  const gr = x.createRadialGradient(s * .36, s * .33, s * .03, s / 2, s / 2, s / 2);
+  gr.addColorStop(0, `rgb(${Math.min(255, r + 110)},${Math.min(255, g + 110)},${Math.min(255, b + 110)})`);
+  gr.addColorStop(.5, `rgb(${r},${g},${b})`);
+  gr.addColorStop(1, `rgb(${r * .45 | 0},${g * .45 | 0},${b * .45 | 0})`);
+  x.fillStyle = gr; x.beginPath(); x.arc(s / 2, s / 2, s / 2 - 1, 0, TAU); x.fill();
+  return cv;
+}
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = { canvas: g('--canvas'), text: g('--text'), muted: g('--muted'), edge: g('--edge'), grid: g('--grid'), grid2: g('--grid2'),
+        water: g('--water'), accent: g('--accent'), c1: g('--c1'), c2: g('--c2'), c3: g('--c3'), border: g('--border') };
+  spO = sprite(g('--ox')); spH = sprite(g('--hy'));
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+
+/* ---------- scène (canvas) ---------- */
+class Scene {
+  constructor(cv, W, H) {
+    this.cv = cv; this.ctx = cv.getContext('2d'); this.W = W; this.H = H; this.visible = true;
+    this.resize();
+    new ResizeObserver(() => this.resize()).observe(cv);
+    new IntersectionObserver(e => { this.visible = e[0].isIntersecting; }).observe(cv);
+  }
+  resize() {
+    const w = this.cv.clientWidth || this.W, dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    this.s = w / this.W; this.dpr = dpr;
+    this.cv.width = Math.round(w * dpr); this.cv.height = Math.round(w * this.H / this.W * dpr);
+  }
+  begin() {
+    const c = this.ctx;
+    c.setTransform(this.s * this.dpr, 0, 0, this.s * this.dpr, 0, 0);
+    c.clearRect(0, 0, this.W, this.H);
+    c.fillStyle = C.canvas; c.fillRect(0, 0, this.W, this.H);
+    return c;
+  }
+  local(e) { const r = this.cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * this.W, (e.clientY - r.top) / r.height * this.H]; }
+}
+
+/* =====================================================================
+   1. ZOOM DANS L'EAU
+   ===================================================================== */
+const D0 = 3.10e-10;            // arête du cube occupé par une molécule (m)
+const RHO = 1.00e6;             // g/m³
+const MW = 18.0;                // g/mol
+const zsc = new Scene($('cv-zoom'), 900, 540);
+const Z = { s: -2, target: null, from: 0, t: 0, theta: 0.55, phi: 0.42, drag: null, time: 0 };
+const zSlider = $('z-s');
+// positions aléatoires stables pour les molécules (grille 16×16×16)
+const KMAX = 16, jit = [];
+for (let i = 0; i < KMAX * KMAX * KMAX; i++) jit.push({ x: Math.random() - .5, y: Math.random() - .5, z: Math.random() - .5,
+  a: Math.random() * TAU, b: Math.random() * TAU, ph: Math.random() * TAU, w: .6 + Math.random() * .8 });
+
+zsc.cv.addEventListener('pointerdown', e => { Z.drag = e.clientX; zsc.cv.setPointerCapture(e.pointerId); zsc.cv.style.cursor = 'grabbing'; });
+zsc.cv.addEventListener('pointermove', e => { if (Z.drag === null) return; Z.theta += (e.clientX - Z.drag) / (zsc.s || 1) * 0.01; Z.drag = e.clientX; });
+const zUp = () => { Z.drag = null; zsc.cv.style.cursor = ''; };
+zsc.cv.addEventListener('pointerup', zUp); zsc.cv.addEventListener('pointercancel', zUp);
+if (reduce) $('z-rot').checked = false;
+
+const REPERES = [
+  [-2, 'un petit dé à jouer'], [-3, 'un grain de sel'], [-4, "l'épaisseur d'un cheveu"], [-5, 'une cellule du corps humain'],
+  [-6, 'une bactérie'], [-7, 'un virus'], [-8, 'une grosse molécule (une protéine)'], [-9, "quelques molécules d'eau"]
+];
+function unitLen(a) {
+  if (a >= 1e-2) return fmt(+(a * 100).toPrecision(3), Math.max(0, 2 - Math.floor(Math.log10(a * 100)))) + ' cm';
+  const u = a >= 1e-3 ? [1e-3, 'mm'] : a >= 1e-6 ? [1e-6, 'µm'] : [1e-9, 'nm'];
+  const v = a / u[0], e = Math.floor(Math.log10(v));
+  return fmt(+v.toPrecision(3), Math.max(0, 2 - e)) + ' ' + u[1];
+}
+function zGoto(s) { Z.from = Z.s; Z.target = clamp(s, -9.2, -2); Z.t = 0; }
+$('z-in').onclick = () => zGoto(Math.round(Z.s) - 1);
+$('z-out').onclick = () => zGoto(Math.round(Z.s) + 1);
+$('z-reset').onclick = () => zGoto(-2);
+zSlider.addEventListener('input', () => { Z.target = null; Z.s = +zSlider.value; zUI(); });
+
+function zUpdate(dt) {
+  Z.time += dt;
+  if ($('z-rot').checked && Z.drag === null) Z.theta += dt * 0.18;
+  if (Z.target !== null) {
+    Z.t += dt / (reduce ? 0.01 : 0.9);
+    const k = ease(Math.min(1, Z.t));
+    Z.s = Z.from + (Z.target - Z.from) * k;
+    if (Z.t >= 1) { Z.s = Z.target; Z.target = null; }
+    zSlider.value = Z.s; zUI();
+  }
+}
+function zUI() {
+  const a = Math.pow(10, Z.s), V = a * a * a, m = RHO * V, n = m / MW, N = n * NA;
+  $('z-s-out').textContent = unitLen(a);
+  $('z-v').innerHTML = sci(V) + ' <span class="u">m<sup>3</sup></span>';
+  $('z-m').innerHTML = sci(m) + ' <span class="u">g</span>';
+  $('z-n').innerHTML = sci(n) + ' <span class="u">mol</span>';
+  $('z-N').innerHTML = sci(N) + ' <span class="u">molécules</span>';
+  $('z-in').disabled = Z.s <= -9.15; $('z-out').disabled = Z.s >= -2.01;
+  let t;
+  if (N >= 1e6) t = `Ce cube est grand comme ${repere(Z.s)}. Il contient encore <strong>${sci(N)} molécules d'eau</strong> : beaucoup trop pour les dessiner. En les comptant à raison d'une par seconde, il faudrait environ <strong>${dureeComptage(N)}</strong> !`;
+  else if (N >= 20) t = `Arête ${unitLen(a)} : on est à l'échelle de ${repere(Z.s)}. On voit enfin les molécules : il en reste environ <strong>${sci(N, 2)}</strong>. Une molécule d'eau mesure environ 0,3 nm.`;
+  else t = `Arête ${unitLen(a)} : il ne reste plus que <strong>quelques molécules</strong> (≈ ${sci(N, 2)}). On ne peut pas couper l'eau plus finement en gardant de l'eau.`;
+  $('z-text').innerHTML = t;
+}
+function repere(s) { const k = clamp(Math.round(s), -9, -2); return REPERES.find(r => r[0] === k)[1]; }
+
+function zDraw() {
+  const c = zsc.begin(), W = 900, H = 540;
+  const a = Math.pow(10, Z.s), nEdge = a / D0;
+  const S = 250, cx = 320, cy = 250;
+  const ct = Math.cos(Z.theta), st = Math.sin(Z.theta), cp = Math.cos(Z.phi), sp = Math.sin(Z.phi);
+  const P = (x, y, z) => { // coordonnées dans [-0.5,0.5]^3
+    const x1 = x * ct + z * st, z1 = -x * st + z * ct;
+    const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+    return [cx + x1 * S, cy - y2 * S, z2];
+  };
+  const V8 = []; for (let i = 0; i < 8; i++) V8.push([(i & 1) - .5, ((i >> 1) & 1) - .5, ((i >> 2) & 1) - .5]);
+  const PV = V8.map(v => P(...v));
+  const faces = [[0, 1, 3, 2, [0, 0, -1]], [4, 5, 7, 6, [0, 0, 1]], [0, 1, 5, 4, [0, -1, 0]], [2, 3, 7, 6, [0, 1, 0]], [0, 2, 6, 4, [-1, 0, 0]], [1, 3, 7, 5, [1, 0, 0]]];
+  const nz = n => { const x1 = n[0] * ct + n[2] * st, z1 = -n[0] * st + n[2] * ct; return n[1] * sp + z1 * cp; };
+  const edges = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
+  // arêtes cachées : celles dont les deux faces adjacentes sont invisibles
+  const visF = faces.map(f => nz(f[4]) > 0);
+  const edgeVisible = ([i, j]) => faces.some((f, k) => visF[k] && f.slice(0, 4).includes(i) && f.slice(0, 4).includes(j));
+
+  const molA = clamp((14 - nEdge) / 4, 0, 1); // apparition des molécules
+  const tint = 0.28 * (1 - molA) + 0.06;
+
+  // arêtes arrière
+  c.lineWidth = 1.2; c.strokeStyle = C.edge; c.setLineDash([5, 5]); c.globalAlpha = .55;
+  for (const e of edges) if (!edgeVisible(e)) { c.beginPath(); c.moveTo(PV[e[0]][0], PV[e[0]][1]); c.lineTo(PV[e[1]][0], PV[e[1]][1]); c.stroke(); }
+  c.setLineDash([]); c.globalAlpha = 1;
+
+  // molécules
+  if (molA > 0) {
+    const k = Math.ceil(nEdge), cell = 1 / nEdge, list = [];
+    for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) for (let l = 0; l < k; l++) {
+      if ((i + .5) * cell > 1 || (j + .5) * cell > 1 || (l + .5) * cell > 1) continue;
+      const J = jit[(i * KMAX + j) * KMAX + l];
+      const wob = reduce ? 0 : 0.06 * Math.sin(Z.time * 2.3 * J.w + J.ph);
+      const x = clamp((i + .5 + J.x * .35 + wob) * cell - .5, -.5 + cell * .3, .5 - cell * .3);
+      const y = clamp((j + .5 + J.y * .35 - wob) * cell - .5, -.5 + cell * .3, .5 - cell * .3);
+      const z = clamp((l + .5 + J.z * .35) * cell - .5, -.5 + cell * .3, .5 - cell * .3);
+      const p = P(x, y, z); p.push(J); list.push(p);
+    }
+    list.sort((u, v) => u[2] - v[2]);
+    const rO = 0.40 * cell * S, rH = rO * .62;
+    c.globalAlpha = molA;
+    for (const [X, Y, zz, J] of list) {
+      const sh = 1 - (0.5 - zz) * 0.25; // légère perspective de taille
+      const ro = rO * sh, rh = rH * sh, ang = J.a + (reduce ? 0 : 0.25 * Math.sin(Z.time * 1.7 + J.ph));
+      const hs = [[ang - 0.92, ro * .78], [ang + 0.92, ro * .78]];
+      const draw = (spr, x, y, r) => c.drawImage(spr, x - r, y - r, 2 * r, 2 * r);
+      const behind = Math.sin(J.b) < 0;
+      if (behind) for (const [an, d] of hs) draw(spH, X + Math.cos(an) * d, Y + Math.sin(an) * d, rh);
+      draw(spO, X, Y, ro);
+      if (!behind) for (const [an, d] of hs) draw(spH, X + Math.cos(an) * d, Y + Math.sin(an) * d, rh);
+    }
+    c.globalAlpha = 1;
+  }
+
+  // faces visibles (eau)
+  for (let k = 0; k < 6; k++) {
+    if (!visF[k]) continue;
+    const f = faces[k], shade = [1, .85, .7][k >> 1];
+    c.beginPath(); f.slice(0, 4).forEach((i, n) => n ? c.lineTo(PV[i][0], PV[i][1]) : c.moveTo(PV[i][0], PV[i][1])); c.closePath();
+    c.fillStyle = `rgba(${C.water},${tint * shade})`; c.fill();
+  }
+  c.lineWidth = 2; c.strokeStyle = C.edge;
+  for (const e of edges) if (edgeVisible(e)) { c.beginPath(); c.moveTo(PV[e[0]][0], PV[e[0]][1]); c.lineTo(PV[e[1]][0], PV[e[1]][1]); c.stroke(); }
+
+  // petit cube du zoom suivant (un dixième de l'arête), au coin le plus proche
+  if (Z.s > -9.15 && molA < 1) {
+    let best = 0; PV.forEach((p, i) => { if (p[2] > PV[best][2]) best = i; });
+    const o = V8[best], d = o.map(v => -Math.sign(v) * 0.1);
+    const sub = V8.map(v => P(o[0] + (v[0] + .5) * d[0], o[1] + (v[1] + .5) * d[1], o[2] + (v[2] + .5) * d[2]));
+    c.strokeStyle = C.c1; c.lineWidth = 2; c.globalAlpha = 1 - molA;
+    for (const e of edges) { c.beginPath(); c.moveTo(sub[e[0]][0], sub[e[0]][1]); c.lineTo(sub[e[1]][0], sub[e[1]][1]); c.stroke(); }
+    const sp0 = sub.reduce((m, p) => p[1] > m[1] ? p : m, sub[0]);
+    c.fillStyle = C.c1; c.font = '600 14px system-ui,sans-serif'; c.textAlign = 'center';
+    c.fillText('prochain zoom', sp0[0], sp0[1] + 20);
+    c.globalAlpha = 1;
+  }
+
+  // cote : arête a, le long de l'arête du bas la plus en avant
+  let be = null, bz = -9;
+  for (const e of edges) {
+    if (V8[e[0]][1] > 0 || V8[e[1]][1] > 0 || !edgeVisible(e)) continue;
+    const z = PV[e[0]][2] + PV[e[1]][2]; if (z > bz) { bz = z; be = e; }
+  }
+  if (be) {
+    const [p, q] = [PV[be[0]], PV[be[1]]], mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+    let nx = -(q[1] - p[1]), ny = q[0] - p[0]; const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
+    if ((mx + nx - cx) * nx + (my + ny - cy) * ny < 0 || ny < 0) { nx = -nx; ny = -ny; }
+    const o = 16;
+    c.strokeStyle = C.c1; c.lineWidth = 1.5; c.beginPath();
+    c.moveTo(p[0] + nx * o, p[1] + ny * o); c.lineTo(q[0] + nx * o, q[1] + ny * o);
+    c.moveTo(p[0] + nx * (o - 6), p[1] + ny * (o - 6)); c.lineTo(p[0] + nx * (o + 6), p[1] + ny * (o + 6));
+    c.moveTo(q[0] + nx * (o - 6), q[1] + ny * (o - 6)); c.lineTo(q[0] + nx * (o + 6), q[1] + ny * (o + 6));
+    c.stroke();
+    c.fillStyle = C.c1; c.font = '700 15px system-ui,sans-serif'; c.textAlign = 'center';
+    c.fillText(`a = ${unitLen(a)}`, mx + nx * 38, my + ny * 38 + 5);
+  }
+
+  // panneau d'informations à droite
+  const N = RHO * a * a * a / MW * NA;
+  const X0 = 600;
+  c.textAlign = 'left'; c.fillStyle = C.muted; c.font = '500 15px system-ui,sans-serif';
+  c.fillText('Taille comparable à :', X0, 70);
+  c.fillStyle = C.text; c.font = '700 18px system-ui,sans-serif';
+  wrapText(c, repere(Z.s), X0, 96, 280, 22);
+  c.fillStyle = C.muted; c.font = '500 15px system-ui,sans-serif';
+  c.fillText("Nombre de molécules d'eau :", X0, 170);
+  c.fillStyle = C.c1; sciCanvas(c, N, N < 100 ? 2 : 3, X0, 214, 38, 'left', '800');
+  // jauge logarithmique : de 1 à N(1 cm)
+  const Nmax = RHO * 1e-6 / MW * NA, lg = clamp(Math.log10(Math.max(1, N)) / Math.log10(Nmax), 0, 1);
+  const gy = 262, gw = 260;
+  c.fillStyle = C.grid2; roundRect(c, X0, gy, gw, 12, 6); c.fill();
+  c.fillStyle = C.c1; roundRect(c, X0, gy, Math.max(12, gw * lg), 12, 6); c.fill();
+  c.fillStyle = C.muted; c.font = '13px system-ui,sans-serif';
+  c.fillText('1', X0, gy + 30); c.textAlign = 'right'; sciCanvas(c, Nmax, 3, X0 + gw, gy + 30, 13, 'right', '500');
+  c.textAlign = 'left'; c.fillText('(échelle logarithmique)', X0, gy + 50);
+  c.fillStyle = C.muted; c.font = '500 15px system-ui,sans-serif';
+  c.fillText('Pour une mole de molécules,', X0, 360);
+  c.fillText('il faudrait un volume de', X0, 380);
+  c.fillStyle = C.text; c.font = '700 17px system-ui,sans-serif';
+  c.fillText('18,0 mL : une grande cuillère.', X0, 404);
+  if (molA > 0.3) {
+    c.globalAlpha = molA;
+    c.drawImage(spO, X0, 440, 22, 22); c.drawImage(spH, X0 + 132, 444, 14, 14);
+    c.fillStyle = C.muted; c.font = '14px system-ui,sans-serif';
+    c.fillText('oxygène', X0 + 28, 456); c.fillText('hydrogène', X0 + 152, 456);
+    c.globalAlpha = 1;
+  }
+}
+function wrapText(c, txt, x, y, maxW, lh) {
+  const words = txt.split(' '); let line = '';
+  for (const w of words) {
+    const t = line ? line + ' ' + w : w;
+    if (c.measureText(t).width > maxW && line) { c.fillText(line, x, y); line = w; y += lh; } else line = t;
+  }
+  c.fillText(line, x, y);
+}
+function roundRect(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+
+/* =====================================================================
+   2. MASSE -> n -> N
+   ===================================================================== */
+const ESP = [
+  { id: 'eau', de: "d'eau", nom: 'Eau', f: 'H<sub>2</sub>O', fc: 'H₂O', M: 18.0, rho: 1.00, ent: "molécules d'eau", col: [110, 170, 230], liq: true },
+  { id: 'eth', de: "d'éthanol", nom: 'Éthanol', f: 'C<sub>2</sub>H<sub>6</sub>O', fc: 'C₂H₆O', M: 46.0, rho: 0.789, ent: "molécules d'éthanol", col: [190, 215, 240], liq: true },
+  { id: 'sel', de: "de sel", nom: 'Sel (chlorure de sodium)', f: 'NaCl', fc: 'NaCl', M: 58.5, rho: 2.17, ent: 'entités NaCl (un ion Na<sup>+</sup> et un ion Cl<sup>−</sup>)', col: [236, 238, 242] },
+  { id: 'or', de: "d'or", nom: 'Or', f: 'Au', fc: 'Au', M: 197, rho: 19.3, ent: "atomes d'or", col: [222, 178, 60] },
+  { id: 'fer', de: "de fer", nom: 'Fer', f: 'Fe', fc: 'Fe', M: 55.8, rho: 7.87, ent: 'atomes de fer', col: [140, 146, 156] },
+  { id: 'alu', de: "d'aluminium", nom: 'Aluminium', f: 'Al', fc: 'Al', M: 27.0, rho: 2.70, ent: "atomes d'aluminium", col: [196, 202, 212] },
+  { id: 'car', de: "de carbone", nom: 'Carbone (graphite)', f: 'C', fc: 'C', M: 12.0, rho: 2.26, ent: 'atomes de carbone', col: [58, 60, 66] },
+  { id: 'suc', de: "de sucre", nom: 'Sucre (saccharose)', f: 'C<sub>12</sub>H<sub>22</sub>O<sub>11</sub>', fc: 'C₁₂H₂₂O₁₁', M: 342, rho: 1.59, ent: 'molécules de saccharose', col: [250, 248, 240] }
+];
+const msc = new Scene($('cv-mass'), 900, 470);
+const PXCM = 18;               // 1 cm = 18 px
+const DEP = 0.42, DA = 0.6;    // perspective cavalière
+const Ms = { sp: ESP[0], m: 18, hits: [] };
+const sel = $('m-sp');
+ESP.forEach((e, i) => { const o = document.createElement('option'); o.value = i; o.textContent = `${e.nom} (${e.fc})`; sel.appendChild(o); });
+sel.addEventListener('change', () => { Ms.sp = ESP[+sel.value]; setMass(Ms.sp.M); });
+$('m-m').addEventListener('input', () => { Ms.m = +$('m-m').value; mUI(); });
+$('m-one').onclick = () => setMass(Ms.sp.M);
+$('m-half').onclick = () => setMass(Ms.sp.M * 0.5);
+$('m-two').onclick = () => setMass(Ms.sp.M * 2);
+function setMass(m) {
+  Ms.m = clamp(m, 1, 500);
+  $('m-m').value = Math.round(Ms.m); mUI();
+}
+msc.cv.addEventListener('click', e => {
+  const [x, y] = msc.local(e);
+  const h = Ms.hits.find(r => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1);
+  if (h) { sel.value = h.i; Ms.sp = ESP[h.i]; setMass(Ms.sp.M); }
+});
+
+function sig3(x) { const e = Math.floor(Math.log10(Math.abs(x))); return fmt(+x.toPrecision(3), Math.max(0, 2 - e)); }
+function mUI() {
+  const e = Ms.sp, m = Ms.m, n = m / e.M, N = n * NA, V = m / e.rho;
+  $('m-m-out').textContent = sig3(m) + ' g';
+  const full = plainBig(N);
+  $('m-calc').innerHTML =
+    `<strong>Quantité de matière :</strong> n = m / M = ${sig3(m)} g / ${sig3(e.M)} g·mol<sup>−1</sup> = <strong>${sci(n)} mol</strong><br>` +
+    `<strong>Nombre d'entités :</strong> N = n × N<sub>A</sub> = ${sci(n)} mol × 6,02 × 10<sup>23</sup> mol<sup>−1</sup> = <strong>${sci(N)}</strong> ${e.ent}` +
+    (full ? `<span class="digits">N ≈ ${full}</span>` : '');
+  const one = Math.abs(n - 1) < 0.004;
+  $('m-text').innerHTML = (one
+      ? `<strong>Une mole ${e.de}</strong> a une masse de ${sig3(e.M)} g et occupe ${sig3(e.M / e.rho)} cm<sup>3</sup>. `
+      : `Cet échantillon de ${sig3(m)} g occupe ${sig3(V)} cm<sup>3</sup>. `) +
+    `En comptant ses entités à raison d'une par seconde, sans jamais s'arrêter, il faudrait environ <strong>${dureeComptage(N)}</strong> (l'Univers a 1,4 × 10<sup>10</sup> ans).`;
+}
+
+function cube(c, x, y, side, col, opts = {}) { // (x,y) = coin avant-bas-gauche
+  const dx = side * DEP * Math.cos(DA), dy = side * DEP * Math.sin(DA);
+  const [r, g, b] = col, a = opts.alpha ?? 1;
+  const sh = k => `rgba(${r * k | 0},${g * k | 0},${b * k | 0},${a})`;
+  if (opts.dashed) {
+    c.setLineDash([5, 4]); c.strokeStyle = opts.stroke; c.lineWidth = 1.5;
+    c.beginPath();
+    c.rect(x, y - side, side, side);
+    c.moveTo(x, y - side); c.lineTo(x + dx, y - side - dy); c.lineTo(x + side + dx, y - side - dy); c.lineTo(x + side, y - side);
+    c.moveTo(x + side + dx, y - side - dy); c.lineTo(x + side + dx, y - dy); c.lineTo(x + side, y);
+    c.stroke(); c.setLineDash([]); return;
+  }
+  // dessus
+  c.beginPath(); c.moveTo(x, y - side); c.lineTo(x + dx, y - side - dy); c.lineTo(x + side + dx, y - side - dy); c.lineTo(x + side, y - side); c.closePath();
+  c.fillStyle = sh(1.0); c.fill();
+  // côté
+  c.beginPath(); c.moveTo(x + side, y); c.lineTo(x + side, y - side); c.lineTo(x + side + dx, y - side - dy); c.lineTo(x + side + dx, y - dy); c.closePath();
+  c.fillStyle = sh(0.68); c.fill();
+  // face avant (dégradé métal / liquide)
+  const gr = c.createLinearGradient(x, y - side, x + side, y);
+  gr.addColorStop(0, sh(0.95)); gr.addColorStop(1, sh(0.8));
+  c.fillStyle = gr; c.fillRect(x, y - side, side, side);
+  c.strokeStyle = C.edge; c.lineWidth = 1; c.globalAlpha = .6;
+  c.beginPath(); c.rect(x, y - side, side, side);
+  c.moveTo(x, y - side); c.lineTo(x + dx, y - side - dy); c.lineTo(x + side + dx, y - side - dy); c.lineTo(x + side, y - side);
+  c.moveTo(x + side + dx, y - side - dy); c.lineTo(x + side + dx, y - dy); c.lineTo(x + side, y);
+  c.stroke(); c.globalAlpha = 1;
+}
+function mDraw() {
+  const c = msc.begin(), e = Ms.sp;
+  // --- panneau gauche : échantillon sur quadrillage
+  const gx0 = 24, gx1 = 404, gy0 = 56, gy1 = 440;
+  c.strokeStyle = C.grid; c.lineWidth = 1; c.beginPath();
+  for (let x = gx0; x <= gx1 + .1; x += PXCM) { c.moveTo(x, gy0); c.lineTo(x, gy1); }
+  for (let y = gy1; y >= gy0 - .1; y -= PXCM) { c.moveTo(gx0, y); c.lineTo(gx1, y); }
+  c.stroke();
+  c.fillStyle = C.text; c.font = '700 16px system-ui,sans-serif'; c.textAlign = 'left';
+  c.fillText(`Ton échantillon : ${sig3(Ms.m)} g de ${e.fc}`, gx0, 34);
+  const floor = gy1 - 2 * PXCM, x0 = gx0 + 3 * PXCM;
+  const side = Math.cbrt(Ms.m / e.rho) * PXCM, side1 = Math.cbrt(e.M / e.rho) * PXCM;
+  if (Ms.m <= e.M) { cube(c, x0, floor, side, e.col, { alpha: e.liq ? .8 : 1 }); cube(c, x0, floor, side1, e.col, { dashed: true, stroke: C.c2 }); }
+  else { cube(c, x0, floor, side1, e.col, { dashed: true, stroke: C.c2 }); cube(c, x0, floor, side, e.col, { alpha: e.liq ? .8 : 1 }); }
+  // légende du cube "1 mol"
+  c.setLineDash([5, 4]); c.strokeStyle = C.c2; c.lineWidth = 1.5; c.beginPath(); c.moveTo(gx0 + 8, gy1 - 10); c.lineTo(gx0 + 32, gy1 - 10); c.stroke(); c.setLineDash([]);
+  c.fillStyle = C.muted; c.font = '13px system-ui,sans-serif'; c.fillText(`= 1 mole (${sig3(e.M)} g)`, gx0 + 38, gy1 - 6);
+  // règle 1 cm
+  c.strokeStyle = C.text; c.lineWidth = 2; c.beginPath(); c.moveTo(gx1 - PXCM * 2, gy1 - 10); c.lineTo(gx1 - PXCM, gy1 - 10); c.stroke();
+  c.fillStyle = C.text; c.textAlign = 'center'; c.fillText('1 cm', gx1 - PXCM * 1.5, gy1 - 16);
+  // n en grand
+  const n = Ms.m / e.M;
+  c.textAlign = 'right'; c.fillStyle = C.c2;
+  const w = sciCanvas(c, n, 3, gx1 - 6, 84, 28, 'right', '800');
+  c.font = '800 28px system-ui,sans-serif'; c.textAlign = 'right';
+  c.fillStyle = C.muted; c.font = '600 14px system-ui,sans-serif'; c.fillText('n (mol)', gx1 - 6, 104);
+
+  // --- panneau droit : une mole de chaque espèce
+  c.strokeStyle = C.border; c.lineWidth = 1; c.beginPath(); c.moveTo(430, 20); c.lineTo(430, 450); c.stroke();
+  c.fillStyle = C.text; c.font = '700 16px system-ui,sans-serif'; c.textAlign = 'left';
+  c.fillText('Une mole de chaque espèce (même échelle)', 452, 34);
+  const rows = [[4, 3, 5, 6, 0], [2, 1, 7]], base = [190, 440];
+  Ms.hits = [];
+  rows.forEach((row, ri) => {
+    const sides = row.map(i => Math.cbrt(ESP[i].M / ESP[i].rho) * PXCM);
+    const widths = sides.map(s => s * (1 + DEP * Math.cos(DA)));
+    const tot = widths.reduce((u, v) => u + v, 0), gap = (430 - tot) / row.length;
+    let x = 452 + gap / 2;
+    row.forEach((i, k) => {
+      const sp = ESP[i], s = sides[k], yb = base[ri] - 50;
+      const on = sp === e;
+      if (on) { c.fillStyle = C.c2; c.globalAlpha = .14; roundRect(c, x - gap / 2 + 4, yb - s - s * DEP * Math.sin(DA) - 12, widths[k] + gap - 8, s + s * DEP * Math.sin(DA) + 64, 10); c.fill(); c.globalAlpha = 1; }
+      cube(c, x, yb, s, sp.col, { alpha: sp.liq ? .8 : 1 });
+      const cxm = x + widths[k] / 2;
+      c.textAlign = 'center'; c.fillStyle = on ? C.c2 : C.text; c.font = `${on ? 800 : 700} 13px system-ui,sans-serif`;
+      c.fillText(sp.fc, cxm, yb + 16);
+      c.fillStyle = C.muted; c.font = '12px system-ui,sans-serif';
+      c.fillText(`${sig3(sp.M)} g`, cxm, yb + 31); c.fillText(`${sig3(sp.M / sp.rho)} cm³`, cxm, yb + 45);
+      Ms.hits.push({ i, x0: x - gap / 2, x1: x + widths[k] + gap / 2, y0: yb - s - 30, y1: yb + 50 });
+      x += widths[k] + gap;
+    });
+  });
+}
+
+/* =====================================================================
+   3. ÉCHELLE DES GRANDS NOMBRES + OBJETS
+   ===================================================================== */
+const esc = new Scene($('cv-echelle'), 900, 300);
+const REP = [
+  { v: 35, t: "élèves d'une classe" },
+  { v: 7.5e6, t: 'habitants de Hong Kong' },
+  { v: 8.2e9, t: 'humains sur Terre' },
+  { v: 2e11, t: 'étoiles de notre galaxie (≈)' },
+  { v: 8e14, t: "cheveux de tous les humains (≈)" },
+  { v: 7.5e18, t: 'grains de sable de toutes les plages (≈)' },
+  { v: 1.7e21, t: "molécules d'eau dans une goutte" },
+  { v: NA, t: 'UNE MOLE', na: true }
+];
+const E = { p: 23.78, run: false, t: 0 };
+$('e-go').onclick = () => { E.run = true; E.p = 0; };
+const ex0 = 50, ex1 = 860, EMAX = 24;
+const exOf = l => ex0 + (ex1 - ex0) * l / EMAX;
+function eUpdate(dt) {
+  if (!E.run) return;
+  E.p += dt * (reduce ? 100 : 2.6);
+  if (E.p >= Math.log10(NA)) { E.p = Math.log10(NA); E.run = false; }
+}
+function eDraw() {
+  const c = esc.begin(), y = 150;
+  c.strokeStyle = C.muted; c.lineWidth = 2; c.beginPath(); c.moveTo(ex0, y); c.lineTo(ex1, y); c.stroke();
+  // progression
+  c.strokeStyle = C.c3; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(ex0, y); c.lineTo(exOf(E.p), y); c.stroke(); c.lineCap = 'butt';
+  c.fillStyle = C.muted; c.font = '12px system-ui,sans-serif'; c.textAlign = 'center';
+  for (let k = 0; k <= EMAX; k++) {
+    const x = exOf(k);
+    c.strokeStyle = C.muted; c.lineWidth = 1; c.beginPath(); c.moveTo(x, y - (k % 3 ? 4 : 8)); c.lineTo(x, y + (k % 3 ? 4 : 8)); c.stroke();
+    if (k % 3 === 0) { c.font = '13px system-ui,sans-serif'; c.fillText('10', x - 4, y + 26); c.font = '10px system-ui,sans-serif'; c.fillText(String(k), x + 8, y + 19); }
+  }
+  REP.forEach((r, i) => {
+    const l = Math.log10(r.v), x = exOf(l), up = i % 2 === 0, reached = E.p >= l - 1e-6;
+    const ty = up ? y - 52 : y + 66;
+    c.globalAlpha = reached ? 1 : .35;
+    c.strokeStyle = r.na ? C.c1 : C.c3; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x, up ? ty + 8 : ty - 30); c.stroke();
+    c.fillStyle = r.na ? C.c1 : C.c3; c.beginPath(); c.arc(x, y, r.na ? 8 : 5.5, 0, TAU); c.fill();
+    const al = x > 760 ? 'right' : x < 120 ? 'left' : 'center', xt = al === 'right' ? x + 6 : al === 'left' ? x - 6 : x;
+    c.fillStyle = r.na ? C.c1 : C.text; c.font = `${r.na ? 800 : 600} 13px system-ui,sans-serif`; c.textAlign = al;
+    const lines = splitLabel(r.t);
+    lines.forEach((s, j) => c.fillText(s, xt, ty - (up ? (lines.length - 1 - j) * 15 : -j * 15) - (up ? 0 : 14)));
+    c.fillStyle = C.muted;
+    sciCanvas(c, r.v, r.na ? 3 : 2, xt, up ? ty - lines.length * 15 - 2 : ty + lines.length * 15 - 10, 12, al, '500');
+    c.globalAlpha = 1;
+  });
+  // compteur
+  c.fillStyle = C.text; c.font = '600 15px system-ui,sans-serif'; c.textAlign = 'left';
+  c.fillText(E.run ? 'On avance… chaque graduation = × 10' : 'Chaque graduation multiplie par 10.', ex0, 24);
+  c.fillStyle = C.c3; c.textAlign = 'right'; c.font = '800 22px system-ui,sans-serif';
+  sciCanvas(c, Math.pow(10, E.p), 3, ex1, 26, 22, 'right', '800');
+}
+function splitLabel(t) {
+  if (t.length < 22) return [t];
+  const w = t.split(' '), h = Math.ceil(w.length / 2);
+  return [w.slice(0, h).join(' '), w.slice(h).join(' ')];
+}
+
+// ---- une mole d'objets
+const HK = 1.11e9, TERRES = 1.49e14, DTERRE = 1.27e7, EVEREST = 8.85e3, AL = 9.46e15, UA = 1.50e11, VTERRE = 1.08e21, AN = 3.156e7, UNIV = 1.38e10, HUM = 8.2e9;
+const OBJ = [
+  { id: 'riz', t: 'grains de riz', f() {
+      const v = 1e-3 / 3.4e4, V = NA * v, h = V / HK, h2 = V / TERRES;
+      return [`Étalés sur Hong Kong, ils formeraient une couche de riz de ${sci(h, 2)} m d'épaisseur : plus que le diamètre de la Terre !`,
+        `1 L de riz contient environ 3,4 × 10<sup>4</sup> grains, donc un grain occupe ${sci(v, 2)} m<sup>3</sup>.<br>Volume d'une mole de grains : V = N<sub>A</sub> × ${sci(v, 2)} = ${sci(V, 2)} m<sup>3</sup>.<br>Surface de Hong Kong : 1,1 × 10<sup>9</sup> m<sup>2</sup> → épaisseur ${sci(h, 2)} m (diamètre de la Terre : 1,3 × 10<sup>7</sup> m).<br>Sur toutes les terres émergées du globe (1,5 × 10<sup>14</sup> m<sup>2</sup>) : une couche de ${sci(h2, 2)} m, la hauteur d'un immeuble de 40 étages.`];
+    } },
+  { id: 'sable', t: 'grains de sable', f() {
+      const v = 1e-10, V = NA * v, h = V / HK;
+      return [`Ils recouvriraient Hong Kong sur ${sci(h / 1000, 2)} km d'épaisseur, environ ${fmt(Math.round(h / EVEREST), 0)} fois la hauteur de l'Everest.`,
+        `1 L de sable fin contient environ 1 × 10<sup>7</sup> grains, donc un grain occupe ${sci(v, 1)} m<sup>3</sup>.<br>Volume : V = N<sub>A</sub> × 1 × 10<sup>−10</sup> = ${sci(V, 2)} m<sup>3</sup>.<br>Épaisseur sur Hong Kong : ${sci(V, 2)} / 1,1 × 10<sup>9</sup> = ${sci(h, 2)} m.`];
+    } },
+  { id: 'papier', t: 'feuilles de papier', f() {
+      const H = NA * 1.0e-4, al = H / AL, ua = H / UA;
+      return [`Empilées, elles formeraient une pile de ${sci(al, 2)} années-lumière : la lumière mettrait plus de 6 000 ans pour aller du bas jusqu'en haut !`,
+        `Épaisseur d'une feuille : 1,0 × 10<sup>−4</sup> m (0,1 mm).<br>Hauteur de la pile : N<sub>A</sub> × 1,0 × 10<sup>−4</sup> = ${sci(H, 2)} m.<br>C'est ${sci(ua, 2)} fois la distance Terre-Soleil (1,50 × 10<sup>11</sup> m), et une année-lumière vaut 9,46 × 10<sup>15</sup> m.`];
+    } },
+  { id: 'orange', t: 'oranges', f() {
+      const v = 4.2e-4, V = NA * v, r = V / VTERRE;
+      return [`Entassées, elles occuperaient un volume de ${sci(V, 2)} m³, soit environ ${fmt(Math.round(r * 100), 0)} % du volume de la Terre entière.`,
+        `Une orange (8 cm de diamètre) occupe dans un tas environ 4,2 × 10<sup>−4</sup> m<sup>3</sup>, vides compris.<br>Volume : V = N<sub>A</sub> × 4,2 × 10<sup>−4</sup> = ${sci(V, 2)} m<sup>3</sup>.<br>Volume de la Terre : 1,08 × 10<sup>21</sup> m<sup>3</sup> → rapport ${sci(r, 2)}.`];
+    } },
+  { id: 'sec', t: 'secondes', f() {
+      const ans = NA / AN, r = ans / UNIV;
+      return [`Une mole de secondes, c'est ${sci(ans, 2)} ans : environ ${sci(r, 2)} fois l'âge de l'Univers.`,
+        `Une année dure 3,16 × 10<sup>7</sup> s.<br>Durée : 6,02 × 10<sup>23</sup> / 3,16 × 10<sup>7</sup> = ${sci(ans, 2)} ans.<br>Âge de l'Univers : 1,38 × 10<sup>10</sup> ans → rapport ${sci(r, 2)}.`];
+    } },
+  { id: 'hum', t: 'entités à compter… par tous les humains', f() {
+      const each = NA / HUM, ans = each / AN;
+      return [`Si les 8,2 milliards d'humains comptaient ensemble une mole d'atomes, à une par seconde chacun et sans dormir, il leur faudrait ${sci(ans, 2)} ans.`,
+        `Chaque humain devrait compter 6,02 × 10<sup>23</sup> / 8,2 × 10<sup>9</sup> = ${sci(each, 2)} entités.<br>Durée : ${sci(each, 2)} s = ${sci(ans, 2)} ans (les premiers humains sont apparus il y a environ 3 × 10<sup>5</sup> ans).`];
+    } }
+];
+let curObj = OBJ[0];
+const chips = $('e-chips');
+OBJ.forEach(o => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = o.t;
+  b.onclick = () => { curObj = o; eObjUI(); }; o.btn = b; chips.appendChild(b);
+});
+function eObjUI() {
+  OBJ.forEach(o => o.btn.setAttribute('aria-pressed', o === curObj));
+  const [big, det] = curObj.f();
+  $('e-big').innerHTML = `Une mole de ${curObj.t} : ` + big;
+  $('e-detail').innerHTML = det;
+}
+
+/* ---------- plein écran ---------- */
+document.querySelectorAll('button.fs').forEach(btn => {
+  const el = $(btn.dataset.target);
+  if (!el.requestFullscreen) { btn.hidden = true; return; }
+  btn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen());
+});
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('button.fs').forEach(b => b.textContent = document.fullscreenElement === $(b.dataset.target) ? 'Quitter le plein écran' : 'Plein écran');
+});
+
+/* ---------- boucle ---------- */
+zUI(); mUI(); eObjUI();
+let last = performance.now();
+function frame(now) {
+  const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
+  zUpdate(dt); eUpdate(dt);
+  if (zsc.visible) zDraw();
+  if (msc.visible) mDraw();
+  if (esc.visible) eDraw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
