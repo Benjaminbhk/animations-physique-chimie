@@ -7,6 +7,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/
 | Animation | Lien |
 |---|---|
 | Dissolution et dilution | https://benjaminbhk.github.io/animations-physique-chimie/dissolution-dilution/ |
+| Le réactif limitant | https://benjaminbhk.github.io/animations-physique-chimie/reactif-limitant/ |
 
 ## Organisation
 
