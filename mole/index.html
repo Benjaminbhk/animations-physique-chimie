@@ -95,6 +95,7 @@ footer strong{color:var(--text)}
   .scene{padding:12px}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -191,6 +192,13 @@ footer strong{color:var(--text)}
       <p class="detail" id="e-detail"></p>
     </div>
     <p class="small">Ce sont des ordres de grandeur : les tailles des objets sont des valeurs moyennes, d'où seulement 2 chiffres significatifs.</p>
+  </section>
+
+  <!-- ============ EXERCICES ============ -->
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Clique sur « Nouvel exercice » autant de fois que tu veux.</p>
+    <div id="exo-mole"></div>
   </section>
 </div>
 <footer>
@@ -760,6 +768,77 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+})();
+</script>
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, sci, res, etape } = Exo;
+const NA = 6.02e23, NAt = '6,02 × 10<sup>23</sup> mol<sup>−1</sup>';
+const ESP = [
+  { de: "d'eau", f: 'H<sub>2</sub>O', M: 18.0, ent: "molécules d'eau" },
+  { de: "d'éthanol", f: 'C<sub>2</sub>H<sub>6</sub>O', M: 46.0, ent: "molécules d'éthanol" },
+  { de: 'de chlorure de sodium', f: 'NaCl', M: 58.5, ent: 'entités NaCl' },
+  { de: "d'or", f: 'Au', M: 197, ent: "atomes d'or" },
+  { de: 'de fer', f: 'Fe', M: 55.8, ent: 'atomes de fer' },
+  { de: "d'aluminium", f: 'Al', M: 27.0, ent: "atomes d'aluminium" },
+  { de: 'de carbone', f: 'C', M: 12.0, ent: 'atomes de carbone' },
+  { de: 'de saccharose', f: 'C<sub>12</sub>H<sub>22</sub>O<sub>11</sub>', M: 342, ent: 'molécules de saccharose' },
+  { de: 'de glucose', f: 'C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>', M: 180, ent: 'molécules de glucose' },
+  { de: 'de dioxyde de carbone', f: 'CO<sub>2</sub>', M: 44.0, ent: 'molécules de dioxyde de carbone' }
+];
+const Mt = e => `M(${e.f}) = ${fmt(e.M)} g/mol`;
+const RAPPEL = `<p><strong>n = m / M</strong> : n en mol, m en g, M (masse molaire) en g/mol. Donc m = n × M.</p>
+  <p><strong>N = n × N<sub>A</sub></strong> : N est un nombre d'entités (sans unité), N<sub>A</sub> = ${NAt} (constante d'Avogadro). Donc n = N / N<sub>A</sub>.</p>`;
+
+Exo.monter('exo-mole', [
+  { id: 'n', label: 'De la masse à n', rappel: RAPPEL, gen() {
+    const e = pick(ESP), m = rnd(1, 500), n = m / e.M;
+    return {
+      enonce: `<p>Un échantillon ${e.de} (${e.f}) a une masse <strong>m = ${fmt(m)} g</strong>.</p><p>Donnée : ${Mt(e)}.</p>`,
+      questions: [{ label: 'Calcule la quantité de matière n de cet échantillon.', unite: 'mol', rep: n, cs: 3 }],
+      correction: etape({ lit: 'n = m / M', an: `n = ${fmt(m)} / ${fmt(e.M)}`, res: `n = ${res(n, 3, 'mol')}` })
+    };
+  } },
+  { id: 'm', label: 'De n à la masse', rappel: RAPPEL, gen() {
+    const e = pick(ESP), n = rnd(0.01, 5), m = n * e.M;
+    return {
+      enonce: `<p>On veut prélever une quantité de matière <strong>n = ${fmt(n)} mol</strong> ${e.de} (${e.f}).</p><p>Donnée : ${Mt(e)}.</p>`,
+      questions: [{ label: 'Quelle masse m faut-il peser ?', unite: 'g', rep: m, cs: 3 }],
+      correction: etape({ lit: 'n = m / M donc m = n × M', an: `m = ${fmt(n)} × ${fmt(e.M)}`, res: `m = ${res(m, 3, 'g')}` })
+    };
+  } },
+  { id: 'N', label: 'n et nombre d’entités', rappel: RAPPEL, gen() {
+    const e = pick(ESP);
+    if (Math.random() < .5) {
+      const n = rnd(0.001, 10), N = n * NA;
+      return {
+        enonce: `<p>Un échantillon ${e.de} contient <strong>n = ${fmt(n)} mol</strong>.</p><p>Donnée : N<sub>A</sub> = ${NAt}.</p>`,
+        questions: [{ label: `Combien de ${e.ent} contient-il ?`, unite: '', rep: N, cs: 3 }],
+        correction: etape({ lit: 'N = n × N<sub>A</sub>', an: `N = ${fmt(n)} × 6,02 × 10<sup>23</sup>`, res: `N = ${res(N, 3, e.ent)}` })
+      };
+    }
+    const Nv = Exo.round(rnd(1, 9.99) * Math.pow(10, irnd(20, 25)), 3), n = Nv / NA;
+    return {
+      enonce: `<p>Un échantillon contient <strong>N = ${sci(Nv)}</strong> ${e.ent}.</p><p>Donnée : N<sub>A</sub> = ${NAt}.</p>`,
+      questions: [{ label: 'Calcule la quantité de matière n de cet échantillon.', unite: 'mol', rep: n, cs: 3 }],
+      correction: etape({ lit: 'N = n × N<sub>A</sub> donc n = N / N<sub>A</sub>', an: `n = ${sci(Nv)} / (6,02 × 10<sup>23</sup>)`, res: `n = ${res(n, 3, 'mol')}` })
+    };
+  } },
+  { id: 'mN', label: 'De la masse au nombre d’entités', rappel: RAPPEL, gen() {
+    const e = pick(ESP), m = rnd(1, 200), n = m / e.M, N = n * NA;
+    return {
+      enonce: `<p>On pèse <strong>m = ${fmt(m)} g</strong> ${e.de} (${e.f}).</p><p>Données : ${Mt(e)} ; N<sub>A</sub> = ${NAt}.</p>`,
+      questions: [
+        { label: '1. Calcule la quantité de matière n.', unite: 'mol', rep: n, cs: 3 },
+        { label: `2. Déduis-en le nombre N de ${e.ent}.`, unite: '', rep: N, cs: 3 }
+      ],
+      correction: etape({ q: '1.', lit: 'n = m / M', an: `n = ${fmt(m)} / ${fmt(e.M)}`, res: `n = ${res(n, 3, 'mol')}` }) +
+        etape({ q: '2.', lit: 'N = n × N<sub>A</sub>', an: `N = ${fmt(n)} × 6,02 × 10<sup>23</sup> (on garde la valeur non arrondie de n dans la calculatrice)`, res: `N = ${res(N, 3, e.ent)}` })
+    };
+  } }
+]);
 })();
 </script>
 </body>

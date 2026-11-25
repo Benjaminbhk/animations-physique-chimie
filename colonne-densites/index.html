@@ -81,6 +81,7 @@ footer strong{color:var(--text)}
   .scene{padding:12px}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -141,6 +142,13 @@ footer strong{color:var(--text)}
       <div><h3>Objets</h3>Un objet flotte sur un liquide plus dense que lui et coule dans un liquide moins dense : il se stabilise à l'interface entre les deux.</div>
     </div>
     <p class="small" style="margin:.6rem 0 0">Modèle simplifié : on suppose que les liquides ne se mélangent jamais. En réalité, le miel, le sirop, le liquide vaisselle et l'eau finissent par se mélanger lentement. Les couleurs sont ajoutées pour la visualisation.</p>
+  </section>
+
+  <!-- ============ EXERCICES ============ -->
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Tu peux vérifier tes prédictions avec la colonne ci-dessus.</p>
+    <div id="exo-dens"></div>
   </section>
 </div>
 <footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Valeurs de ρ approximatives, à 20 °C.</span></footer>
@@ -684,6 +692,98 @@ say('Commence par verser un liquide. Essaie ensuite de verser les autres dans un
 refreshUI();
 requestAnimationFrame(frame);
 window.__S = S; // pour les tests
+})();
+</script>
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const { pick, rnd, fmt, res, shuffle, etape, texte } = Exo;
+const LIQ = [
+  { nom: 'le miel', rho: 1.42 }, { nom: 'le sirop de grenadine', rho: 1.30 }, { nom: 'le liquide vaisselle', rho: 1.06 },
+  { nom: "l'eau", rho: 1.00 }, { nom: "l'huile de tournesol", rho: 0.92 }, { nom: 'le cyclohexane', rho: 0.78 }
+];
+const OBJ = [
+  { nom: 'un bouchon de liège', rho: 0.24 }, { nom: 'une bille de polypropylène', rho: 0.90 }, { nom: 'un bouchon en PEHD', rho: 0.95 },
+  { nom: 'une bille de polystyrène', rho: 1.04 }, { nom: 'une bille de nylon', rho: 1.14 }, { nom: 'un morceau de PET', rho: 1.38 },
+  { nom: "une bille d'acier", rho: 7.80 }
+];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const R = 'ρ', U = 'g/mL';
+const RAPPEL = `<p>Masse volumique : <strong>ρ = m / V</strong>, en g/mL (1 mL = 1 cm<sup>3</sup>). Donc m = ρ × V. Eau : ρ<sub>eau</sub> = 1,00 g/mL.</p>
+  <p>Densité par rapport à l'eau : <strong>d = ρ / ρ<sub>eau</sub></strong>, sans unité.</p>
+  <p>Un objet (ou un liquide non miscible) moins dense qu'un liquide flotte dessus ; plus dense, il coule.</p>`;
+
+Exo.monter('exo-dens', [
+  { id: 'obj', label: 'Flotte ou coule ?', rappel: RAPPEL, gen() {
+    const o = pick(OBJ), V = rnd(2, 20), m = Exo.round(o.rho * V, 3), rho = m / V;
+    const l = pick(LIQ.filter(x => Math.abs(x.rho - rho) > 0.03));
+    const flotte = rho < l.rho;
+    return {
+      enonce: `<p>On étudie ${o.nom}. Sa masse est <strong>m = ${fmt(m)} g</strong> et son volume est <strong>V = ${fmt(V)} mL</strong>.</p>
+        <p>On lâche l'objet dans ${l.nom}, de masse volumique ${R} = ${fmt(l.rho)} g/mL.</p>`,
+      questions: [
+        { label: `1. Calcule la masse volumique ${R} de l'objet.`, unite: U, rep: rho, cs: 3 },
+        { label: `2. Dans ${l.nom}, l'objet…`, choix: ['flotte', 'coule'], rep: flotte ? 0 : 1 }
+      ],
+      correction: etape({ q: '1.', lit: `${R} = m / V`, an: `${R} = ${fmt(m)} / ${fmt(V)}`, res: `${R} = ${res(rho, 3, U)}` }) +
+        texte('2.', `${R}<sub>objet</sub> = ${fmt(rho)} g/mL ${flotte ? '<' : '>'} ${R}<sub>liquide</sub> = ${fmt(l.rho)} g/mL :
+          l'objet est ${flotte ? 'moins' : 'plus'} dense que le liquide, il <strong>${flotte ? 'flotte' : 'coule'}</strong>.`)
+    };
+  } },
+  { id: 'id', label: 'Identifier un liquide', rappel: RAPPEL, gen() {
+    const choix = shuffle(LIQ).slice(0, 4), l = pick(choix), V = pick([10, 20, 25, 50]), m = Exo.round(l.rho * V, 3), rho = m / V, d = rho / 1.00;
+    const ordre = choix.slice().sort((a, b) => b.rho - a.rho);
+    return {
+      enonce: `<p>On verse <strong>V = ${fmt(V, 3)} mL</strong> d'un liquide inconnu dans une éprouvette. Sa masse est <strong>m = ${fmt(m)} g</strong>.</p>
+        <p>Données : ${ordre.map(x => `${R}(${x.nom.replace(/^(le |l')/, '')}) = ${fmt(x.rho)} g/mL`).join(' ; ')}${choix.some(x => x.rho === 1) ? '' : ` ; ${R}<sub>eau</sub> = 1,00 g/mL`}.</p>`,
+      questions: [
+        { label: `1. Calcule la masse volumique ${R} du liquide.`, unite: U, rep: rho, cs: 3 },
+        { label: '2. Calcule sa densité d par rapport à l’eau.', unite: '', rep: d, cs: 3 },
+        { label: '3. Quel est ce liquide ?', choix: choix.map(x => cap(x.nom.replace(/^(le |l')/, ''))), rep: choix.indexOf(l) }
+      ],
+      correction: etape({ q: '1.', lit: `${R} = m / V`, an: `${R} = ${fmt(m)} / ${fmt(V, 3)}`, res: `${R} = ${res(rho, 3, U)}` }) +
+        etape({ q: '2.', lit: `d = ${R} / ${R}<sub>eau</sub>`, an: `d = ${fmt(rho)} / 1,00`, res: `d = ${res(d, 3)} (sans unité)` }) +
+        texte('3.', `La masse volumique trouvée correspond à celle de <strong>${l.nom}</strong>.`)
+    };
+  } },
+  { id: 'm', label: 'Masse d’un volume', rappel: RAPPEL, gen() {
+    const l = pick(LIQ), V = rnd(10, 250), m = l.rho * V;
+    return {
+      enonce: `<p>On verse <strong>V = ${fmt(V)} mL</strong> de ${l.nom.replace(/^(le |l')/, '')} dans un récipient. Sa masse volumique est ${R} = ${fmt(l.rho)} g/mL.</p>`,
+      questions: [{ label: 'Calcule la masse m de liquide versé.', unite: 'g', rep: m, cs: 3 }],
+      correction: etape({ lit: `${R} = m / V donc m = ${R} × V`, an: `m = ${fmt(l.rho)} × ${fmt(V)}`, res: `m = ${res(m, 3, 'g')}` })
+    };
+  } },
+  { id: 'col', label: 'Prévoir la colonne', rappel: RAPPEL, gen() {
+    const L = shuffle(LIQ).slice(0, 3);
+    const tri = L.slice().sort((a, b) => b.rho - a.rho);        // du bas vers le haut
+    const o = pick(OBJ.filter(x => L.every(y => Math.abs(y.rho - x.rho) > 0.02)));
+    const nm = x => x.nom.replace(/^(le |l')/, '');
+    const paires = [[0, 1], [0, 2], [1, 2]].map(([i, j]) => [L[i], L[j]]);
+    const opts = ['Il flotte à la surface', 'Il coule au fond', ...paires.map(([a, b]) => `Entre ${nm(a)} et ${nm(b)}`)];
+    let rep;
+    if (o.rho < tri[2].rho) rep = 0;
+    else if (o.rho > tri[0].rho) rep = 1;
+    else {
+      const k = o.rho > tri[1].rho ? [tri[0], tri[1]] : [tri[1], tri[2]];
+      rep = 2 + paires.findIndex(p => p.includes(k[0]) && p.includes(k[1]));
+    }
+    const pos = ['il flotte à la surface, sur ' + tri[2].nom, 'il coule au fond, sous ' + tri[0].nom,
+      `il se stabilise entre ${o.rho > tri[1].rho ? tri[0].nom + ' et ' + tri[1].nom : tri[1].nom + ' et ' + tri[2].nom}`];
+    return {
+      enonce: `<p>On verse dans une colonne, dans cet ordre, ${L.map(x => `${x.nom} (${R} = ${fmt(x.rho)} g/mL)`).join(', ')}. Ces liquides ne se mélangent pas.</p>
+        <p>On lâche ensuite ${o.nom} (${R} = ${fmt(o.rho)} g/mL).</p>`,
+      questions: [
+        { label: '1. Quel liquide se trouve tout en haut de la colonne ?', choix: L.map(x => cap(nm(x))), rep: L.indexOf(tri[2]) },
+        { label: '2. Où se place l’objet ?', choix: opts, rep }
+      ],
+      correction: texte('1.', `Les liquides se rangent par masse volumique décroissante du bas vers le haut, quel que soit l'ordre dans lequel on les verse :
+          en bas ${tri[0].nom} (${fmt(tri[0].rho)}), au milieu ${tri[1].nom} (${fmt(tri[1].rho)}), en haut <strong>${tri[2].nom}</strong> (${fmt(tri[2].rho)} g/mL).`) +
+        texte('2.', `L'objet coule dans les liquides moins denses que lui et flotte sur ceux qui sont plus denses : <strong>${rep < 2 ? pos[rep] : pos[2]}</strong>.`)
+    };
+  } }
+]);
 })();
 </script>
 </body>

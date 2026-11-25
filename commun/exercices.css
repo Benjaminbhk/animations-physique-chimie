@@ -1,0 +1,94 @@
+/* =====================================================================
+   Section « Exercices » commune à toutes les animations
+   ---------------------------------------------------------------------
+   Utilisation : dans la page, après le <style> de la page,
+     <link rel="stylesheet" href="../commun/exercices.css">
+   puis donner la classe « exercices » à la section :
+     <section class="scene exercices" ...>
+   La modélisation reste sur fond blanc (var(--surface)) ; les exercices
+   sont sur fond bleu ciel clair, en mode clair comme en mode sombre.
+   Le moteur d'exercices (commun/exercices.js) utilise les classes .exo-*.
+   ===================================================================== */
+
+:root{
+  --ex-bg:#e6f3fc; --ex-edge:#a9d3f0; --ex-card:#ffffff; --ex-line:#c4e0f4;
+  --ex-ink:#14659f; --ex-chip:#1f7fc4; --ex-chip-ink:#ffffff;
+  --ex-ok:#1f8a52; --ex-ok-soft:#e2f4ea; --ex-ko:#c8323a; --ex-ko-soft:#fbe8e7;
+  --ex-mid:#b86a00; --ex-mid-soft:#fdf1de;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ex-bg:#0f2234; --ex-edge:#25496b; --ex-card:#0b1828; --ex-line:#284a6a;
+    --ex-ink:#8ccaf5; --ex-chip:#4fa8e8; --ex-chip-ink:#08131f;
+    --ex-ok:#4cc58a; --ex-ok-soft:#12301f; --ex-ko:#ff7b72; --ex-ko-soft:#3a1b1c;
+    --ex-mid:#f0b14b; --ex-mid-soft:#33260f;
+  }
+}
+:root[data-theme="dark"]{
+  --ex-bg:#0f2234; --ex-edge:#25496b; --ex-card:#0b1828; --ex-line:#284a6a;
+  --ex-ink:#8ccaf5; --ex-chip:#4fa8e8; --ex-chip-ink:#08131f;
+  --ex-ok:#4cc58a; --ex-ok-soft:#12301f; --ex-ko:#ff7b72; --ex-ko-soft:#3a1b1c;
+  --ex-mid:#f0b14b; --ex-mid-soft:#33260f;
+}
+
+/* ---------- la section ---------- */
+.scene.exercices{
+  background:var(--ex-bg); border-color:var(--ex-edge);
+  /* à l'intérieur, les « cartes » (var(--bg)) deviennent blanches sur le bleu */
+  --bg:var(--ex-card); --surface:var(--ex-card); --border:var(--ex-line);
+}
+.scene.exercices:fullscreen{background:var(--ex-bg)}
+.ex-badge{display:inline-flex;align-items:center;gap:.3em;font-size:.72rem;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;padding:.18rem .6rem;border-radius:999px;background:var(--ex-chip);color:var(--ex-chip-ink);
+  vertical-align:middle;white-space:nowrap}
+.scene.exercices h2{color:var(--ex-ink)}
+
+/* ---------- moteur d'exercices (.exo-*) ---------- */
+.exo-types{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px}
+.exo-types button{font:inherit;font-size:.9rem;font-weight:600;min-height:38px;padding:.35rem .85rem;border-radius:999px;
+  border:1px solid var(--ex-line);background:var(--ex-card);color:var(--text);cursor:pointer}
+.exo-types button[aria-pressed="true"]{background:var(--ex-chip);border-color:var(--ex-chip);color:var(--ex-chip-ink)}
+.exo-enonce{background:var(--ex-card);border:1px solid var(--ex-line);border-radius:10px;padding:.7rem .9rem;
+  font-size:1.02rem;line-height:1.65;font-variant-numeric:tabular-nums}
+.exo-enonce p{margin:.2rem 0}
+.exo-qs{margin:10px 0 4px;display:grid;gap:10px}
+.exo-q{display:grid;gap:6px}
+.exo-q > .exo-lbl{font-weight:600}
+.exo-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.exo-row input[type=text]{font:inherit;font-variant-numeric:tabular-nums;padding:.45rem .6rem;border-radius:8px;
+  border:1px solid var(--ex-line);background:var(--ex-card);color:var(--text);width:13ch;min-height:42px}
+.exo-row input[type=text]:focus-visible{outline:3px solid var(--ex-chip);outline-offset:2px}
+.exo-unit{color:var(--muted)}
+.exo-choices{display:flex;flex-wrap:wrap;gap:8px}
+.exo-choice{display:flex;align-items:center;gap:6px;border:1px solid var(--ex-line);border-radius:10px;padding:.45rem .75rem;
+  cursor:pointer;background:var(--ex-card);min-height:42px}
+.exo-choice:has(input:checked){border-color:var(--ex-chip);box-shadow:inset 0 0 0 1px var(--ex-chip)}
+.exo-choice input{accent-color:var(--ex-chip)}
+.exo-mark{font-size:.92rem;font-weight:600}
+.exo-mark.ok{color:var(--ex-ok)} .exo-mark.ko{color:var(--ex-ko)} .exo-mark.mid{color:var(--ex-mid)}
+.exo-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 2px}
+.exo-btns .exo-score{color:var(--muted);font-size:.92rem;margin-left:auto}
+.exo-fb{border-radius:10px;padding:.6rem .85rem;margin-top:10px;line-height:1.6}
+.exo-fb:empty{display:none}
+.exo-fb.ok{background:var(--ex-ok-soft);border-left:4px solid var(--ex-ok)}
+.exo-fb.ko{background:var(--ex-ko-soft);border-left:4px solid var(--ex-ko)}
+.exo-fb.mid{background:var(--ex-mid-soft);border-left:4px solid var(--ex-mid)}
+.exo-corr:empty{display:none}
+.exo-corr{border:2px solid var(--ex-ok);border-radius:10px;padding:.6rem .9rem;margin-top:10px;background:var(--ex-card);
+  line-height:1.75;font-variant-numeric:tabular-nums}
+.exo-corr > h3{margin:0 0 .3rem;color:var(--ex-ok);font-size:1rem}
+.exo-step{margin:.35rem 0 .5rem}
+.exo-step > .exo-st{font-weight:700}
+.exo-step dl{display:grid;grid-template-columns:max-content 1fr;gap:.05rem .7rem;margin:.15rem 0 0}
+.exo-step dt{color:var(--muted);font-size:.92rem}
+.exo-step dd{margin:0}
+.exo-res{font-weight:700}
+.exo-hint{color:var(--muted);font-size:.85rem;margin:.5rem 0 0}
+.exo-rappel{margin-top:10px;border:1px solid var(--ex-line);border-radius:10px;background:var(--ex-card);padding:.4rem .8rem}
+.exo-rappel summary{cursor:pointer;font-weight:600}
+.exo-rappel p{margin:.4rem 0}
+@media (max-width:600px){
+  .exo-step dl{grid-template-columns:1fr}
+  .exo-step dt{margin-top:.2rem}
+  .exo-btns .exo-score{margin-left:0;width:100%}
+}
