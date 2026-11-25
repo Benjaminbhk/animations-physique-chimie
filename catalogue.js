@@ -110,5 +110,14 @@ window.CATALOGUE = [
     chapitre: "Modéliser une action sur un système",
     mots: ["interaction gravitationnelle", "force", "poids", "intensité de pesanteur", "orbite", "satellite", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "transformations-nucleaires",
+    titre: "Transformations nucléaires",
+    resume: "Construire des noyaux et leurs isotopes, voir la fission de l'uranium et la fusion de l'hydrogène nucléon par nucléon, vérifier la conservation de A et de Z, puis s'entraîner sur des exercices corrigés.",
+    theme: "matiere",
+    chapitre: "Transformations nucléaires",
+    mots: ["fission", "fusion", "isotopes", "nombre de masse", "numéro atomique", "équation nucléaire", "exercices"],
+    statut: "en-ligne"
   }
 ];
