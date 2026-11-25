@@ -17,5 +17,14 @@ window.CATALOGUE = [
     chapitre: "Solutions aqueuses",
     mots: ["concentration en masse", "facteur de dilution", "soluté", "solvant"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "mole",
+    titre: "Visualiser une mole",
+    resume: "Zoomer dans un cube d'eau jusqu'aux molécules, passer de la masse à la quantité de matière puis au nombre d'entités, et comparer 6,02 × 10²³ à d'autres grands nombres.",
+    theme: "matiere",
+    chapitre: "Quantité de matière",
+    mots: ["mole", "nombre d'Avogadro", "masse molaire", "quantité de matière"],
+    statut: "en-ligne"
   }
 ];
