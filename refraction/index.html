@@ -10,7 +10,6 @@
   --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
   --accent:#b85a12; --accent-soft:#fdf0e4; --accent-ink:#ffffff;
   --canvas:#fbfcff; --grid:rgba(40,50,70,.10); --normal:rgba(40,50,70,.55);
-  --exo-bg:#e6f3fc; --exo-border:#b7dbf3; --exo-card:#ffffff;
   --ok:#1f8a4c; --ok-soft:#e5f5ec; --bad:#c0392b;
 }
 @media (prefers-color-scheme: dark){
@@ -18,7 +17,6 @@
     --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
     --accent:#f0a35e; --accent-soft:#33251a; --accent-ink:#1b120a;
     --canvas:#12151d; --grid:rgba(220,230,250,.10); --normal:rgba(220,230,250,.55);
-    --exo-bg:#13222f; --exo-border:#24435a; --exo-card:#18212c;
     --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b;
   }
 }
@@ -26,7 +24,6 @@
   --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
   --accent:#f0a35e; --accent-soft:#33251a; --accent-ink:#1b120a;
   --canvas:#12151d; --grid:rgba(220,230,250,.10); --normal:rgba(220,230,250,.55);
-  --exo-bg:#13222f; --exo-border:#24435a; --exo-card:#18212c;
   --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b;
 }
 *{box-sizing:border-box}
@@ -84,21 +81,19 @@ td button{min-height:26px;padding:0 .45rem;font-size:.8rem}
 .tbl{max-height:330px;overflow:auto;border:1px solid var(--border);border-radius:10px;margin-top:8px}
 canvas#gr{display:block;width:100%;height:auto;aspect-ratio:460/340;border-radius:10px;background:var(--canvas);border:1px solid var(--border)}
 .result{margin-top:8px;font-size:.95rem}
-/* ---------- exercices (fond bleu ciel) ---------- */
-.exercices{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:16px;margin:0 0 22px}
-.exercices > h2{font-size:1.25rem;margin:0 0 .2rem}
+/* ---------- exercices : fond et couleurs dans ../commun/exercices.css ---------- */
 .exercices > p{margin:0 0 12px;color:var(--muted)}
 .exos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.exo{background:var(--exo-card);border:1px solid var(--exo-border);border-radius:12px;padding:.8rem 1rem}
-.exo h3{margin:0 0 .35rem;font-size:1rem}
+.exo{background:var(--ex-card);border:1px solid var(--ex-line);border-radius:12px;padding:.8rem 1rem}
+.exo h3{margin:0 0 .35rem;font-size:1rem;color:var(--ex-ink)}
 .exo .enonce{margin:0 0 .5rem}
 .exo .rep{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:.3rem 0}
-.exo input[type=text]{font:inherit;width:8.5em;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);
-  background:var(--surface);color:var(--text)}
+.exo input[type=text]{font:inherit;width:8.5em;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--ex-line);
+  background:var(--ex-card);color:var(--text)}
 .exo .fb{font-weight:600;min-height:1.4em;margin:.2rem 0}
-.exo .fb.ok{color:var(--ok)} .exo .fb.ko{color:var(--bad)}
-.corr{border:2px solid var(--ok);background:var(--ok-soft);border-radius:10px;padding:.5rem .75rem;margin-top:.5rem}
-.corr strong.t{color:var(--ok);display:block;margin-bottom:.15rem}
+.exo .fb.ok{color:var(--ex-ok)} .exo .fb.ko{color:var(--ex-ko)}
+.corr{border:2px solid var(--ex-ok);background:var(--ex-ok-soft);border-radius:10px;padding:.5rem .75rem;margin-top:.5rem}
+.corr strong.t{color:var(--ex-ok);display:block;margin-bottom:.15rem}
 .corr p{margin:.15rem 0}
 footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
   display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
@@ -110,10 +105,11 @@ footer strong{color:var(--text)}
 @media (max-width:900px){
   .layout,.mes,.exos{grid-template-columns:1fr}
   .memo{grid-template-columns:1fr 1fr}
-  .scene,.exercices{padding:12px}
+  .scene{padding:12px}
 }
 @media (max-width:560px){ .memo{grid-template-columns:1fr} }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -194,8 +190,8 @@ footer strong{color:var(--text)}
     </div>
   </section>
 
-  <section class="exercices" aria-labelledby="exo-t">
-    <h2 id="exo-t">Exercices</h2>
+  <section class="scene exercices" aria-labelledby="exo-t">
+    <h2 id="exo-t"><span class="ex-badge">✎ Exercices</span> S'entraîner sur la réfraction</h2>
     <p>Calcule, puis vérifie ta réponse. Chaque bouton « Nouvelles valeurs » donne un nouvel énoncé. Donne tes résultats avec le bon nombre de chiffres significatifs.</p>
     <div class="exos" id="exos"></div>
   </section>
