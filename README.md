@@ -22,6 +22,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Circuits électriques | https://benjaminbhk.github.io/animations-physique-chimie/circuits-electriques/ |
 | Modéliser une action par une force | https://benjaminbhk.github.io/animations-physique-chimie/forces/ |
 | Le vecteur vitesse | https://benjaminbhk.github.io/animations-physique-chimie/vecteur-vitesse/ |
+| Chronophotographie et référentiels | https://benjaminbhk.github.io/animations-physique-chimie/chronophotographie/ |
 
 ## Organisation
 

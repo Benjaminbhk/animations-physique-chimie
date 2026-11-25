@@ -157,5 +157,15 @@ window.CATALOGUE = [
     chapitre: "Décrire et modéliser un mouvement",
     mots: ["vecteur vitesse", "chronophotographie", "variation de vitesse", "échelle", "principe d'inertie", "somme des forces", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "chronophotographie",
+    titre: "Chronophotographie et référentiels",
+    resume: "Enregistrer les positions d'un palet, mesurer une vitesse moyenne en cliquant sur deux points, reconnaître la nature du mouvement, puis voir le même mouvement depuis le sol, un train, un manège ou un vélo. Exercices corrigés.",
+    theme: "mouvement",
+    niveau: "seconde",
+    chapitre: "Décrire un mouvement",
+    mots: ["chronophotographie", "trajectoire", "vitesse moyenne", "référentiel", "mouvement rectiligne", "mouvement circulaire", "uniforme", "accéléré", "ralenti", "exercices"],
+    statut: "en-ligne"
   }
 ];
