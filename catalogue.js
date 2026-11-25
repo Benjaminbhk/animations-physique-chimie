@@ -2,6 +2,8 @@
 // Pour en ajouter une : copier un bloc, changer les champs, et mettre le dossier de l'animation à côté.
 //   theme : "matiere" | "mouvement" | "ondes"
 //   statut : "en-ligne" (carte cliquable) ou "bientot" (carte grisée, annoncée)
+//   niveau : facultatif, "seconde" par défaut ; "quatrieme" pour la 4e (thèmes de la 4e dans niveaux.js :
+//            "matiere-4" | "mouvement-4" | "energie-4" | "signaux-4")
 window.THEMES = [
   { id: "matiere",   titre: "Constitution et transformations de la matière", couleur: "#7a3fd0" },
   { id: "mouvement", titre: "Mouvement et interactions",                      couleur: "#1f7fbf" },
@@ -61,6 +63,15 @@ window.CATALOGUE = [
     theme: "matiere",
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "spectres-lumineux",
+    titre: "Spectres lumineux",
+    resume: "Décomposer la lumière avec un prisme : spectres continus (lampe à incandescence, Soleil), raies d'émission (H, He, Na, Hg, Ne, Li), raies d'absorption par un gaz froid, laser. Exercices : retrouver les éléments d'une étoile, classer des spectres, QCM corrigé.",
+    theme: "ondes",
+    chapitre: "Signaux lumineux",
+    mots: ["spectre", "prisme", "longueur d'onde", "raies d'émission", "raies d'absorption", "lumière monochromatique", "exercices"],
     statut: "en-ligne"
   },
   {

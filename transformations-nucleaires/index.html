@@ -7,11 +7,11 @@
 <meta name="description" content="Noyaux, isotopes, fission et fusion : voir les nucléons, vérifier la conservation de A et de Z, puis s'entraîner sur des exercices corrigés (physique-chimie, Seconde).">
 <style>
 :root{
+  --exo-bg:var(--ex-bg); --exo-border:var(--ex-edge); --exo-ink:var(--ex-ink); --exo-card:var(--ex-card);
   --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
   --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
   --canvas:#fbfcff; --proton:#d9473b; --neutron:#8d9bb0;
   --ok:#2f8f6b; --ok-soft:#e3f5ec; --ko:#c8423a; --ko-soft:#fbe7e5; --step:#d9822b;
-  --exo-bg:#e4f2fc; --exo-border:#a9d1ef; --exo-ink:#14598c; --exo-card:#ffffff;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -19,7 +19,6 @@
     --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
     --canvas:#141821; --proton:#ef6155; --neutron:#a3b0c4;
     --ok:#4cc597; --ok-soft:#173328; --ko:#ef6b62; --ko-soft:#3a1d1b; --step:#f0a04b;
-    --exo-bg:#0f2231; --exo-border:#1f4766; --exo-ink:#8cc8f2; --exo-card:#142a3b;
   }
 }
 :root[data-theme="dark"]{
@@ -27,7 +26,6 @@
   --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
   --canvas:#141821; --proton:#ef6155; --neutron:#a3b0c4;
   --ok:#4cc597; --ok-soft:#173328; --ko:#ef6b62; --ko-soft:#3a1d1b; --step:#f0a04b;
-  --exo-bg:#0f2231; --exo-border:#1f4766; --exo-ink:#8cc8f2; --exo-card:#142a3b;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -162,6 +160,7 @@ footer strong{color:var(--text)}
   .enonce .eq{font-size:1.2rem}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -280,7 +279,7 @@ footer strong{color:var(--text)}
   </section>
 
   <!-- ============ 4. EXERCICES ============ -->
-  <section class="scene exos" id="sc-exo" aria-labelledby="t-exo">
+  <section class="scene exos exercices" id="sc-exo" aria-labelledby="t-exo">
     <div class="head">
       <div>
         <p class="exo-badge">Je m'entraîne</p>
