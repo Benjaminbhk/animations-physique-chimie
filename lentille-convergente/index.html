@@ -178,7 +178,14 @@ footer strong{color:var(--text)}
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
               <label for="etype" style="font-weight:600;font-size:.92rem">Œil</label>
               <select id="etype"><option value="normal">normal</option><option value="myope">myope</option><option value="hyper">hypermétrope</option></select>
-              <label class="check"><input type="checkbox" id="ecorr" disabled>Lentille correctrice</label>
+              <label class="check"><input type="checkbox" id="ecorr">Ajouter une lentille</label>
+            </div>
+            <div id="lens-box" hidden style="border:1px dashed var(--accent);border-radius:10px;padding:6px 8px;margin-bottom:8px">
+              <div class="sl">
+                <label for="ec">Vergence C</label><input id="ec" type="range" min="-6" max="6" step="0.1" value="0"><output id="ec-o"></output>
+              </div>
+              <div class="small" id="ec-f" style="margin:2px 0 6px"></div>
+              <div class="grid2"><button id="ec-sol" class="ghost" type="button">Voir la bonne lentille</button><button id="ec-zero" class="ghost" type="button">Remettre à 0</button></div>
             </div>
             <div class="sl">
               <label for="de">Objet</label><input id="de" type="range" min="0" max="100" step="1" value="50"><output id="de-o"></output>
@@ -316,7 +323,7 @@ footer strong{color:var(--text)}
         <strong>devant la rétine</strong>. b) Il voit donc flou <strong>les objets éloignés</strong> (mais net de près). c) On le corrige avec une
         <strong>lentille divergente</strong>, qui rend l'ensemble moins convergent. d) L'œil hypermétrope n'est <strong>pas assez convergent</strong> (ou trop court) :
         l'image se forme derrière la rétine, il voit flou de près. On le corrige avec une <strong>lentille convergente</strong>.
-        Vérifie-le dans l'onglet « L'œil » en choisissant le type d'œil et en ajoutant la lentille correctrice.</div>
+        Vérifie-le dans l'onglet « L'œil » en choisissant le type d'œil, puis en ajoutant une lentille dont tu règles la vergence.</div>
     </div>
   </section>
 </div>
@@ -374,7 +381,7 @@ const S = {
   f: 4, oa: 12, ab: 2, xs: 9,
   r1: true, r2: true, r3: true, beam: false, grid: true, screen: false, alg: false, conj: false,
   anim: null, drag: null,
-  eye: { v: 50, auto: true, fMan: 17, fCur: 17, type: 'normal', corr: false },
+  eye: { v: 50, auto: true, fMan: 17, fCur: 17, type: 'normal', corr: false, C: 0 },
   cam: { v: 40, s: 50, sCur: 50, N: 2.8 }
 };
 
@@ -608,10 +615,13 @@ const RETS = { normal: 17, myope: 18, hyper: 16.4 }; // distance cristallin–r�
 const fMin = 1 / (1 / F_REL + 1 / PP);               // accommodation maximale (même amplitude pour les 3 yeux)
 const ret = () => RETS[S.eye.type];
 // distance focale de la lentille correctrice (mm) : son foyer image est placé au punctum remotum
+function cIdeal() { // vergence (δ) qui place le foyer image de la lentille au punctum remotum
+  if (S.eye.type === 'normal') return 0;
+  return 1000 / (1 / (1 / ret() - 1 / F_REL) - XC);
+}
 function fCorr() {
-  if (!S.eye.corr || S.eye.type === 'normal') return Infinity;
-  const xPR = 1 / (1 / ret() - 1 / F_REL);
-  return xPR - XC;
+  if (!S.eye.corr || Math.abs(S.eye.C) < 1e-6) return Infinity;
+  return 1000 / S.eye.C;
 }
 // position (algébrique, depuis le cristallin) de l'objet vu par le cristallin
 function x1Of(d) {
@@ -725,14 +735,16 @@ function drawEye(o) {
   c.beginPath(); c.ellipse(Lx, Y0, th * k, 4.6 * k, 0, 0, 7); c.fill(); c.stroke();
   label(c, 'cristallin', Lx, Y0 + 4.6 * k + 16, C.lens, 'center', 'middle', 14);
   // lentille correctrice
-  if (isFinite(fc)) {
+  if (S.eye.corr) {
     const x = Lx + XC * k - 3;
-    lensSymbol(c, x, Y0, 5.2 * k, fc > 0, C.accent);
-    label(c, fc > 0 ? 'lentille convergente' : 'lentille divergente', x - 8, Y0 - 5.2 * k - 24, C.accent, 'right', 'middle', 14);
-    label(c, 'C = ' + sig(1000 / fc, 2).replace('-', '−') + ' δ', x - 8, Y0 - 5.2 * k - 6, C.accent, 'right', 'middle', 13);
+    if (isFinite(fc)) lensSymbol(c, x, Y0, 5.2 * k, fc > 0, C.accent);
+    else { c.strokeStyle = C.accent; c.lineWidth = 3; line(c, x, Y0 - 5.2 * k, x, Y0 + 5.2 * k); }
+    label(c, !isFinite(fc) ? 'lentille (C = 0)' : fc > 0 ? 'lentille convergente' : 'lentille divergente', x - 8, Y0 - 5.2 * k - 24, C.accent, 'right', 'middle', 14);
+    label(c, 'C = ' + fmtC(S.eye.C) + ' δ', x - 8, Y0 - 5.2 * k - 6, C.accent, 'right', 'middle', 13);
   }
   return { d, f, xi, spot, fc };
 }
+const fmtC = C => (C > 0.04 ? '+' : '') + dec(C, 1).replace('-', '−');
 const TYPE_NOM = { normal: 'normal', myope: 'myope', hyper: 'hypermétrope' };
 function eyeInfo(r) {
   const net = r.spot < 0.015, RT = ret(), ty = S.eye.type;
@@ -745,7 +757,7 @@ function eyeInfo(r) {
     <tr><td>Distance cristallin–rétine (fixe)</td><td>${dec(RT, 1)} mm</td></tr>
     <tr><td>Image B' à</td><td>${isFinite(r.xi) && r.xi > 0 && r.xi < 1e4 ? sig(r.xi) + ' mm' : '∞'}</td></tr>
     <tr><td>Vision nette sans lentille : de</td><td>${PPtxt} à ${PRtxt}</td></tr>`;
-  if (isFinite(r.fc)) rows += `<tr><td>Lentille correctrice</td><td>f' = ${sig(r.fc / 10, 2).replace('-', '−')} cm ; C = ${sig(1000 / r.fc, 2).replace('-', '−')} δ</td></tr>`;
+  if (S.eye.corr) rows += `<tr><td>Lentille ajoutée</td><td>C = ${fmtC(S.eye.C)} δ</td></tr><tr><td>L'œil accommode</td><td>${Math.abs(r.f - F_REL) < 0.01 ? 'non' : 'oui'}</td></tr>`;
   rows += `<tr><td>Image sur la rétine</td><td>${net ? '<span class="tag ok">nette</span>' : '<span class="tag ko">floue</span>'}</td></tr>`;
   $('res-eye').innerHTML = `<table>${rows}</table>`;
   let m;
@@ -753,18 +765,20 @@ function eyeInfo(r) {
   if (S.eye.auto) {
     if (net && Math.abs(r.f - F_REL) < 0.01) m = 'L\'œil <strong>n\'accommode pas</strong> : le cristallin est le moins bombé (f\' = 17,0 mm) et l\'image se forme sur la rétine.';
     else if (net) m = `L'œil <strong>accommode</strong> : le cristallin se bombe, sa distance focale diminue (f' = ${sig(r.f)} mm) et l'image se forme <strong>sur la rétine</strong>.`;
-    else if (avant) m = `Même avec le cristallin le moins bombé, l'image se forme <strong>devant la rétine</strong> : l'objet est au-delà du punctum remotum (${PRtxt}). On voit flou.`;
-    else m = `Même en accommodant au maximum (f' = ${sig(r.f)} mm), l'image se forme <strong>derrière la rétine</strong> : l'objet est plus près que le punctum proximum (${isFinite(r.fc) ? 'avec la lentille' : PPtxt}). On voit flou.`;
+    else if (avant) m = `Même avec le cristallin le moins bombé, l'image se forme <strong>devant la rétine</strong> : ${S.eye.corr ? 'on voit flou.' : `l'objet est au-delà du punctum remotum (${PRtxt}). On voit flou.`}`;
+    else m = `Même en accommodant au maximum (f' = ${sig(r.f)} mm), l'image se forme <strong>derrière la rétine</strong> : ${S.eye.corr ? 'on voit flou.' : `l'objet est plus près que le punctum proximum (${PPtxt}). On voit flou.`}`;
   } else {
     m = net ? 'Avec ce réglage du cristallin, l\'image se forme sur la rétine : elle est nette.'
       : `L'image se forme <strong>${avant ? 'devant' : 'derrière'} la rétine</strong> : on voit une tache floue. ${avant ? 'Augmente' : 'Diminue'} la distance focale du cristallin.`;
   }
-  if (ty === 'myope') m += isFinite(r.fc)
-    ? ` La <strong>lentille divergente</strong> fait diverger les rayons avant l'œil : un objet lointain donne de nouveau une image sur la rétine.`
-    : ` <em>Œil myope :</em> trop convergent (ou trop long), il voit net de près mais flou de loin. On le corrige avec une <strong>lentille divergente</strong>.`;
-  if (ty === 'hyper') m += isFinite(r.fc)
-    ? ` La <strong>lentille convergente</strong> aide le cristallin : l'œil voit de loin sans accommoder et voit net plus près.`
-    : ` <em>Œil hypermétrope :</em> pas assez convergent (ou trop court), il doit accommoder même pour voir de loin et voit flou de près. On le corrige avec une <strong>lentille convergente</strong>.`;
+  if (S.eye.corr) {
+    const ci = cIdeal(), dC = S.eye.C - ci;
+    if (Math.abs(dC) <= 0.15) m += ` <span class="tag ok">Bonne lentille</span> Avec C = ${fmtC(S.eye.C)} δ, l'œil voit net un objet à l'infini <strong>sans accommoder</strong>${ty === 'normal' ? ' (un œil normal n\'a besoin d\'aucune correction)' : ty === 'myope' ? ' : c\'est une lentille divergente' : ' : c\'est une lentille convergente'}.`;
+    else if (dC < 0) m += ` <span class="tag ko">À ajuster</span> Lentille trop divergente (ou pas assez convergente) : pour voir un objet à l'infini, l'œil doit accommoder. Augmente C.`;
+    else m += ` <span class="tag ko">À ajuster</span> Lentille trop convergente (ou pas assez divergente) : un objet à l'infini donne une image devant la rétine. Diminue C.`;
+    m += ' <span class="small">Pour tester la lentille, place l\'objet à l\'infini.</span>';
+  } else if (ty === 'myope') m += ` <em>Œil myope :</em> trop convergent (ou trop long), il voit net de près mais flou de loin. On le corrige avec une <strong>lentille divergente</strong>.`;
+  else if (ty === 'hyper') m += ` <em>Œil hypermétrope :</em> pas assez convergent (ou trop court), il doit accommoder même pour voir de loin et voit flou de près. On le corrige avec une <strong>lentille convergente</strong>.`;
   say(m);
   return r.spot;
 }
@@ -984,12 +998,17 @@ mainCv.addEventListener('pointerup', endDrag); mainCv.addEventListener('pointerc
 function syncEye() {
   $('de-o').textContent = fmtD(dEye(S.eye.v)).replace('à l\'infini', '∞');
   $('fe-o').textContent = dec(S.eye.fMan, 2) + ' mm';
+  $('ec-o').textContent = fmtC(S.eye.C) + ' δ';
+  $('ec-f').textContent = Math.abs(S.eye.C) < 1e-6 ? 'C = 0 : la lentille ne dévie pas la lumière.' : `f' = 1 / C = ${sig(100 / S.eye.C, 2).replace('-', '−')} cm (lentille ${S.eye.C > 0 ? 'convergente' : 'divergente'})`;
   $('fe').disabled = S.eye.auto; $('fe-row').style.opacity = S.eye.auto ? .45 : 1;
   dirty = true;
 }
 $('de').addEventListener('input', e => { S.eye.v = +e.target.value; syncEye(); });
-$('etype').addEventListener('change', e => { S.eye.type = e.target.value; $('ecorr').disabled = S.eye.type === 'normal'; if (S.eye.type === 'normal') { S.eye.corr = false; $('ecorr').checked = false; } syncEye(); });
-$('ecorr').addEventListener('change', e => { S.eye.corr = e.target.checked; syncEye(); });
+$('etype').addEventListener('change', e => { S.eye.type = e.target.value; syncEye(); });
+$('ecorr').addEventListener('change', e => { S.eye.corr = e.target.checked; $('lens-box').hidden = !S.eye.corr; syncEye(); });
+$('ec').addEventListener('input', e => { S.eye.C = +e.target.value; syncEye(); });
+$('ec-sol').addEventListener('click', () => { S.eye.C = Math.round(cIdeal() * 10) / 10; $('ec').value = S.eye.C; syncEye(); });
+$('ec-zero').addEventListener('click', () => { S.eye.C = 0; $('ec').value = 0; syncEye(); });
 $('acc').addEventListener('change', e => { S.eye.auto = e.target.checked; if (!S.eye.auto) { S.eye.fMan = Math.round(S.eye.fCur * 20) / 20; $('fe').value = S.eye.fMan; } syncEye(); });
 $('fe').addEventListener('input', e => { S.eye.fMan = +e.target.value; syncEye(); });
 function syncCam() {
