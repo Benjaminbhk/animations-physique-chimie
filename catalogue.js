@@ -37,6 +37,15 @@ window.CATALOGUE = [
     statut: "en-ligne"
   },
   {
+    dossier: "schemas-lewis",
+    titre: "Schémas de Lewis",
+    resume: "Placer des atomes de Lewis, tracer les liaisons simples, doubles ou triples, puis vérifier les règles du duet et de l'octet sur des molécules à construire.",
+    theme: "matiere",
+    chapitre: "Entités chimiques et molécules",
+    mots: ["schéma de Lewis", "doublet liant", "doublet non liant", "électrons de valence", "règle de l'octet", "règle du duet"],
+    statut: "en-ligne"
+  },
+  {
     dossier: "colonne-densites",
     titre: "Colonne de densités",
     resume: "Verser 2 à 4 liquides non miscibles dans n'importe quel ordre : ils se rangent selon leur masse volumique. Des objets coulent puis se stabilisent aux interfaces.",
