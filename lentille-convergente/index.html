@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lentille convergente</title>
+<meta name="description" content="Simulation interactive : construction de l'image donnée par une lentille mince convergente, grandissement, modèle de l'œil et de l'appareil photo, avec exercices corrigés (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#c2651a; --accent-soft:#fdf0e4; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --grid:rgba(60,80,120,.10); --axis:#5a6478; --lens:#2b6fb3; --lens-fill:rgba(90,160,230,.18);
+  --obj:#1f63d1; --img:#d0342c; --r1:#d9822b; --r2:#1e9a55; --r3:#8a4fd6; --beam:rgba(230,170,20,.55);
+  --eye:#f3ede4; --eye-line:#8a7c6c; --retina:#d0566a; --iris:#3f7d6a;
+  --ok:#1e8a4c; --ok-soft:#e5f5ea; --ko:#c0392b; --ko-soft:#fbe9e7;
+  --exo-border:var(--ex-edge,#b7d9f2); --exo-accent:var(--ex-chip,#1d6fa8);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#f0a050; --accent-soft:#33261a; --accent-ink:#1a1208;
+    --canvas:#141821; --grid:rgba(190,205,235,.09); --axis:#9aa3b6; --lens:#7fb6ee; --lens-fill:rgba(120,180,240,.14);
+    --obj:#6ea2ff; --img:#ff7a6e; --r1:#f2a65a; --r2:#4fd08a; --r3:#b78cff; --beam:rgba(255,205,80,.45);
+    --eye:#2a2621; --eye-line:#b3a593; --retina:#e57a8b; --iris:#6fbfa6;
+    --ok:#5fd08e; --ok-soft:#173022; --ko:#ff8a7a; --ko-soft:#3a1f1c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#f0a050; --accent-soft:#33261a; --accent-ink:#1a1208;
+  --canvas:#141821; --grid:rgba(190,205,235,.09); --axis:#9aa3b6; --lens:#7fb6ee; --lens-fill:rgba(120,180,240,.14);
+  --obj:#6ea2ff; --img:#ff7a6e; --r1:#f2a65a; --r2:#4fd08a; --r3:#b78cff; --beam:rgba(255,205,80,.45);
+  --eye:#2a2621; --eye-line:#b3a593; --retina:#e57a8b; --iris:#6fbfa6;
+  --ok:#5fd08e; --ok-soft:#173022; --ko:#ff8a7a; --ko-soft:#3a1f1c;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.tabs button{background:var(--bg);color:var(--text);border-color:var(--border)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);
+  border:1px solid var(--border);touch-action:none}
+#cv{aspect-ratio:1000/560}
+#cvx{aspect-ratio:1000/480}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:1rem;margin:0 0 .35rem}
+.panel [data-mode]{display:flex;flex-direction:column;gap:12px}
+.panel [data-mode][hidden]{display:none}
+button{font:inherit;font-weight:600;padding:.45rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:40px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sl{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center}
+.sl label{font-weight:600;font-size:.92rem}
+input[type=range]{width:100%;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:6.5ch;text-align:right}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
+.check{display:flex;align-items:center;gap:6px;font-size:.9rem}
+.check i{display:inline-block;width:18px;height:3px;border-radius:2px}
+select,input[type=text]{font:inherit;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.res{border:1px solid var(--border);border-radius:10px;background:var(--bg);padding:.5rem .7rem;font-size:.92rem}
+.res table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.res td{padding:1px 0}
+.res td:last-child{text-align:right;font-weight:700}
+.ov{text-decoration:overline}
+.tag{display:inline-block;font-weight:700;border-radius:6px;padding:0 .45rem;font-size:.85rem}
+.tag.ok{background:var(--ok-soft);color:var(--ok)} .tag.ko{background:var(--ko-soft);color:var(--ko)}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.preview{display:flex;flex-direction:column;gap:4px}
+.preview canvas{aspect-ratio:16/9}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+/* ---------- exercices : fond bleu ciel ---------- */
+.exercices > h2{margin:0 0 .2rem;font-size:1.25rem}
+.exercices button{background:var(--exo-accent);border-color:var(--exo-accent)}
+.exercices button.ghost{background:transparent;color:var(--exo-accent)}
+.exo{background:var(--surface);border:1px solid var(--exo-border);border-radius:12px;padding:12px 14px;margin-top:12px}
+.exo h3{margin:0 0 .4rem;font-size:1.05rem}
+.exo h3 span{color:var(--exo-accent)}
+.exo p{margin:.3rem 0}
+.exo .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.exo input[type=text]{width:7.5em}
+.fb{margin-top:8px;padding:.45rem .7rem;border-radius:8px;display:none}
+.fb.ok{display:block;background:var(--ok-soft);color:var(--ok)}
+.fb.ko{display:block;background:var(--ko-soft);color:var(--ko)}
+.corr{display:none;margin-top:8px;border:2px solid var(--ok);border-radius:10px;padding:.5rem .8rem;background:var(--ok-soft)}
+.corr.on{display:block}
+.corr b.t{color:var(--ok)}
+.qcm{display:grid;gap:6px}
+.qcm label{display:flex;gap:8px;align-items:center}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+.scene:fullscreen .layout{grid-template-columns:auto 340px;justify-content:center}
+.scene:fullscreen #cv{height:calc(100vh - 170px);width:auto;max-width:calc(100vw - 400px)}
+.scene:fullscreen .memo{display:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Lentille mince convergente</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Déplace l'objet <strong>AB</strong> (attrape le point B ou le pied A) et les foyers F et F' pour voir comment se construit
+    l'image <strong>A'B'</strong> avec les trois rayons particuliers. Les onglets <em>L'œil</em> et <em>L'appareil photo</em> montrent
+    comment ces deux systèmes obtiennent une image nette. Des exercices corrigés t'attendent en bas de la page.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de la lentille convergente">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="cons" aria-selected="true">Construction de l'image</button>
+      <button type="button" role="tab" data-tab="eye" aria-selected="false">L'œil</button>
+      <button type="button" role="tab" data-tab="cam" aria-selected="false">L'appareil photo</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Schéma optique : axe optique, lentille, objet, rayons lumineux et image"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <!-- ===== Construction ===== -->
+        <div data-mode="cons">
+          <div>
+            <h2>Réglages</h2>
+            <div class="sl">
+              <label for="f">f'</label><input id="f" type="range" min="1" max="10" step="0.5" value="4"><output id="f-o"></output>
+              <label for="oa">OA</label><input id="oa" type="range" min="0.5" max="21" step="0.1" value="12"><output id="oa-o"></output>
+              <label for="ab">AB</label><input id="ab" type="range" min="0.5" max="6" step="0.1" value="2"><output id="ab-o"></output>
+            </div>
+          </div>
+          <div>
+            <h2>Afficher</h2>
+            <div class="checks">
+              <label class="check"><input type="checkbox" id="r1" checked><i style="background:var(--r1)"></i>Rayon par O</label>
+              <label class="check"><input type="checkbox" id="r2" checked><i style="background:var(--r2)"></i>Rayon parallèle</label>
+              <label class="check"><input type="checkbox" id="r3" checked><i style="background:var(--r3)"></i>Rayon par F</label>
+              <label class="check"><input type="checkbox" id="beam"><i style="background:var(--beam)"></i>Faisceau issu de B</label>
+              <label class="check"><input type="checkbox" id="grid" checked>Quadrillage (1 cm)</label>
+              <label class="check"><input type="checkbox" id="screen">Écran</label>
+            </div>
+          </div>
+          <div class="grid2">
+            <button id="step" type="button">Construire pas à pas</button>
+            <button id="fs" class="ghost" type="button">Plein écran</button>
+          </div>
+          <div class="res" id="res-cons"></div>
+          <div>
+            <label class="check"><input type="checkbox" id="alg">Mesures algébriques (signes)</label>
+            <label class="check"><input type="checkbox" id="conj">Relation de conjugaison (programme de 1re)</label>
+          </div>
+        </div>
+        <!-- ===== Œil ===== -->
+        <div data-mode="eye" hidden>
+          <div>
+            <h2>Réglages</h2>
+            <div class="sl">
+              <label for="de">Objet</label><input id="de" type="range" min="0" max="100" step="1" value="50"><output id="de-o"></output>
+            </div>
+            <label class="check" style="margin-top:6px"><input type="checkbox" id="acc" checked>L'œil accommode (automatique)</label>
+            <div class="sl" id="fe-row" style="margin-top:6px;opacity:.45">
+              <label for="fe">f' cristallin</label><input id="fe" type="range" min="15" max="17.5" step="0.05" value="17" disabled><output id="fe-o"></output>
+            </div>
+          </div>
+          <div class="res" id="res-eye"></div>
+          <div class="preview"><span class="small">Ce que perçoit l'œil</span><canvas id="pv-eye"></canvas></div>
+        </div>
+        <!-- ===== Appareil photo ===== -->
+        <div data-mode="cam" hidden>
+          <div>
+            <h2>Réglages</h2>
+            <div class="sl">
+              <label for="dc">Objet</label><input id="dc" type="range" min="0" max="100" step="1" value="40"><output id="dc-o"></output>
+              <label for="sc-d">Objectif–capteur</label><input id="sc-d" type="range" min="50" max="60" step="0.1" value="50"><output id="sc-o"></output>
+            </div>
+            <div class="row" style="display:flex;gap:8px;align-items:center;margin-top:6px">
+              <label for="nap" style="font-weight:600;font-size:.92rem">Diaphragme</label>
+              <select id="nap"><option value="1.8">f/1,8 (grand ouvert)</option><option value="2.8" selected>f/2,8</option><option value="5.6">f/5,6</option><option value="11">f/11 (fermé)</option></select>
+            </div>
+          </div>
+          <button id="af" type="button">Mise au point automatique</button>
+          <div class="res" id="res-cam"></div>
+          <div class="preview"><span class="small">La photo obtenue</span><canvas id="pv-cam"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo" id="memo"></div>
+  </section>
+
+  <!-- ===================== EXERCICES ===================== -->
+  <section class="scene exercices" id="sc-exo" aria-labelledby="h-exo">
+    <h2 id="h-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="small" style="margin:0">Entraîne-toi, puis vérifie ta réponse ou affiche la correction. « Nouvel énoncé » change les valeurs.</p>
+
+    <div class="exo" id="ex1">
+      <h3><span>Exercice 1.</span> Construire l'image</h3>
+      <p id="ex1-txt"></p>
+      <p>a) Construis l'image <strong>B'</strong> du point B : <strong>clique sur la figure</strong> à l'endroit où se forme B'.<br>
+         b) Calcule le grandissement γ = A'B' / AB.</p>
+      <canvas id="cvx" role="img" aria-label="Figure de l'exercice : quadrillage, lentille, foyers et objet AB"></canvas>
+      <div class="row">
+        <label for="ex1-g">γ =</label><input type="text" id="ex1-g" inputmode="decimal" autocomplete="off">
+        <button id="ex1-check" type="button">Vérifier</button>
+        <button id="ex1-corr" class="ghost" type="button">Correction</button>
+        <button id="ex1-new" class="ghost" type="button">Nouvel énoncé</button>
+      </div>
+      <div class="fb" id="ex1-fb"></div>
+      <div class="corr" id="ex1-c"></div>
+    </div>
+
+    <div class="exo" id="ex2">
+      <h3><span>Exercice 2.</span> Calculer un grandissement</h3>
+      <p id="ex2-txt"></p>
+      <div class="row">
+        <label for="ex2-g">γ =</label><input type="text" id="ex2-g" inputmode="decimal" autocomplete="off">
+        <button id="ex2-check" type="button">Vérifier</button>
+        <button id="ex2-corr" class="ghost" type="button">Correction</button>
+        <button id="ex2-new" class="ghost" type="button">Nouvel énoncé</button>
+      </div>
+      <div class="fb" id="ex2-fb"></div>
+      <div class="corr" id="ex2-c"></div>
+    </div>
+
+    <div class="exo" id="ex3">
+      <h3><span>Exercice 3.</span> Le modèle de l'œil</h3>
+      <p>Associe chaque partie de l'œil à l'élément qui la modélise.</p>
+      <div class="qcm">
+        <label>Iris <select id="m-iris"><option value="">…</option><option>diaphragme</option><option>lentille convergente</option><option>écran</option></select></label>
+        <label>Cristallin <select id="m-crist"><option value="">…</option><option>diaphragme</option><option>lentille convergente</option><option>écran</option></select></label>
+        <label>Rétine <select id="m-ret"><option value="">…</option><option>diaphragme</option><option>lentille convergente</option><option>écran</option></select></label>
+      </div>
+      <div class="row">
+        <button id="ex3-check" type="button">Vérifier</button>
+        <button id="ex3-corr" class="ghost" type="button">Correction</button>
+      </div>
+      <div class="fb" id="ex3-fb"></div>
+      <div class="corr" id="ex3-c"><b class="t">Correction.</b> L'<strong>iris</strong> règle la quantité de lumière qui entre : c'est un <strong>diaphragme</strong>.
+        Le <strong>cristallin</strong> forme l'image : c'est une <strong>lentille convergente</strong> (de distance focale variable).
+        La <strong>rétine</strong> reçoit l'image : c'est l'<strong>écran</strong>. Dans l'appareil photo, ce sont le diaphragme, l'objectif et le capteur.</div>
+    </div>
+
+    <div class="exo" id="ex4">
+      <h3><span>Exercice 4.</span> Œil ou appareil photo ?</h3>
+      <p>On regarde un objet lointain, puis un objet proche. Pour que l'image reste nette :</p>
+      <div class="qcm" id="ex4-q1">
+        <p style="margin:.2rem 0"><strong>a) Dans l'œil…</strong></p>
+        <label><input type="radio" name="q1" value="a">la rétine s'éloigne du cristallin</label>
+        <label><input type="radio" name="q1" value="b">le cristallin se bombe : sa distance focale diminue</label>
+        <label><input type="radio" name="q1" value="c">le cristallin s'aplatit : sa distance focale augmente</label>
+      </div>
+      <div class="qcm" id="ex4-q2" style="margin-top:6px">
+        <p style="margin:.2rem 0"><strong>b) Dans l'appareil photo…</strong></p>
+        <label><input type="radio" name="q2" value="a">on éloigne l'objectif du capteur</label>
+        <label><input type="radio" name="q2" value="b">on rapproche l'objectif du capteur</label>
+        <label><input type="radio" name="q2" value="c">la distance focale de l'objectif diminue</label>
+      </div>
+      <div class="row">
+        <button id="ex4-check" type="button">Vérifier</button>
+        <button id="ex4-corr" class="ghost" type="button">Correction</button>
+      </div>
+      <div class="fb" id="ex4-fb"></div>
+      <div class="corr" id="ex4-c"><b class="t">Correction.</b> a) Dans l'œil, la distance cristallin–rétine est fixe (environ 17 mm) :
+        pour un objet proche, le cristallin <strong>se bombe</strong> et sa <strong>distance focale diminue</strong>. C'est l'<em>accommodation</em>.
+        b) La distance focale de l'objectif est fixe : pour un objet proche, l'image se forme plus loin derrière l'objectif,
+        donc on <strong>éloigne l'objectif du capteur</strong>. C'est la <em>mise au point</em>. Vérifie-le avec les onglets « L'œil » et « L'appareil photo ».</div>
+    </div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Modèle de la lentille mince, rayons proches de l'axe.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const fr = s => String(s).replace('.', ',');
+const dec = (x, d = 1) => fr((Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d));
+const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+function sig(x, n = 3) {
+  if (!isFinite(x)) return '∞';
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  if (e >= n || e < -3) {
+    const m = (x / Math.pow(10, e)).toFixed(n - 1);
+    return fr(m) + ' × 10' + String(e).split('').map(c => SUP[c]).join('');
+  }
+  return fr(Number(x).toPrecision(n));
+}
+const parseNum = s => { const v = parseFloat(String(s).trim().replace(',', '.').replace('−', '-')); return isFinite(v) ? v : NaN; };
+
+/* ---------- couleurs ---------- */
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  ['canvas','grid','axis','lens','lens-fill','obj','img','r1','r2','r3','beam','text','muted','eye','eye-line','retina','iris','border','ok','ko','accent']
+    .forEach(k => C[k] = cs.getPropertyValue('--' + k).trim());
+  dirty = true;
+}
+let dirty = true, exDirty = true;
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+
+/* ---------- canvas ---------- */
+const W = 1000, H = 560, HX = 480;
+function setup(cv, h) {
+  const o = { cv, c: cv.getContext('2d'), h, k: 1, dpr: 1 };
+  const rs = () => {
+    const w = cv.clientWidth || W; o.dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    o.k = w / W; cv.width = Math.round(w * o.dpr); cv.height = Math.round(w * h / W * o.dpr); dirty = true; exDirty = true;
+  };
+  new ResizeObserver(rs).observe(cv); rs();
+  return o;
+}
+const main = setup($('cv'), H), exo = setup($('cvx'), HX);
+function begin(o) { o.c.setTransform(o.k * o.dpr, 0, 0, o.k * o.dpr, 0, 0); o.c.clearRect(0, 0, W, o.h); }
+function ptr(o, e) { const r = o.cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * o.h / r.height]; }
+
+/* ---------- état ---------- */
+const S = {
+  mode: 'cons',
+  f: 4, oa: 12, ab: 2, xs: 9,
+  r1: true, r2: true, r3: true, beam: false, grid: true, screen: false, alg: false, conj: false,
+  anim: null, drag: null,
+  eye: { v: 50, auto: true, fMan: 17, fCur: 17 },
+  cam: { v: 40, s: 50, sCur: 50, N: 2.8 }
+};
+
+/* ---------- optique (lentille mince) ---------- */
+// OA algébrique = -oa ; 1/OA' - 1/OA = 1/f'
+function optics(f, oa, ab) {
+  const OA = -oa, inf = Math.abs(oa - f) < 1e-6;
+  const OAi = inf ? Infinity : f * OA / (f + OA);
+  const g = inf ? Infinity : OAi / OA;
+  return { OA, OAi, g, yi: g * ab, inf, real: !inf && OAi > 0 };
+}
+// rayon issu de B=(-oa,ab) touchant la lentille en yp : pente émergente
+const slopeOut = (f, oa, ab, yp) => (yp - ab) / oa - yp / f;
+
+/* ---------- outils de dessin ---------- */
+function line(c, x1, y1, x2, y2) { c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); }
+function arrowHead(c, x1, y1, x2, y2, size = 9) {
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  c.beginPath(); c.moveTo(x2, y2);
+  c.lineTo(x2 - size * Math.cos(a - .42), y2 - size * Math.sin(a - .42));
+  c.lineTo(x2 - size * Math.cos(a + .42), y2 - size * Math.sin(a + .42));
+  c.closePath(); c.fill();
+}
+function arrow(c, x1, y1, x2, y2, w = 3, size = 11) {
+  c.lineWidth = w; line(c, x1, y1, x2 - (x2 - x1) * 0.0, y2); arrowHead(c, x1, y1, x2, y2, size);
+}
+// polyligne partielle (fraction t de la longueur) avec flèches de sens
+function path(c, pts, t = 1, arrows = true) {
+  const L = []; let tot = 0;
+  for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(l); tot += l; }
+  let rem = tot * t;
+  c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+  const mids = [];
+  for (let i = 1; i < pts.length && rem > 0; i++) {
+    const p = pts[i - 1], q = pts[i], l = L[i - 1];
+    const u = Math.min(1, rem / l);
+    c.lineTo(p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u);
+    if (u === 1 && l > 60) mids.push([p, q]);
+    rem -= l;
+  }
+  c.stroke();
+  if (arrows) for (const [p, q] of mids) {
+    const ux = (q[0] - p[0]), uy = (q[1] - p[1]), l = Math.hypot(ux, uy);
+    const mx = p[0] + ux * .5, my = p[1] + uy * .5;
+    arrowHead(c, mx - ux / l * 8, my - uy / l * 8, mx + ux / l * 2, my + uy / l * 2, 9);
+  }
+}
+function label(c, txt, x, y, col, align = 'center', base = 'middle', size = 17) {
+  c.font = `600 ${size}px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif`;
+  c.textAlign = align; c.textBaseline = base;
+  c.lineWidth = 4; c.strokeStyle = C.canvas; c.strokeText(txt, x, y);
+  c.fillStyle = col; c.fillText(txt, x, y);
+}
+// clip d'un segment pour éviter des coordonnées énormes
+function far(x0, y0, m, x1) { // depuis (x0,y0) pente m jusqu'à x1 (unités px, pente en px/px)
+  let y1 = y0 + m * (x1 - x0);
+  if (Math.abs(y1) > 5000) { const yl = Math.sign(y1) * 5000; x1 = x0 + (yl - y0) / m; y1 = yl; }
+  return [x1, y1];
+}
+
+/* =========================================================
+   1. CONSTRUCTION
+   ========================================================= */
+const SC = 20, X0 = 430, LH = 6.5; // 20 px par cm ; lentille en X0 ; demi-hauteur 6,5 cm
+const XMIN = -X0 / SC, XMAX = (W - X0) / SC;
+
+function drawConstruction(o, P) {
+  const c = o.c, Y0 = o.h / 2;
+  const X = x => X0 + x * SC, Y = y => Y0 - y * SC;
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  // quadrillage
+  if (P.grid) {
+    c.strokeStyle = C.grid; c.lineWidth = 1;
+    for (let x = Math.ceil(XMIN); x <= XMAX; x++) line(c, X(x), 0, X(x), o.h);
+    for (let y = -Math.floor(Y0 / SC); y <= Y0 / SC; y++) line(c, 0, Y(y), W, Y(y));
+  }
+  const op = optics(P.f, P.oa, P.ab);
+  // rayons
+  const rays = [];
+  if (P.rays[0]) rays.push({ yp: 0, col: C.r1, t: P.frac[0] });
+  if (P.rays[1]) rays.push({ yp: P.ab, col: C.r2, t: P.frac[1] });
+  if (P.rays[2] && Math.abs(P.oa - P.f) > 0.05) rays.push({ yp: -P.ab * P.f / (P.oa - P.f), col: C.r3, t: P.frac[2] });
+  const xEnd = P.screen ? P.xs : XMAX + 1;
+  const ext = rays.some(r => Math.abs(r.yp) > LH);
+  // plan de la lentille prolongé
+  if (ext) { c.setLineDash([5, 6]); c.strokeStyle = C.lens; c.globalAlpha = .45; c.lineWidth = 1.5; line(c, X0, 0, X0, o.h); c.setLineDash([]); c.globalAlpha = 1; }
+  // axe optique
+  c.strokeStyle = C.axis; c.fillStyle = C.axis; c.lineWidth = 1.5;
+  line(c, 8, Y0, W - 14, Y0); arrowHead(c, W - 30, Y0, W - 6, Y0, 10);
+  label(c, 'axe optique', W - 12, Y0 + 16, C.muted, 'right', 'middle', 13);
+  // faisceau
+  const bx = X(-P.oa), by = Y(P.ab);
+  if (P.beam) {
+    c.strokeStyle = C.beam; c.lineWidth = 1.6;
+    for (let i = 0; i <= 12; i++) {
+      const yp = -LH + 2 * LH * i / 12, m = slopeOut(P.f, P.oa, P.ab, yp);
+      const e = far(X0, Y(yp), -m, X(xEnd));
+      path(c, [[bx, by], [X0, Y(yp)], e], 1, false);
+    }
+  }
+  // écran et tache lumineuse
+  if (P.screen) {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i <= 40; i++) { const yp = -LH + 2 * LH * i / 40; const y = yp + slopeOut(P.f, P.oa, P.ab, yp) * P.xs; lo = Math.min(lo, y); hi = Math.max(hi, y); }
+    const sx = X(P.xs);
+    c.fillStyle = C.muted; c.globalAlpha = .55; c.fillRect(sx, Y(9), 7, 18 * SC); c.globalAlpha = 1;
+    const a = clamp(Y(hi), Y(9), Y(-9)), b = clamp(Y(lo), Y(9), Y(-9));
+    c.fillStyle = C.beam; c.globalAlpha = .9; c.fillRect(sx - 3, a, 5, Math.max(2, b - a)); c.globalAlpha = 1;
+    label(c, 'écran', sx + 4, Y(9) - 12, C.muted, 'center', 'middle', 13);
+    P._spot = hi - lo;
+  }
+  // rayons particuliers
+  c.lineWidth = 2.6;
+  for (const r of rays) {
+    const m = slopeOut(P.f, P.oa, P.ab, r.yp);
+    c.strokeStyle = r.col; c.fillStyle = r.col;
+    const e = far(X0, Y(r.yp), -m, X(xEnd));
+    path(c, [[bx, by], [X0, Y(r.yp)], e], r.t);
+    // prolongements (image virtuelle)
+    if (r.t >= 1 && P.showImage && !op.real && !op.inf) {
+      c.setLineDash([6, 6]); c.lineWidth = 1.6; c.globalAlpha = .8;
+      const xb = Math.min(-P.oa, op.OAi) - 2;
+      const e2 = far(X0, Y(r.yp), -m, X(xb));
+      line(c, X0, Y(r.yp), e2[0], e2[1]);
+      c.setLineDash([]); c.lineWidth = 2.6; c.globalAlpha = 1;
+    }
+  }
+  // lentille
+  c.strokeStyle = C.lens; c.fillStyle = C.lens; c.lineWidth = 3.5;
+  line(c, X0, Y(LH) + 4, X0, Y(-LH) - 4);
+  arrowHead(c, X0, Y(LH) + 14, X0, Y(LH) - 2, 14); arrowHead(c, X0, Y(-LH) - 14, X0, Y(-LH) + 2, 14);
+  label(c, 'O', X0 + 12, Y0 + 14, C.text, 'left');
+  // foyers
+  for (const [x, t] of [[-P.f, 'F'], [P.f, "F'"]]) {
+    c.fillStyle = C.lens; c.beginPath(); c.arc(X(x), Y0, 5, 0, 7); c.fill();
+    c.strokeStyle = C.lens; c.lineWidth = 2; line(c, X(x), Y0 - 7, X(x), Y0 + 7);
+    label(c, t, X(x), Y0 + 20, C.lens);
+  }
+  // objet
+  c.strokeStyle = C.obj; c.fillStyle = C.obj;
+  arrow(c, bx, Y0, bx, by, 3.5, 13);
+  label(c, 'A', bx - 4, Y0 + 18, C.obj, 'right');
+  label(c, 'B', bx - 10, by - 4, C.obj, 'right');
+  if (P.handles) { c.globalAlpha = .25; c.beginPath(); c.arc(bx, by, 11, 0, 7); c.fill(); c.beginPath(); c.arc(bx, Y0, 9, 0, 7); c.fill(); c.globalAlpha = 1; }
+  // image
+  if (P.showImage && !op.inf) {
+    const ix = X(op.OAi), iy = Y(op.yi);
+    c.strokeStyle = C.img; c.fillStyle = C.img;
+    if (!op.real) c.setLineDash([7, 5]);
+    arrow(c, ix, Y0, ix, iy, 3.5, 13);
+    c.setLineDash([]);
+    const up = op.yi > 0;
+    label(c, "A'", ix + 6, up ? Y0 + 18 : Y0 - 16, C.img, 'left');
+    label(c, "B'", ix + 10, iy + (up ? -4 : 6), C.img, 'left');
+  }
+  // proposition de l'élève (exercice)
+  if (P.guess) {
+    const [gx, gy] = P.guess; c.strokeStyle = C.accent; c.lineWidth = 3;
+    line(c, X(gx) - 9, Y(gy) - 9, X(gx) + 9, Y(gy) + 9); line(c, X(gx) - 9, Y(gy) + 9, X(gx) + 9, Y(gy) - 9);
+    label(c, 'ta proposition', X(gx) + 12, Y(gy) - 14, C.accent, 'left', 'middle', 13);
+  }
+  return op;
+}
+
+const nom = (s, a) => a ? `<span class="ov">${s}</span>` : s;
+function consPanel(op) {
+  const a = S.alg, f = S.f;
+  const OAs = a ? dec(-S.oa, 1) : dec(S.oa, 1);
+  let OAi = '∞', ABi = '∞', g = '∞';
+  if (!op.inf) {
+    OAi = a ? sig(op.OAi) : sig(Math.abs(op.OAi));
+    ABi = a ? sig(op.yi) : sig(Math.abs(op.yi));
+    g = a ? sig(op.g) : sig(Math.abs(op.g));
+  }
+  let nat;
+  if (op.inf) nat = 'image à l\'infini';
+  else if (op.real) nat = 'réelle, renversée, ' + (Math.abs(op.g) > 1.005 ? 'agrandie' : Math.abs(op.g) < 0.995 ? 'réduite' : 'même taille');
+  else nat = 'virtuelle, droite, agrandie';
+  let h = `<table>
+    <tr><td>Distance focale f'</td><td>${dec(f, 1)} cm</td></tr>
+    <tr><td>${nom('OA', a)}</td><td>${OAs} cm</td></tr>
+    <tr><td>${nom("OA'", a)}</td><td>${OAi} cm</td></tr>
+    <tr><td>${nom('AB', a)}</td><td>${dec(S.ab, 1)} cm</td></tr>
+    <tr><td>${nom("A'B'", a)}</td><td>${ABi} cm</td></tr>
+    <tr><td>γ = ${nom("A'B'", a)} / ${nom('AB', a)} = ${nom("OA'", a)} / ${nom('OA', a)}</td><td>${g}</td></tr>
+  </table><div style="margin-top:4px">Image : <strong>${nat}</strong></div>`;
+  if (S.conj) {
+    const V = 1 / (f / 100);
+    h += `<div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px">
+      Relation de conjugaison : 1/<span class="ov">OA'</span> − 1/<span class="ov">OA</span> = 1/f'<br>`;
+    if (!op.inf) h += `1/(${sig(op.OAi)}) − 1/(${dec(-S.oa, 1)}) = ${sig(1 / op.OAi - 1 / -S.oa)} cm⁻¹<br>`;
+    h += `1/f' = 1/${dec(f, 1)} = ${sig(1 / f)} cm⁻¹ ; vergence C = 1/f' = ${sig(V)} δ (f' en m)</div>`;
+  }
+  $('res-cons').innerHTML = h;
+}
+
+const STEPS = [
+  '<strong>Rayon 1.</strong> Le rayon issu de B qui passe par le centre optique O <strong>n\'est pas dévié</strong>.',
+  '<strong>Rayon 2.</strong> Le rayon issu de B parallèle à l\'axe optique <strong>émerge en passant par le foyer image F\'</strong>.',
+  '<strong>Rayon 3.</strong> Le rayon issu de B qui passe par le foyer objet F <strong>émerge parallèlement à l\'axe optique</strong>.',
+  '<strong>Image.</strong> B\' est à l\'intersection des rayons émergents. A\' est sur l\'axe optique, à la verticale de B\'.'
+];
+function consMsg(op) {
+  if (S.anim) return STEPS[Math.min(3, Math.floor(S.anim.t))];
+  let m;
+  const g = Math.abs(op.g);
+  if (op.inf) m = 'L\'objet est dans le plan du foyer objet F : les rayons émergents sont <strong>parallèles entre eux</strong>, l\'image est rejetée à l\'infini.';
+  else if (op.real) {
+    m = `L'objet est au-delà du foyer objet F : l'image A'B' est <strong>réelle</strong> (on peut la recueillir sur un écran) et <strong>renversée</strong>. `
+      + (g > 1.005 ? `Elle est ${sig(g, 2)} fois plus grande que l'objet.` : g < 0.995 ? `Elle est ${sig(1 / g, 2)} fois plus petite que l'objet.` : 'Elle a la même taille que l\'objet (objet à 2f\' de la lentille).');
+    if (op.OAi > XMAX - 0.5 || Math.abs(op.yi) > 13.5) m += ' Elle se forme en dehors de la figure : éloigne l\'objet.';
+  } else m = 'L\'objet est entre F et O : les rayons émergents <strong>divergent</strong>, il n\'y a pas d\'image réelle. En regardant à travers la lentille, on voit une <strong>image virtuelle</strong>, droite et agrandie (en pointillés) : c\'est le principe de la loupe.';
+  if (S.screen) {
+    if (op.real && Math.abs(S.xs - op.OAi) < 0.15) m += ' <span class="tag ok">Image nette sur l\'écran</span>';
+    else if (op.real) m += ` <span class="tag ko">Tache floue</span> ${S.xs < op.OAi ? 'Éloigne' : 'Rapproche'} l'écran de la lentille.`;
+    else m += ' <span class="tag ko">Aucune image nette sur l\'écran</span>';
+  }
+  return m;
+}
+
+/* =========================================================
+   2. L'ŒIL (œil réduit)
+   ========================================================= */
+const RET = 17, PUP = 2, TAN_E = 0.15, PP = 250, EK = 15, ELX = 470; // mm, px/mm
+const dEye = v => v >= 100 ? Infinity : 100 * Math.pow(200, v / 99);     // 10 cm → 20 m
+const dCam = v => v >= 100 ? Infinity : 300 * Math.pow(100, v / 99);     // 30 cm → 30 m
+const imgPos = (f, d) => isFinite(d) ? 1 / (1 / f - 1 / d) : f;
+const fmtD = d => !isFinite(d) ? 'à l\'infini' : d < 1000 ? sig(d / 10, 2) + ' cm' : sig(d / 1000, 2) + ' m';
+const fMin = 1 / (1 / RET + 1 / PP);
+function eyeTarget() {
+  const d = dEye(S.eye.v);
+  if (!S.eye.auto) return S.eye.fMan;
+  return clamp(isFinite(d) ? 1 / (1 / RET + 1 / d) : RET, fMin, RET);
+}
+function beamThrough(c, Lx, k, Y0, d, tanA, f, yp, stopX, col, xLeft) {
+  // d en mm (peut être infini), rayons dans le repère lentille (mm)
+  const m = isFinite(d) ? yp / d - tanA : -tanA;
+  const yl = yp + m * xLeft;
+  const mo = m - yp / f;
+  const xe = stopX(yp, mo);
+  c.strokeStyle = col; c.fillStyle = col;
+  path(c, [[Lx + xLeft * k, Y0 - yl * k], [Lx, Y0 - yp * k], [Lx + xe * k, Y0 - (yp + mo * xe) * k]], 1, false);
+  return { mo, xe };
+}
+function drawObjectIcon(c, Y0, d, extra) {
+  c.strokeStyle = C.obj; c.fillStyle = C.obj;
+  arrow(c, 40, Y0, 40, Y0 - 120, 3.5, 13);
+  label(c, 'B', 52, Y0 - 120, C.obj, 'left');
+  label(c, 'objet ' + fmtD(d), 20, Y0 + 26, C.obj, 'left', 'middle', 15);
+  label(c, extra, 20, Y0 + 46, C.muted, 'left', 'middle', 12);
+  // axe coupé
+  c.strokeStyle = C.axis; c.lineWidth = 1.5;
+  line(c, 8, Y0, 92, Y0); line(c, 112, Y0, W - 14, Y0);
+  line(c, 90, Y0 + 9, 98, Y0 - 9); line(c, 106, Y0 + 9, 114, Y0 - 9);
+}
+function drawEye(o) {
+  const c = o.c, Y0 = o.h / 2, k = EK, Lx = ELX;
+  const d = dEye(S.eye.v), f = S.eye.fCur;
+  const ecx = Lx + 5.5 * k, R = 11.5 * k;
+  drawObjectIcon(c, Y0, d, 'taille et distance hors échelle');
+  // globe
+  c.fillStyle = C.eye; c.strokeStyle = C['eye-line']; c.lineWidth = 2;
+  c.beginPath(); c.arc(ecx, Y0, R, 0, 7); c.fill(); c.stroke();
+  // cornée
+  c.beginPath(); c.arc(Lx + 1.2 * k, Y0, 7.6 * k, Math.PI - .75, Math.PI + .75); c.stroke();
+  // rétine
+  c.strokeStyle = C.retina; c.lineWidth = 6;
+  c.beginPath(); c.arc(ecx, Y0, R - 3, -.95, .58); c.stroke();
+  label(c, 'rétine', ecx + R + 8, Y0 - R * .75, C.retina, 'left', 'middle', 15);
+  // nerf optique
+  c.strokeStyle = C['eye-line']; c.lineWidth = 2; c.fillStyle = C.eye;
+  const na = .62, nb = .85;
+  c.beginPath(); c.moveTo(ecx + R * Math.cos(na), Y0 + R * Math.sin(na)); c.lineTo(ecx + R * Math.cos(na) + 70, Y0 + R * Math.sin(na) + 28);
+  c.lineTo(ecx + R * Math.cos(nb) + 70, Y0 + R * Math.sin(nb) + 28); c.lineTo(ecx + R * Math.cos(nb), Y0 + R * Math.sin(nb)); c.fill(); c.stroke();
+  label(c, 'nerf optique', ecx + R * Math.cos(nb) + 74, Y0 + R * Math.sin(nb) + 20, C.muted, 'left', 'middle', 13);
+  // rayons (faisceau issu de B)
+  const stop = (yp, mo) => { // intersection avec le globe (repère mm, centre 5,5 ; rayon 11,5 - 0,2)
+    const r = 11.3, A = 1 + mo * mo, B = -11 + 2 * yp * mo, Cc = 30.25 + yp * yp - r * r;
+    return (-B + Math.sqrt(B * B - 4 * A * Cc)) / (2 * A);
+  };
+  c.lineWidth = 1.8;
+  const xi = imgPos(f, d), yi = -xi * TAN_E;
+  let last;
+  for (let i = 0; i <= 8; i++) { const yp = -PUP + 2 * PUP * i / 8; last = beamThrough(c, Lx, k, Y0, d, TAN_E, f, yp, stop, C.beam, -(Lx - 112) / k); }
+  // rayon central (par O) en couleur
+  c.lineWidth = 2.4;
+  beamThrough(c, Lx, k, Y0, d, TAN_E, f, 0, stop, C.r1, -(Lx - 112) / k);
+  // point image
+  const hit = stop(0, -TAN_E);
+  if (xi > hit + 0.05) { // derrière la rétine : pointillés
+    c.setLineDash([4, 5]); c.strokeStyle = C.beam; c.lineWidth = 1.4;
+    for (const yp of [-PUP, PUP]) { const mo = (isFinite(d) ? yp / d - TAN_E : -TAN_E) - yp / f; const xe = stop(yp, mo); line(c, Lx + xe * k, Y0 - (yp + mo * xe) * k, Lx + xi * k, Y0 - yi * k); }
+    c.setLineDash([]);
+  }
+  c.fillStyle = C.img; c.beginPath(); c.arc(Lx + xi * k, Y0 - yi * k, 4.5, 0, 7); c.fill();
+  label(c, "B'", Lx + xi * k + 8, Y0 - yi * k + 14, C.img, 'left', 'middle', 15);
+  // iris
+  c.strokeStyle = C.iris; c.lineWidth = 6;
+  line(c, Lx - 0.8 * k, Y0 - PUP * k - 2, Lx - 0.8 * k, Y0 - 6.2 * k);
+  line(c, Lx - 0.8 * k, Y0 + PUP * k + 2, Lx - 0.8 * k, Y0 + 6.2 * k);
+  label(c, 'iris', Lx - 0.8 * k, Y0 - 6.2 * k - 14, C.iris, 'center', 'middle', 14);
+  // cristallin (plus bombé quand f diminue)
+  const th = 1.1 + (17.5 - f) / 2.5 * 1.4;
+  c.fillStyle = C['lens-fill']; c.strokeStyle = C.lens; c.lineWidth = 2.2;
+  c.beginPath(); c.ellipse(Lx, Y0, th * k, 4.6 * k, 0, 0, 7); c.fill(); c.stroke();
+  label(c, 'cristallin', Lx, Y0 + 4.6 * k + 16, C.lens, 'center', 'middle', 14);
+  return { d, f, xi, spot: 2 * PUP * Math.abs(RET - xi) / xi };
+}
+function eyeInfo(r) {
+  const net = r.spot < 0.015;
+  $('res-eye').innerHTML = `<table>
+    <tr><td>Distance de l'objet</td><td>${fmtD(r.d).replace('à l\'infini', '∞')}</td></tr>
+    <tr><td>Distance focale du cristallin f'</td><td>${sig(r.f)} mm</td></tr>
+    <tr><td>Distance cristallin–rétine (fixe)</td><td>${dec(RET, 1)} mm</td></tr>
+    <tr><td>Image B' à</td><td>${sig(r.xi)} mm</td></tr>
+    <tr><td>Image sur la rétine</td><td>${net ? '<span class="tag ok">nette</span>' : '<span class="tag ko">floue</span>'}</td></tr></table>`;
+  let m;
+  if (S.eye.auto) {
+    if (!isFinite(r.d)) m = 'Objet à l\'infini : l\'œil <strong>n\'accommode pas</strong>. Le cristallin est le moins bombé (f\' = 17,0 mm) et l\'image se forme dans son plan focal, sur la rétine.';
+    else if (r.d >= PP - 0.5) m = `L'œil <strong>accommode</strong> : le cristallin se bombe et sa distance focale diminue (f' = ${sig(r.f)} mm) pour que l'image se forme <strong>sur la rétine</strong>, qui reste à 17,0 mm.`;
+    else m = `L'objet est plus près que le <strong>punctum proximum</strong> (environ 25 cm) : même en accommodant au maximum (f' = ${sig(r.f)} mm), l'image se forme <strong>derrière la rétine</strong>. On voit flou.`;
+  } else {
+    m = net ? 'Avec ce réglage du cristallin, l\'image se forme sur la rétine : elle est nette.'
+      : `L'image se forme <strong>${r.xi < RET ? 'devant' : 'derrière'} la rétine</strong> : on voit une tache floue. ${r.xi < RET ? 'Augmente' : 'Diminue'} la distance focale du cristallin.`;
+  }
+  say(m);
+  return r.spot;
+}
+
+/* =========================================================
+   3. L'APPAREIL PHOTO
+   ========================================================= */
+const FC = 50, CK = 6, SX = 880, TAN_C = 0.12, CMAXH = 12;
+function drawCam(o) {
+  const c = o.c, Y0 = o.h / 2, k = CK;
+  const d = dCam(S.cam.v), s = S.cam.sCur, Lx = SX - s * k, D = Math.min(25, FC / S.cam.N);
+  drawObjectIcon(c, Y0, d, 'taille et distance hors échelle');
+  // boîtier
+  const bx0 = SX - 47 * k;
+  c.fillStyle = C.eye; c.strokeStyle = C['eye-line']; c.lineWidth = 2;
+  c.beginPath(); c.roundRect ? c.roundRect(bx0, Y0 - 27 * k, SX + 30 - bx0, 54 * k, 14) : c.rect(bx0, Y0 - 27 * k, SX + 30 - bx0, 54 * k); c.fill(); c.stroke();
+  // fût de l'objectif
+  c.beginPath(); c.rect(Lx - 4 * k, Y0 - 16 * k, bx0 - (Lx - 4 * k), 32 * k); c.fill(); c.stroke();
+  label(c, 'objectif', Lx - 4 * k, Y0 - 16 * k - 14, C.lens, 'left', 'middle', 14);
+  // capteur
+  c.fillStyle = C.retina; c.fillRect(SX, Y0 - CMAXH * k, 6, 2 * CMAXH * k);
+  label(c, 'capteur', SX + 14, Y0 - CMAXH * k - 12, C.retina, 'left', 'middle', 14);
+  // rayons
+  const xi = imgPos(FC, d), yi = -xi * TAN_C;
+  c.lineWidth = 1.8;
+  for (let i = 0; i <= 8; i++) { const yp = -D / 2 + D * i / 8; beamThrough(c, Lx, k, Y0, d, TAN_C, FC, yp, () => s, C.beam, -(Lx - 112) / k); }
+  c.lineWidth = 2.4; beamThrough(c, Lx, k, Y0, d, TAN_C, FC, 0, () => s, C.r1, -(Lx - 112) / k);
+  if (xi > s + 0.05) {
+    c.setLineDash([4, 5]); c.strokeStyle = C.beam; c.lineWidth = 1.4;
+    for (const yp of [-D / 2, D / 2]) { const mo = (isFinite(d) ? yp / d - TAN_C : -TAN_C) - yp / FC; line(c, Lx + s * k, Y0 - (yp + mo * s) * k, Lx + xi * k, Y0 - yi * k); }
+    c.setLineDash([]);
+  }
+  c.fillStyle = C.img; c.beginPath(); c.arc(Lx + xi * k, Y0 - yi * k, 4.5, 0, 7); c.fill();
+  label(c, "B'", Lx + xi * k + 8, Y0 - yi * k + 14, C.img, 'left', 'middle', 15);
+  // diaphragme
+  c.strokeStyle = C.iris; c.lineWidth = 5;
+  line(c, Lx + 1.6 * k, Y0 - D / 2 * k - 2, Lx + 1.6 * k, Y0 - 15 * k);
+  line(c, Lx + 1.6 * k, Y0 + D / 2 * k + 2, Lx + 1.6 * k, Y0 + 15 * k);
+  label(c, 'diaphragme', Lx + 2 * k, Y0 + 16 * k + 14, C.iris, 'left', 'middle', 14);
+  // lentille
+  c.fillStyle = C['lens-fill']; c.strokeStyle = C.lens; c.lineWidth = 2.2;
+  c.beginPath(); c.ellipse(Lx, Y0, 2 * k, 14 * k, 0, 0, 7); c.fill(); c.stroke();
+  // cote f'
+  return { d, s, xi, D, spot: D * Math.abs(s - xi) / xi };
+}
+function camInfo(r) {
+  const net = r.spot < 0.03;
+  $('res-cam').innerHTML = `<table>
+    <tr><td>Distance de l'objet</td><td>${fmtD(r.d).replace('à l\'infini', '∞')}</td></tr>
+    <tr><td>Distance focale de l'objectif (fixe)</td><td>${dec(FC, 1)} mm</td></tr>
+    <tr><td>Distance objectif–capteur</td><td>${dec(S.cam.s, 1)} mm</td></tr>
+    <tr><td>Image B' à</td><td>${sig(r.xi)} mm</td></tr>
+    <tr><td>Image sur le capteur</td><td>${net ? '<span class="tag ok">nette</span>' : '<span class="tag ko">floue</span>'}</td></tr></table>`;
+  let m;
+  if (net) m = `Image nette sur le capteur. La distance focale de l'objectif ne change pas (50,0 mm) : pour faire la mise au point, on a placé l'objectif à ${dec(S.cam.s, 1)} mm du capteur.`;
+  else if (r.xi > 60) m = 'L\'objet est trop proche : même objectif sorti au maximum, l\'image se forme derrière le capteur.';
+  else m = `L'image se forme <strong>${r.xi < r.s ? 'devant' : 'derrière'} le capteur</strong> : la photo est floue. ${r.xi < r.s ? 'Rapproche' : 'Éloigne'} l'objectif du capteur (ou utilise la mise au point automatique).`;
+  if (!net && S.cam.N >= 11) m += ' Avec le diaphragme fermé, le flou est moins marqué (plus grande profondeur de champ).';
+  say(m);
+  return r.spot;
+}
+
+/* ---------- aperçu « ce que l'on voit » ---------- */
+const scn = document.createElement('canvas'); scn.width = 640; scn.height = 360;
+(function paintScene() {
+  const c = scn.getContext('2d');
+  const g = c.createLinearGradient(0, 0, 0, 360); g.addColorStop(0, '#9fd0f5'); g.addColorStop(1, '#e6f3fc');
+  c.fillStyle = g; c.fillRect(0, 0, 640, 360);
+  c.fillStyle = '#7cbf5a'; c.fillRect(0, 270, 640, 90);
+  c.fillStyle = '#f4d35e'; c.beginPath(); c.arc(560, 70, 34, 0, 7); c.fill();
+  // arbre
+  c.fillStyle = '#7a5230'; c.fillRect(92, 180, 22, 100);
+  c.fillStyle = '#2f8a3c'; c.beginPath(); c.arc(103, 150, 60, 0, 7); c.fill();
+  // maison
+  c.fillStyle = '#f2e6d0'; c.fillRect(440, 180, 130, 100);
+  c.fillStyle = '#c0392b'; c.beginPath(); c.moveTo(425, 185); c.lineTo(505, 120); c.lineTo(585, 185); c.closePath(); c.fill();
+  c.fillStyle = '#4a6fa5'; c.fillRect(462, 205, 30, 30); c.fillRect(520, 205, 30, 30);
+  c.fillStyle = '#6b4226'; c.fillRect(495, 240, 22, 40);
+  // panneau de lettres
+  c.fillStyle = '#ffffff'; c.strokeStyle = '#333'; c.lineWidth = 3; c.fillRect(205, 70, 200, 190); c.strokeRect(205, 70, 200, 190);
+  c.fillStyle = '#111'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.font = '700 64px Georgia,serif'; c.fillText('E', 305, 115);
+  c.font = '700 38px Georgia,serif'; c.fillText('F  P', 305, 172);
+  c.font = '700 24px Georgia,serif'; c.fillText('T O Z', 305, 212);
+  c.font = '700 15px Georgia,serif'; c.fillText('L P E D', 305, 240);
+})();
+const RING = [];
+for (let i = 0; i < 24; i++) { const r = i < 8 ? .35 : i < 16 ? .7 : 1, a = i * 2.39996; RING.push([r * Math.cos(a), r * Math.sin(a)]); }
+function preview(cv, blur) {
+  const w = cv.clientWidth || 320, dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(w * 9 / 16 * dpr); }
+  const c = cv.getContext('2d'), W2 = cv.width, H2 = cv.height, b = blur * W2 / 320;
+  c.globalAlpha = 1; c.drawImage(scn, 0, 0, W2, H2);
+  if (b > 0.4) {
+    let n = 1;
+    for (const [dx, dy] of RING) { n++; c.globalAlpha = 1 / n; c.drawImage(scn, dx * b, dy * b, W2, H2); }
+    c.globalAlpha = 1;
+  }
+}
+
+/* =========================================================
+   Boucle de rendu
+   ========================================================= */
+const msgEl = $('msg');
+let lastMsg = '';
+function say(h) { if (h !== lastMsg) { msgEl.innerHTML = h; lastMsg = h; } }
+const MEMO = {
+  cons: [
+    ['Les trois rayons particuliers', 'Par O : pas dévié. Parallèle à l\'axe : émerge en passant par F\'. Passant par F : émerge parallèle à l\'axe. Deux rayons suffisent pour trouver B\'.'],
+    ['Foyers et distance focale', 'F (foyer objet) et F\' (foyer image) sont symétriques par rapport à O. La distance focale est f\' = OF\' (en m ou en cm).'],
+    ['Grandissement', 'γ = A\'B\' / AB = OA\' / OA. Si γ > 1 (en valeur absolue), l\'image est plus grande que l\'objet. Une image réelle est renversée.']
+  ],
+  eye: [
+    ['Modèle de l\'œil réduit', 'Iris → diaphragme. Cristallin → lentille convergente. Rétine → écran.'],
+    ['Accommodation', 'La distance cristallin–rétine est fixe (environ 17 mm). Pour voir net de près, le cristallin se bombe : sa distance focale diminue.'],
+    ['Limites', 'Un œil normal voit net de l\'infini (punctum remotum) jusqu\'à environ 25 cm (punctum proximum).']
+  ],
+  cam: [
+    ['Œil ↔ appareil photo', 'Iris ↔ diaphragme. Cristallin ↔ objectif. Rétine ↔ capteur.'],
+    ['Mise au point', 'La distance focale de l\'objectif est fixe. Pour un objet plus proche, on éloigne l\'objectif du capteur.'],
+    ['Une différence', 'L\'œil change sa distance focale (accommodation) ; l\'appareil photo change la distance objectif–capteur (mise au point).']
+  ]
+};
+function setMemo() { $('memo').innerHTML = MEMO[S.mode].map(([t, x]) => `<div><h3>${t}</h3>${x}</div>`).join(''); }
+
+let tPrev = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - tPrev) / 1000); tPrev = now;
+  if (S.anim) { S.anim.t += dt * 0.55; dirty = true; if (S.anim.t > 4.4) { S.anim = null; } }
+  // lissage œil / appareil
+  const ft = eyeTarget();
+  if (Math.abs(S.eye.fCur - ft) > 1e-4) { S.eye.fCur += (ft - S.eye.fCur) * Math.min(1, dt * 6); if (Math.abs(S.eye.fCur - ft) < 2e-3) S.eye.fCur = ft; dirty = true; }
+  if (Math.abs(S.cam.sCur - S.cam.s) > 1e-4) { S.cam.sCur += (S.cam.s - S.cam.sCur) * Math.min(1, dt * 7); if (Math.abs(S.cam.sCur - S.cam.s) < 2e-3) S.cam.sCur = S.cam.s; dirty = true; }
+  if (dirty) { dirty = false; render(); }
+  if (exDirty) { exDirty = false; renderEx(); }
+  requestAnimationFrame(frame);
+}
+function render() {
+  begin(main);
+  if (S.mode === 'cons') {
+    const a = S.anim, t = a ? a.t : 9;
+    const P = {
+      f: S.f, oa: S.oa, ab: S.ab, grid: S.grid, screen: S.screen, xs: S.xs, beam: S.beam && !a, handles: true,
+      rays: a ? [true, true, true] : [S.r1, S.r2, S.r3],
+      frac: [clamp(t, 0, 1), clamp(t - 1, 0, 1), clamp(t - 2, 0, 1)],
+      showImage: t >= 3
+    };
+    const op = drawConstruction(main, P);
+    consPanel(op); say(consMsg(op));
+  } else if (S.mode === 'eye') {
+    const r = drawEye(main); const sp = eyeInfo(r); preview($('pv-eye'), Math.min(16, sp * 45));
+  } else {
+    const r = drawCam(main); const sp = camInfo(r); preview($('pv-cam'), Math.min(18, sp * 9));
+  }
+}
+
+/* ---------- contrôles : construction ---------- */
+function syncCons() {
+  $('f').value = S.f; $('oa').value = S.oa; $('ab').value = S.ab;
+  $('f-o').textContent = dec(S.f, 1) + ' cm'; $('oa-o').textContent = dec(S.oa, 1) + ' cm'; $('ab-o').textContent = dec(S.ab, 1) + ' cm';
+  dirty = true;
+}
+$('f').addEventListener('input', e => { S.f = +e.target.value; S.anim = null; syncCons(); });
+$('oa').addEventListener('input', e => { S.oa = +e.target.value; S.anim = null; syncCons(); });
+$('ab').addEventListener('input', e => { S.ab = +e.target.value; S.anim = null; syncCons(); });
+['r1', 'r2', 'r3', 'beam', 'grid', 'screen', 'alg', 'conj'].forEach(id => $(id).addEventListener('change', e => {
+  S[id] = e.target.checked; dirty = true;
+  if (id === 'screen' && S.screen) { const op = optics(S.f, S.oa, S.ab); S.xs = clamp(op.real ? Math.round(op.OAi + 2) : 10, 1, XMAX - 1); }
+  if (id === 'alg') exDirty = true;
+}));
+$('step').addEventListener('click', () => { S.anim = { t: 0 }; dirty = true; });
+
+// glisser-déposer sur la figure
+const mainCv = main.cv;
+mainCv.addEventListener('pointerdown', e => {
+  if (S.mode !== 'cons') return;
+  const [x, y] = ptr(main, e), Y0 = H / 2;
+  const bx = X0 - S.oa * SC, by = Y0 - S.ab * SC;
+  const cand = [];
+  cand.push(['B', Math.hypot(x - bx, y - by)]);
+  if (Math.abs(x - bx) < 14 && y > by && y < Y0 + 14) cand.push(['A', Math.abs(x - bx) + 4]);
+  cand.push(['F', Math.hypot(x - (X0 - S.f * SC), y - Y0)]);
+  cand.push(["F'", Math.hypot(x - (X0 + S.f * SC), y - Y0)]);
+  if (S.screen && Math.abs(x - (X0 + S.xs * SC)) < 16 && Math.abs(y - Y0) < 9 * SC) cand.push(['E', 6]);
+  cand.sort((a, b) => a[1] - b[1]);
+  if (cand[0][1] < 22) { S.drag = cand[0][0]; S.anim = null; mainCv.setPointerCapture(e.pointerId); e.preventDefault(); }
+});
+mainCv.addEventListener('pointermove', e => {
+  const [x, y] = ptr(main, e), Y0 = H / 2;
+  if (!S.drag) {
+    if (S.mode === 'cons') {
+      const bx = X0 - S.oa * SC, by = Y0 - S.ab * SC;
+      const near = Math.hypot(x - bx, y - by) < 22 || (Math.abs(x - bx) < 14 && y > by && y < Y0 + 14) ||
+        Math.hypot(x - (X0 - S.f * SC), y - Y0) < 20 || Math.hypot(x - (X0 + S.f * SC), y - Y0) < 20 ||
+        (S.screen && Math.abs(x - (X0 + S.xs * SC)) < 16 && Math.abs(y - Y0) < 9 * SC);
+      mainCv.style.cursor = near ? 'grab' : 'default';
+    }
+    return;
+  }
+  const wx = (x - X0) / SC, wy = (Y0 - y) / SC, r1 = v => Math.round(v * 10) / 10;
+  if (S.drag === 'B' || S.drag === 'A') S.oa = clamp(r1(-wx), 0.5, 21);
+  if (S.drag === 'B') S.ab = clamp(r1(wy), 0.5, 6);
+  if (S.drag === 'F') S.f = clamp(Math.round(-wx * 2) / 2, 1, 10);
+  if (S.drag === "F'") S.f = clamp(Math.round(wx * 2) / 2, 1, 10);
+  if (S.drag === 'E') {
+    let xs = clamp(r1(wx), 0.5, XMAX - 0.5);
+    const op = optics(S.f, S.oa, S.ab);
+    if (op.real && Math.abs(xs - op.OAi) < 0.35) xs = op.OAi; // aimantation sur l'image nette
+    S.xs = xs;
+  }
+  syncCons();
+});
+const endDrag = () => { S.drag = null; };
+mainCv.addEventListener('pointerup', endDrag); mainCv.addEventListener('pointercancel', endDrag);
+
+/* ---------- contrôles : œil / appareil ---------- */
+function syncEye() {
+  $('de-o').textContent = fmtD(dEye(S.eye.v)).replace('à l\'infini', '∞');
+  $('fe-o').textContent = dec(S.eye.fMan, 2) + ' mm';
+  $('fe').disabled = S.eye.auto; $('fe-row').style.opacity = S.eye.auto ? .45 : 1;
+  dirty = true;
+}
+$('de').addEventListener('input', e => { S.eye.v = +e.target.value; syncEye(); });
+$('acc').addEventListener('change', e => { S.eye.auto = e.target.checked; if (!S.eye.auto) { S.eye.fMan = Math.round(S.eye.fCur * 20) / 20; $('fe').value = S.eye.fMan; } syncEye(); });
+$('fe').addEventListener('input', e => { S.eye.fMan = +e.target.value; syncEye(); });
+function syncCam() {
+  $('dc-o').textContent = fmtD(dCam(S.cam.v)).replace('à l\'infini', '∞');
+  $('sc-o').textContent = dec(S.cam.s, 1) + ' mm'; $('sc-d').value = S.cam.s;
+  dirty = true;
+}
+$('dc').addEventListener('input', e => { S.cam.v = +e.target.value; syncCam(); });
+$('sc-d').addEventListener('input', e => { S.cam.s = +e.target.value; syncCam(); });
+$('nap').addEventListener('change', e => { S.cam.N = +e.target.value; dirty = true; });
+$('af').addEventListener('click', () => { S.cam.s = clamp(Math.round(imgPos(FC, dCam(S.cam.v)) * 10) / 10, 50, 60); syncCam(); });
+
+/* ---------- onglets ---------- */
+document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
+  S.mode = b.dataset.tab; S.anim = null;
+  document.querySelectorAll('[data-tab]').forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
+  document.querySelectorAll('.panel [data-mode]').forEach(p => p.hidden = p.dataset.mode !== S.mode);
+  mainCv.style.cursor = 'default'; lastMsg = ''; setMemo(); dirty = true;
+}));
+
+const scene = $('sc'), fsBtn = $('fs');
+if (!scene.requestFullscreen) fsBtn.hidden = true;
+fsBtn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : scene.requestFullscreen());
+
+/* =========================================================
+   EXERCICES
+   ========================================================= */
+exDirty = true;
+const CONF = [[4, 12], [3, 6], [4, 8], [2, 6], [3, 12], [4, 6], [2, 4], [3, 4.5], [5, 10], [6, 12], [6, 9], [4, 20], [5, 15], [2, 3], [3, 9], [5, 7.5], [4, 16], [6, 18]];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const E1 = { f: 4, oa: 12, ab: 2, guess: null, corr: false, t: 9 };
+function newEx1() {
+  for (let k = 0; k < 50; k++) {
+    const [f, oa] = pick(CONF), ab = pick([1, 1.5, 2, 2.5, 3]);
+    const op = optics(f, oa, ab);
+    if (op.OAi <= XMAX - 1.5 && Math.abs(op.yi) <= HX / 2 / SC - 1 && !(f === E1.f && oa === E1.oa)) { Object.assign(E1, { f, oa, ab }); break; }
+  }
+  E1.guess = null; E1.corr = false; E1.t = 9;
+  $('ex1-txt').innerHTML = `Une lentille convergente a une distance focale f' = ${dec(E1.f, 1)} cm. Un objet AB de hauteur ${dec(E1.ab, 1)} cm est placé perpendiculairement à l'axe optique, à ${dec(E1.oa, 1)} cm de la lentille (1 carreau = 1 cm).`;
+  $('ex1-g').value = ''; $('ex1-fb').className = 'fb'; $('ex1-c').classList.remove('on');
+  exDirty = true;
+}
+function renderEx() {
+  begin(exo);
+  const t = E1.corr ? E1.t : -1;
+  drawConstruction(exo, {
+    f: E1.f, oa: E1.oa, ab: E1.ab, grid: true, screen: false, beam: false, handles: false,
+    rays: [t >= 0, t >= 0, t >= 0], frac: [clamp(t, 0, 1), clamp(t - 1, 0, 1), clamp(t - 2, 0, 1)],
+    showImage: t >= 3, guess: E1.guess
+  });
+}
+exo.cv.addEventListener('pointerdown', e => {
+  const [x, y] = ptr(exo, e);
+  const wx = Math.round((x - X0) / SC * 2) / 2, wy = Math.round((HX / 2 - y) / SC * 2) / 2;
+  E1.guess = [wx, wy]; exDirty = true;
+});
+function fb(id, ok, html) { const el = $(id); el.className = 'fb ' + (ok ? 'ok' : 'ko'); el.innerHTML = html; }
+function checkGamma(val, g) { // renvoie [ok, message]
+  if (isNaN(val)) return [false, 'Écris une valeur numérique pour γ.'];
+  const rel = Math.abs(Math.abs(val) - Math.abs(g)) / Math.abs(g);
+  if (rel > 0.03) return [false, 'La valeur de γ n\'est pas correcte.'];
+  if (S.alg && Math.sign(val) !== Math.sign(g)) return [false, 'La valeur absolue est juste, mais attention au signe : l\'image est renversée, donc γ < 0 en mesures algébriques.'];
+  return [true, 'γ est correct.'];
+}
+$('ex1-check').addEventListener('click', () => {
+  const op = optics(E1.f, E1.oa, E1.ab);
+  const parts = []; let ok = true;
+  if (!E1.guess) { ok = false; parts.push('Clique d\'abord sur la figure pour placer B\'.'); }
+  else {
+    const dd = Math.hypot(E1.guess[0] - op.OAi, E1.guess[1] - op.yi);
+    if (dd <= 0.6) parts.push('B\' est bien placé.');
+    else { ok = false; parts.push('B\' n\'est pas au bon endroit : trace au moins deux rayons particuliers issus de B.'); }
+  }
+  const [gok, gm] = checkGamma(parseNum($('ex1-g').value), S.alg ? op.g : Math.abs(op.g));
+  if (!gok) ok = false; parts.push(gm);
+  fb('ex1-fb', ok, (ok ? 'Bravo ! ' : '') + parts.join(' '));
+});
+$('ex1-corr').addEventListener('click', () => {
+  const op = optics(E1.f, E1.oa, E1.ab), a = S.alg;
+  E1.corr = true; E1.t = 0;
+  const g = a ? op.g : Math.abs(op.g);
+  $('ex1-c').innerHTML = `<b class="t">Correction.</b> On trace deux (ou trois) rayons particuliers issus de B : celui qui passe par O n'est pas dévié ;
+    celui parallèle à l'axe émerge en passant par F' ; celui qui passe par F émerge parallèle à l'axe. Ils se coupent en B'.<br>
+    On lit sur le quadrillage : OA' = ${sig(op.OAi, 2)} cm et A'B' = ${sig(Math.abs(op.yi), 2)} cm (image ${a ? 'renversée' : 'renversée, sous l\'axe'}).<br>
+    γ = ${a ? '<span class="ov">A\'B\'</span> / <span class="ov">AB</span>' : 'A\'B\' / AB'} = ${a ? '(' + sig(op.yi, 2) + ')' : sig(Math.abs(op.yi), 2)} / ${dec(E1.ab, 1)} = <strong>${sig(g, 2)}</strong>
+    (on vérifie : ${a ? '<span class="ov">OA\'</span> / <span class="ov">OA</span>' : 'OA\' / OA'} = ${a ? sig(op.OAi, 2) + ' / (' + dec(-E1.oa, 1) + ')' : sig(op.OAi, 2) + ' / ' + dec(E1.oa, 1)} = ${sig(g, 2)}).`;
+  $('ex1-c').classList.add('on');
+  const run = () => { E1.t += 0.03; exDirty = true; if (E1.t < 3.2) requestAnimationFrame(run); else E1.t = 9; };
+  requestAnimationFrame(run);
+});
+$('ex1-new').addEventListener('click', newEx1);
+
+// Exercice 2 : grandissement par le calcul
+const E2 = {};
+function newEx2() {
+  const type = Math.random() < .5 ? 'taille' : 'dist';
+  if (type === 'taille') {
+    const ab = pick([1.5, 2.0, 2.5, 3.0, 4.0, 5.0]), ctx = pick([['un projecteur', 'sur l\'écran', 1], ['une lentille de TP', 'sur l\'écran', 1], ['un appareil photo', 'sur le capteur', 0]]);
+    let ai;
+    if (ctx[2]) ai = pick([3.0, 4.5, 6.0, 7.5, 9.0, 12, 15]); else ai = pick([0.20, 0.25, 0.40, 0.50]);
+    Object.assign(E2, { type, g: ai / ab });
+    E2.txt = `Avec ${ctx[0]}, un objet AB de hauteur ${dec(ab, 1)} cm donne une image A'B' de hauteur ${ai < 1 ? dec(ai, 2) : sig(ai, 2)} cm ${ctx[1]}. Calcule le grandissement γ (en valeur absolue).`;
+    E2.corr = `γ = A'B' / AB = ${ai < 1 ? dec(ai, 2) : sig(ai, 2)} / ${dec(ab, 1)} = <strong>${sig(E2.g, 2)}</strong>. ${E2.g > 1 ? 'L\'image est plus grande que l\'objet.' : 'L\'image est plus petite que l\'objet.'}`;
+  } else {
+    const [f, oa] = pick(CONF), op = optics(f, oa, 1);
+    Object.assign(E2, { type, g: Math.abs(op.g) });
+    E2.txt = `Un objet est placé à OA = ${dec(oa, 1)} cm d'une lentille convergente. Son image nette se forme sur un écran à OA' = ${sig(op.OAi, 2)} cm de la lentille. Calcule le grandissement γ (en valeur absolue).`;
+    E2.corr = `γ = OA' / OA = ${sig(op.OAi, 2)} / ${dec(oa, 1)} = <strong>${sig(E2.g, 2)}</strong>. ${E2.g > 1.005 ? 'L\'image est plus grande que l\'objet.' : E2.g < 0.995 ? 'L\'image est plus petite que l\'objet.' : 'L\'image a la même taille que l\'objet.'}`;
+  }
+  $('ex2-txt').innerHTML = E2.txt; $('ex2-g').value = ''; $('ex2-fb').className = 'fb'; $('ex2-c').classList.remove('on');
+}
+$('ex2-check').addEventListener('click', () => {
+  const v = parseNum($('ex2-g').value);
+  if (isNaN(v)) return fb('ex2-fb', false, 'Écris une valeur numérique.');
+  const ok = Math.abs(Math.abs(v) - E2.g) / E2.g <= 0.03;
+  fb('ex2-fb', ok, ok ? 'Bravo, γ est correct. Pense à donner 2 chiffres significatifs, comme les données.' : 'Ce n\'est pas la bonne valeur. Rappel : γ = A\'B\' / AB = OA\' / OA.');
+});
+$('ex2-corr').addEventListener('click', () => { $('ex2-c').innerHTML = '<b class="t">Correction.</b> ' + E2.corr; $('ex2-c').classList.add('on'); });
+$('ex2-new').addEventListener('click', newEx2);
+
+// Exercice 3
+$('ex3-check').addEventListener('click', () => {
+  const r = [['m-iris', 'diaphragme'], ['m-crist', 'lentille convergente'], ['m-ret', 'écran']];
+  const good = r.filter(([id, v]) => $(id).value === v).length;
+  fb('ex3-fb', good === 3, good === 3 ? 'Bravo, les trois associations sont justes.' : `${good} association${good > 1 ? 's' : ''} juste${good > 1 ? 's' : ''} sur 3.`);
+});
+$('ex3-corr').addEventListener('click', () => $('ex3-c').classList.add('on'));
+// Exercice 4
+$('ex4-check').addEventListener('click', () => {
+  const a = document.querySelector('input[name=q1]:checked'), b = document.querySelector('input[name=q2]:checked');
+  if (!a || !b) return fb('ex4-fb', false, 'Réponds aux deux questions.');
+  const ok1 = a.value === 'b', ok2 = b.value === 'a';
+  fb('ex4-fb', ok1 && ok2, ok1 && ok2 ? 'Bravo, c\'est juste.' : `a) ${ok1 ? 'juste' : 'faux'} ; b) ${ok2 ? 'juste' : 'faux'}.`);
+});
+$('ex4-corr').addEventListener('click', () => $('ex4-c').classList.add('on'));
+
+/* ---------- démarrage ---------- */
+readTheme(); syncCons(); syncEye(); syncCam(); setMemo(); newEx1(); newEx2();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
