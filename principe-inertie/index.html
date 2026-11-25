@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Principe d'inertie</title>
+<meta name="description" content="Simulation interactive du principe d'inertie et de sa contraposée : palet sur table à frottements réglables, sonde spatiale, passager d'un bus qui freine, puis exercices corrigés (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f7fbf; --accent-soft:#e3f1fb; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --grid:rgba(90,100,120,.16);
+  --fP:#d33b3b; --fR:#1e9a55; --ff:#e0820e; --fF:#8a3fd0; --vel:#1f6fd0; --vel2:#119a8c;
+  --exo-bg:#e4f3fd; --exo-border:#a9d6f5; --exo-card:#ffffff;
+  --corr-bg:#eaf7ee; --corr-border:#3c9a5a; --corr-title:#256b3b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#5fb3ea; --accent-soft:#16283a; --accent-ink:#0b1620;
+    --canvas:#141821; --grid:rgba(190,200,220,.13);
+    --fP:#ff7272; --fR:#4fd18a; --ff:#ffad42; --fF:#c08bff; --vel:#6aa9ff; --vel2:#4fd6c6;
+    --exo-bg:#11263a; --exo-border:#24506f; --exo-card:#16202c;
+    --corr-bg:#13291b; --corr-border:#3f9a5d; --corr-title:#7fd79c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#5fb3ea; --accent-soft:#16283a; --accent-ink:#0b1620;
+  --canvas:#141821; --grid:rgba(190,200,220,.13);
+  --fP:#ff7272; --fR:#4fd18a; --ff:#ffad42; --fF:#c08bff; --vel:#6aa9ff; --vel2:#4fd6c6;
+  --exo-bg:#11263a; --exo-border:#24506f; --exo-card:#16202c;
+  --corr-bg:#13291b; --corr-border:#3f9a5d; --corr-title:#7fd79c;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.tabs button{background:var(--bg);color:var(--text);border-color:var(--border)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/520;border-radius:10px;background:var(--canvas);
+  border:1px solid var(--border);touch-action:none}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:1rem;margin:0 0 .35rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row label{font-weight:600;font-size:.92rem}
+.lbl{font-weight:600;font-size:.92rem;display:flex;justify-content:space-between;gap:8px}
+.lbl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent)}
+.hint{font-size:.82rem;color:var(--muted);margin:.15rem 0 0}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.readout div{border:1px solid var(--border);border-radius:8px;padding:.3rem .5rem;background:var(--bg);font-size:.85rem;color:var(--muted)}
+.readout b{display:block;color:var(--text);font-variant-numeric:tabular-nums;font-size:1rem}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:4.6em}
+.verdict{display:inline-block;font-weight:700;font-size:.85rem;padding:.1rem .5rem;border-radius:999px;margin-right:.3rem;
+  background:var(--surface);border:1px solid var(--border)}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+.vec{position:relative;display:inline-block;font-style:italic;padding-top:.25em;line-height:1}
+.vec::before{content:"";position:absolute;left:5%;right:-5%;top:.05em;border-top:1.5px solid currentColor}
+.vec::after{content:"";position:absolute;right:-8%;top:-.12em;border:.2em solid transparent;border-left:.32em solid currentColor;border-right:0}
+.hide{display:none!important}
+
+/* ---------- Exercices : fond coloré distinct ---------- */
+.exos{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:18px 16px 8px;margin:0 0 22px}
+.exos > h2{margin:0 0 .2rem;font-size:1.35rem}
+.exos > p{margin:0 0 1rem;color:var(--muted)}
+.exo{background:var(--exo-card);border:1px solid var(--exo-border);border-radius:12px;padding:.8rem 1rem;margin:0 0 14px}
+.exo h3{margin:0 0 .4rem;font-size:1.02rem}
+.exo h3 .n{display:inline-grid;place-items:center;width:1.7em;height:1.7em;border-radius:50%;background:var(--accent);
+  color:var(--accent-ink);font-size:.85rem;margin-right:.4rem}
+.exo ol,.exo ul{margin:.3rem 0 .4rem;padding-left:1.4rem}
+.exo p{margin:.35rem 0}
+.exo svg{display:block;max-width:100%;height:auto;margin:.4rem 0}
+details.corr{margin:.5rem 0 .2rem}
+details.corr summary{cursor:pointer;font-weight:700;color:var(--corr-title);display:inline-block;padding:.25rem .6rem;
+  border:1px solid var(--corr-border);border-radius:8px}
+details.corr > div{margin-top:.5rem;background:var(--corr-bg);border:2px solid var(--corr-border);border-radius:10px;padding:.5rem .8rem}
+details.corr > div::before{content:"Correction";display:block;font-weight:800;color:var(--corr-title);margin-bottom:.2rem}
+
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+.scene:fullscreen .memo{display:none}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Le principe d'inertie</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Lance un palet sur une table, puis diminue les frottements jusqu'à zéro (table à coussin d'air) : que devient son mouvement ?
+    Observe les <strong>forces</strong> qui s'exercent sur lui et la <strong>chronophotographie</strong> (positions toutes les 0,1 s).
+    Deux autres situations : une sonde spatiale loin de tout astre et un passager dans un bus qui freine.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation du principe d'inertie">
+    <div class="tabs" role="tablist" aria-label="Situation">
+      <button type="button" role="tab" aria-selected="true" data-mode="table">Palet sur une table</button>
+      <button type="button" role="tab" aria-selected="false" data-mode="sonde">Sonde spatiale</button>
+      <button type="button" role="tab" aria-selected="false" data-mode="bus">Passager d'un bus</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Animation de la situation choisie, avec les vecteurs forces et vitesse"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+
+      <!-- Panneau : palet -->
+      <div class="panel" id="p-table">
+        <div>
+          <div class="lbl"><label for="mu">Frottements de la table</label><output id="mu-out"></output></div>
+          <input id="mu" type="range" min="0" max="0.40" step="0.01" value="0.15">
+          <p class="hint" id="mu-hint"></p>
+        </div>
+        <div>
+          <div class="lbl"><label for="v0">Vitesse au lâcher</label><output id="v0-out"></output></div>
+          <input id="v0" type="range" min="0" max="2.0" step="0.1" value="1.2">
+        </div>
+        <div>
+          <label class="lbl" for="push" style="display:block">Force motrice <span class="vec">F</span> (petit moteur à hélice)</label>
+          <select id="push">
+            <option value="none" selected>Aucune</option>
+            <option value="eq">F = f : elle compense les frottements</option>
+            <option value="gt">F &gt; f : plus grande que les frottements</option>
+          </select>
+        </div>
+        <div class="grid3">
+          <button id="t-go" type="button">Lancer</button>
+          <button id="t-pause" class="ghost" type="button">Pause</button>
+          <button id="t-reset" class="ghost" type="button">Effacer</button>
+        </div>
+        <div class="readout">
+          <div>Vitesse<b id="r-v">0,00 m/s</b></div>
+          <div>Frottements f<b id="r-f">0,00 N</b></div>
+        </div>
+        <div>
+          <label class="check"><input type="checkbox" id="t-forces" checked> Afficher les forces</label>
+          <label class="check"><input type="checkbox" id="t-chrono" checked> Afficher la chronophotographie</label>
+          <label class="check"><input type="checkbox" id="t-slow"> Ralenti (× 0,5)</label>
+        </div>
+      </div>
+
+      <!-- Panneau : sonde -->
+      <div class="panel hide" id="p-sonde">
+        <div>
+          <h2>Sonde dans l'espace</h2>
+          <p class="hint" style="margin:0">Loin de tout astre, aucune force notable ne s'exerce sur la sonde. Allume le moteur ou fais apparaître une planète pour voir ce qui change.</p>
+        </div>
+        <div class="grid2">
+          <button id="s-engine" type="button" aria-pressed="false">Allumer le moteur</button>
+          <button id="s-planet" class="ghost" type="button" aria-pressed="false">Ajouter une planète</button>
+        </div>
+        <button id="s-reset" class="ghost" type="button">Recommencer</button>
+        <div class="readout">
+          <div>Vitesse<b id="r-sv">17,0 km/s</b></div>
+          <div>Forces<b id="r-sf">aucune</b></div>
+        </div>
+        <label class="check"><input type="checkbox" id="s-chrono" checked> Afficher la chronophotographie</label>
+      </div>
+
+      <!-- Panneau : bus -->
+      <div class="panel hide" id="p-bus">
+        <div>
+          <h2>Passager debout dans un bus</h2>
+          <p class="hint" style="margin:0">On néglige les frottements sous les pieds du passager (sol glissant). La caméra suit le bus.</p>
+        </div>
+        <div class="grid2">
+          <button id="b-brake" type="button">Freiner</button>
+          <button id="b-acc" type="button">Accélérer</button>
+        </div>
+        <div>
+          <label class="lbl" for="b-force">Intensité du freinage</label>
+          <select id="b-force">
+            <option value="2">Doux (le bus perd 7 km/h chaque seconde)</option>
+            <option value="5" selected>Brusque (le bus perd 18 km/h chaque seconde)</option>
+          </select>
+        </div>
+        <label class="check"><input type="checkbox" id="b-hold"> Le passager se tient à la barre</label>
+        <button id="b-reset" class="ghost" type="button">Recommencer</button>
+        <div class="readout">
+          <div>Bus / route<b id="r-bv">36 km/h</b></div>
+          <div>Passager / route<b id="r-pv">36 km/h</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="memo">
+      <div><h3>Principe d'inertie</h3>Dans un référentiel terrestre, si les forces qui s'exercent sur un système <strong>se compensent</strong> (ou s'il n'y en a pas), alors le système est <strong>immobile</strong> ou en <strong>mouvement rectiligne uniforme</strong>. Et réciproquement.</div>
+      <div><h3>Contraposée</h3>Si le système n'est <strong>ni immobile, ni en mouvement rectiligne uniforme</strong> (il accélère, ralentit ou tourne), alors les forces qui s'exercent sur lui <strong>ne se compensent pas</strong>.</div>
+      <div><h3>Forces qui se compensent</h3>Leur somme vectorielle est nulle : par exemple deux forces de même direction, de même valeur et de sens opposés, comme le poids <span class="vec">P</span> et la réaction <span class="vec">R</span> d'une table.</div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Modèle simplifié : palet de 200 g, g = 9,81 N/kg, frottements de valeur constante pendant le glissement. Vecteurs forces à l'échelle (1 N ↔ 45 px sur l'animation) ; les vecteurs vitesse sont tracés en bleu.</p>
+  </section>
+
+  <section class="exos" id="exos" aria-labelledby="exos-titre">
+    <h2 id="exos-titre">S'entraîner : exercices d'application directe</h2>
+    <p>Réponds d'abord sur ton cahier, puis ouvre la correction.</p>
+
+    <article class="exo">
+      <h3><span class="n">1</span>Lire une chronophotographie</h3>
+      <p>Voici trois chronophotographies d'un palet, prises dans le référentiel de la table. L'intervalle de temps entre deux positions est toujours le même.</p>
+      <svg viewBox="0 0 640 170" role="img" aria-label="Trois chronophotographies A, B et C">
+        <g font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="currentColor">
+          <text x="4" y="34">A</text><text x="4" y="94">B</text><text x="4" y="154">C</text>
+        </g>
+        <g fill="currentColor">
+          <circle cx="40" cy="28" r="5"/><circle cx="110" cy="28" r="5"/><circle cx="180" cy="28" r="5"/><circle cx="250" cy="28" r="5"/><circle cx="320" cy="28" r="5"/><circle cx="390" cy="28" r="5"/><circle cx="460" cy="28" r="5"/><circle cx="530" cy="28" r="5"/><circle cx="600" cy="28" r="5"/>
+          <circle cx="40" cy="88" r="5"/><circle cx="150" cy="88" r="5"/><circle cx="250" cy="88" r="5"/><circle cx="340" cy="88" r="5"/><circle cx="420" cy="88" r="5"/><circle cx="490" cy="88" r="5"/><circle cx="550" cy="88" r="5"/><circle cx="600" cy="88" r="5"/><circle cx="640" cy="88" r="0"/>
+          <circle cx="40" cy="160" r="5"/><circle cx="108" cy="149" r="5"/><circle cx="174" cy="136" r="5"/><circle cx="238" cy="125" r="5"/><circle cx="305" cy="118" r="5"/><circle cx="373" cy="116" r="5"/><circle cx="440" cy="118" r="5"/><circle cx="506" cy="125" r="5"/><circle cx="570" cy="136" r="5"/>
+        </g>
+      </svg>
+      <ol>
+        <li>Pour chaque enregistrement, donne la nature du mouvement (trajectoire et évolution de la vitesse).</li>
+        <li>Dans quel(s) cas les forces qui s'exercent sur le palet se compensent-elles ? Justifie avec le principe d'inertie ou sa contraposée.</li>
+      </ol>
+      <details class="corr"><summary>Voir la correction</summary><div>
+        <p>1. <strong>A</strong> : points alignés et régulièrement espacés : mouvement <strong>rectiligne uniforme</strong>.<br>
+        <strong>B</strong> : points alignés, de plus en plus rapprochés : mouvement <strong>rectiligne ralenti</strong>.<br>
+        <strong>C</strong> : points régulièrement espacés mais trajectoire courbe : mouvement <strong>curviligne</strong> (uniforme, mais pas rectiligne).</p>
+        <p>2. D'après le principe d'inertie, les forces se compensent seulement dans le cas <strong>A</strong> (mouvement rectiligne uniforme). Dans les cas B et C, le mouvement n'est pas rectiligne uniforme : d'après la contraposée, les forces <strong>ne se compensent pas</strong>. Attention au cas C : la valeur de la vitesse ne change pas, mais sa direction change.</p>
+      </div></details>
+    </article>
+
+    <article class="exo">
+      <h3><span class="n">2</span>Le palet sur la table à coussin d'air</h3>
+      <p>Sur une table à coussin d'air horizontale, un palet glisse sans frottement : de l'air soufflé par de petits trous le soulève légèrement. On le lance puis on le lâche.</p>
+      <ol>
+        <li>Fais l'inventaire des forces qui s'exercent sur le palet après le lâcher.</li>
+        <li>Ces forces se compensent-elles ? Justifie.</li>
+        <li>En déduire la nature du mouvement du palet. Que verrait-on sur la chronophotographie ?</li>
+        <li>On recommence sur une table ordinaire. Le palet ralentit puis s'arrête. Quelle force n'est plus compensée ?</li>
+      </ol>
+      <details class="corr"><summary>Voir la correction</summary><div>
+        <p>1. Le poids <span class="vec">P</span> (vertical, vers le bas, exercé par la Terre) et la force <span class="vec">R</span> exercée par le coussin d'air (verticale, vers le haut).</p>
+        <p>2. Oui : le palet ne s'enfonce pas et ne décolle pas, ces deux forces ont même direction, même valeur et des sens opposés. Leur somme est nulle.</p>
+        <p>3. D'après le principe d'inertie, le palet est en <strong>mouvement rectiligne uniforme</strong> : les positions sont alignées et régulièrement espacées.</p>
+        <p>4. La force de frottement <span class="vec">f</span>, opposée au mouvement, n'est compensée par aucune autre force : le mouvement est ralenti (contraposée du principe d'inertie).</p>
+      </div></details>
+    </article>
+
+    <article class="exo">
+      <h3><span class="n">3</span>La sonde Voyager 1</h3>
+      <p>Lancée en 1977, la sonde Voyager 1 se trouve aujourd'hui à plus de 24 milliards de kilomètres du Soleil. Ses moteurs sont éteints, et elle avance encore à environ 17 km/s.</p>
+      <ol>
+        <li>Si loin de tout astre, que peut-on dire des forces qui s'exercent sur la sonde ?</li>
+        <li>Un élève affirme : « Puisque les moteurs sont éteints, la sonde va finir par s'arrêter. » Est-ce vrai ? Justifie.</li>
+      </ol>
+      <details class="corr"><summary>Voir la correction</summary><div>
+        <p>1. Les forces d'attraction exercées par les astres sont négligeables, et il n'y a pas d'air donc pas de frottements : on peut considérer que les forces se compensent (ou qu'il n'y en a pas).</p>
+        <p>2. Faux. D'après le principe d'inertie, la sonde garde un <strong>mouvement rectiligne uniforme</strong> : aucune force n'est nécessaire pour entretenir un mouvement. Il faudrait une force pour la ralentir.</p>
+      </div></details>
+    </article>
+
+    <article class="exo">
+      <h3><span class="n">4</span>Le parachutiste</h3>
+      <p>Un parachutiste de masse m = 85 kg (équipement compris) descend verticalement, parachute ouvert, à vitesse constante. On prend g = 9,81 N/kg. Il est soumis à son poids <span class="vec">P</span> et à la force <span class="vec">f</span> exercée par l'air.</p>
+      <ol>
+        <li>Quelle est la nature de son mouvement ?</li>
+        <li>Calcule la valeur P de son poids.</li>
+        <li>En utilisant le principe d'inertie, donne les caractéristiques de la force <span class="vec">f</span> (direction, sens, valeur).</li>
+      </ol>
+      <details class="corr"><summary>Voir la correction</summary><div>
+        <p>1. Trajectoire droite et vitesse constante : mouvement <strong>rectiligne uniforme</strong>.</p>
+        <p>2. Expression littérale : P = m × g<br>Application numérique : P = 85 × 9,81<br>Résultat : <strong>P = 8,3 × 10<sup>2</sup> N</strong> (2 chiffres significatifs, comme m).</p>
+        <p>3. Le mouvement est rectiligne uniforme, donc d'après le principe d'inertie les forces se compensent : <span class="vec">f</span> a la même direction que <span class="vec">P</span> (verticale), le sens opposé (vers le haut) et la même valeur : <strong>f = 8,3 × 10<sup>2</sup> N</strong>.</p>
+      </div></details>
+    </article>
+
+    <article class="exo">
+      <h3><span class="n">5</span>Le bus qui freine</h3>
+      <p>Un passager se tient debout, sans se tenir, dans un bus qui roule en ligne droite à vitesse constante. Le bus freine brusquement et le passager « part » vers l'avant du bus.</p>
+      <ol>
+        <li>Avant le freinage, quel est le mouvement du passager dans le référentiel terrestre ? Les forces qui s'exercent sur lui se compensent-elles ?</li>
+        <li>Une force pousse-t-elle le passager vers l'avant pendant le freinage ? Explique ce qu'il se passe dans le référentiel terrestre.</li>
+        <li>Pourquoi est-il conseillé de se tenir à une barre ?</li>
+      </ol>
+      <details class="corr"><summary>Voir la correction</summary><div>
+        <p>1. Il est en mouvement rectiligne uniforme (comme le bus) : d'après le principe d'inertie, les forces qui s'exercent sur lui (poids et réaction du sol du bus) se compensent.</p>
+        <p>2. Non, aucune force ne le pousse vers l'avant. Dans le référentiel terrestre, le passager <strong>continue en mouvement rectiligne uniforme</strong> (principe d'inertie) alors que le bus ralentit : il avance donc par rapport au bus.</p>
+        <p>3. La barre exerce sur le passager une force vers l'arrière, qui n'est pas compensée : d'après la contraposée, son mouvement n'est plus uniforme, il ralentit en même temps que le bus.</p>
+      </div></details>
+    </article>
+
+    <article class="exo">
+      <h3><span class="n">6</span>Vrai ou faux ?</h3>
+      <ol>
+        <li>Un objet immobile n'est soumis à aucune force.</li>
+        <li>Si un objet est en mouvement, c'est qu'une force le pousse dans le sens du mouvement.</li>
+        <li>Une pierre de curling ralentit sur la glace : les forces qui s'exercent sur elle ne se compensent pas.</li>
+        <li>Une voiture prend un virage à vitesse constante (60 km/h) : les forces qui s'exercent sur elle se compensent.</li>
+      </ol>
+      <details class="corr"><summary>Voir la correction</summary><div>
+        <ol>
+          <li><strong>Faux</strong> : il peut être soumis à des forces qui se compensent (un livre posé sur une table : poids et réaction de la table).</li>
+          <li><strong>Faux</strong> : un objet peut être en mouvement rectiligne uniforme si les forces se compensent, sans aucune force « motrice » (palet sur coussin d'air, sonde spatiale).</li>
+          <li><strong>Vrai</strong> : son mouvement est ralenti, donc d'après la contraposée les forces ne se compensent pas (les frottements ne sont pas compensés).</li>
+          <li><strong>Faux</strong> : la trajectoire n'est pas rectiligne, donc le mouvement n'est pas rectiligne uniforme ; d'après la contraposée, les forces ne se compensent pas.</li>
+        </ol>
+      </div></details>
+    </article>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Mouvement et interactions · Seconde</span></footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const fmt = (x, d = 2) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const V = s => `<span class="vec">${s}</span>`;
+
+/* ---------- thème ---------- */
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = { canvas: g('--canvas'), grid: g('--grid'), text: g('--text'), muted: g('--muted'), border: g('--border'),
+        accent: g('--accent'), P: g('--fP'), R: g('--fR'), f: g('--ff'), F: g('--fF'), vel: g('--vel'), vel2: g('--vel2'),
+        surface: g('--surface'), bg: g('--bg') };
+  C.dark = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light'
+           || document.documentElement.dataset.theme === 'dark';
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+
+/* ---------- canvas ---------- */
+const W = 900, H = 520;
+const cv = $('cv'), ctx = cv.getContext('2d');
+let dpr = 1, scale = 1;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(cv); resize();
+
+function arrow(x0, y0, x1, y1, col, w = 3) {
+  const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+  if (L < 1.5) return;
+  const ux = dx / L, uy = dy / L, hl = Math.min(12, L * .6), hw = hl * .55;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - ux * hl * .8, y1 - uy * hl * .8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - ux * hl - uy * hw, y1 - uy * hl + ux * hw);
+  ctx.lineTo(x1 - ux * hl + uy * hw, y1 - uy * hl - ux * hw); ctx.closePath(); ctx.fill();
+}
+function vlabel(s, x, y, col, size = 17) {
+  ctx.font = `italic 700 ${size}px system-ui,sans-serif`; ctx.fillStyle = col; ctx.strokeStyle = col;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(s, x, y);
+  const w = ctx.measureText(s).width, yy = y - size * .9;
+  ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - w / 2, yy); ctx.lineTo(x + w / 2 + 2, yy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + w / 2 + 4, yy); ctx.lineTo(x + w / 2 - 1, yy - 3); ctx.lineTo(x + w / 2 - 1, yy + 3); ctx.closePath(); ctx.fill();
+}
+function text(s, x, y, col, size = 14, align = 'left', weight = 600) {
+  ctx.font = `${weight} ${size}px system-ui,sans-serif`; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.fillText(s, x, y);
+}
+function rrect(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+/* ---------- messages ---------- */
+const msg = $('msg'); let lastMsg = '';
+function say(html) { if (html !== lastMsg) { msg.innerHTML = html; lastMsg = html; } }
+const tag = s => `<span class="verdict">${s}</span>`;
+
+let mode = 'table';
+
+/* =====================================================================
+   1. PALET SUR UNE TABLE
+   ===================================================================== */
+const M = 0.200, G = 9.81, P = M * G, FS = 45;      // FS : px par newton
+const X0 = 60, X1 = 840, LEN = 2.4, PPM = (X1 - X0) / LEN; // px par mètre
+const TY = 215, PUCK_R = 0.10, PUCK_H = 24, TAU_C = 0.1, XSTART = 0.15, XEND = LEN - 0.12;
+const T = { x: XSTART, v: 0, a: 0, f: 0, F: 0, t: 0, run: false, paused: false, chrono: [], gv: [], nextC: 0,
+            end: '', everMoved: false, slowed: false, airPh: 0 };
+const surf = mu => mu === 0 ? ['Table à coussin d\'air', 'frottements nuls'] : mu <= 0.04 ? ['Glace', 'très peu de frottements'] :
+  mu <= 0.12 ? ['Table très lisse', 'peu de frottements'] : mu <= 0.25 ? ['Table en bois', 'frottements moyens'] : ['Moquette', 'beaucoup de frottements'];
+const mu = () => +$('mu').value;
+function tableForces() {
+  const m = mu(), fk = m * P, push = $('push').value;
+  let F = 0;
+  if (push === 'eq') F = fk; else if (push === 'gt') F = fk + 0.30;
+  return { fk, F };
+}
+function tReset(keepV) {
+  T.x = XSTART; T.v = keepV ? +$('v0').value : 0; T.t = 0; T.chrono = []; T.gv = []; T.nextC = 0; T.end = '';
+  T.everMoved = T.v > 0; T.slowed = false; T.paused = false; $('t-pause').textContent = 'Pause';
+}
+function tStep(dt) {
+  const { fk, F } = tableForces();
+  if (!T.run || T.paused) { T.F = T.v > 0 || T.run ? F : 0; return; }
+  T.airPh += dt;
+  if (T.v > 1e-9) {
+    T.f = fk; T.F = F; T.a = (F - fk) / M;
+    let nv = T.v + T.a * dt;
+    if (nv <= 0) { nv = 0; T.a = 0; T.slowed = true; }
+    T.x += (T.v + nv) / 2 * dt; T.v = nv;
+    if (T.a < -1e-9) T.slowed = true;
+  } else {
+    T.F = F;
+    if (F > fk + 1e-9) { T.f = fk; T.a = (F - fk) / M; T.v += T.a * dt; T.x += T.v * dt / 2; T.everMoved = true; }
+    else { T.f = F; T.a = 0; T.v = 0; }   // frottement statique : compense F
+  }
+  T.t += dt;
+  while (T.t >= T.nextC - 1e-9) { T.chrono.push(T.x); T.gv.push([T.nextC, T.v]); T.nextC += TAU_C; }
+  if (T.x >= XEND) { T.x = XEND; T.end = 'bord'; T.run = false; T.gv.push([T.t, T.v]); }
+  else if (T.v === 0 && T.a === 0 && T.everMoved && T.t > 0.05) { T.end = 'arret'; T.run = false; T.gv.push([T.t, 0]); }
+  else if (T.v === 0 && T.a === 0 && T.t > 2.5) { T.end = 'repos'; T.run = false; }
+  if (T.t > 30) T.run = false;
+}
+function tMessage() {
+  const [nom] = surf(mu()), push = $('push').value;
+  const moving = T.v > 1e-9;
+  const pr = `le poids ${V('P')} et la réaction ${V('R')} de la table`;
+  if (!T.run && !T.end && T.t === 0) {
+    say(`Règle les frottements et la vitesse au lâcher, puis clique sur <strong>Lancer</strong>. Le palet est d'abord immobile : ${pr} se compensent.`);
+    return;
+  }
+  if (T.end === 'bord') {
+    say(`${tag('Fin de la table')} Le palet atteint le bord de la table à ${fmt(T.v)} m/s.` +
+      (Math.abs(T.a) < 1e-9 ? ` Pendant tout le trajet, les points de la chronophotographie sont <strong>régulièrement espacés</strong> : mouvement rectiligne uniforme, les forces se compensaient.`
+       : T.a > 0 ? ` Les points sont de plus en plus espacés : il a accéléré, les forces ne se compensaient pas.` : ` Les points se rapprochent : il a ralenti, les forces ne se compensaient pas.`));
+    return;
+  }
+  if (T.end === 'arret') {
+    say(`${tag('Arrêt')} Le palet s'est arrêté au bout de ${fmt(T.t, 1)} s : les frottements ${V('f')} n'étaient pas compensés, ils l'ont ralenti jusqu'à l'arrêt. ` +
+      `Maintenant immobile, les forces se compensent à nouveau. Essaie avec moins de frottements… et avec <strong>0</strong> !`);
+    return;
+  }
+  if (!moving) {
+    say(`${tag('Immobile')} Le palet reste immobile : ${pr} se compensent` + (push !== 'none' && T.F > 0 ? `, et la force motrice ${V('F')} est compensée par les frottements de la table.` : '.') +
+      ` Principe d'inertie : forces qui se compensent ⇒ immobile ou mouvement rectiligne uniforme.`);
+    return;
+  }
+  if (Math.abs(T.a) < 1e-9) {
+    if (mu() === 0 && push === 'none')
+      say(`${tag('Rectiligne uniforme')} ${nom} : pas de frottements. Seuls ${pr} agissent, et ils se compensent. Rien ne ralentit le palet : il garde la <strong>même vitesse en ligne droite</strong>, sans moteur. Les points de la chronophotographie sont alignés et régulièrement espacés.`);
+    else
+      say(`${tag('Rectiligne uniforme')} La force motrice ${V('F')} a la même valeur que les frottements ${V('f')} et un sens opposé : toutes les forces se compensent, donc la vitesse reste constante (${fmt(T.v)} m/s).`);
+    return;
+  }
+  if (T.a < 0)
+    say(`${tag('Rectiligne ralenti')} Les frottements ${V('f')}, opposés au mouvement, ne sont compensés par aucune force (${V('P')} et ${V('R')} se compensent entre elles). ` +
+      `Le palet ralentit : les points se rapprochent. Contraposée : le mouvement n'est pas uniforme, donc les forces ne se compensent pas.`);
+  else
+    say(`${tag('Rectiligne accéléré')} La force motrice ${V('F')} est plus grande que les frottements ${V('f')} : les forces ne se compensent pas, la vitesse augmente et les points s'écartent de plus en plus.`);
+}
+function drawTable() {
+  const m = mu(), [nom, desc] = surf(m);
+  // sol / table
+  const tableCol = m === 0 ? (C.dark ? '#2b3a4c' : '#cfe0ee') : m <= 0.04 ? (C.dark ? '#2c4656' : '#dff3fb') :
+    m <= 0.12 ? (C.dark ? '#3a3f4a' : '#e3e6ec') : m <= 0.25 ? (C.dark ? '#5a4230' : '#d8b48a') : (C.dark ? '#4b2f3a' : '#b9848f');
+  ctx.fillStyle = tableCol; ctx.fillRect(X0 - 30, TY, X1 - X0 + 60, 22);
+  ctx.fillStyle = C.dark ? 'rgba(0,0,0,.35)' : 'rgba(0,0,0,.12)'; ctx.fillRect(X0 - 30, TY + 22, X1 - X0 + 60, 6);
+  ctx.strokeStyle = C.border; ctx.lineWidth = 1; ctx.strokeRect(X0 - 30, TY, X1 - X0 + 60, 22);
+  if (m === 0) { // trous du coussin d'air
+    ctx.fillStyle = C.dark ? '#7da2c0' : '#7c9bb5';
+    for (let x = X0 - 20; x < X1 + 30; x += 18) { ctx.beginPath(); ctx.arc(x, TY + 3, 1.6, 0, TAU); ctx.fill(); }
+  }
+  // butée
+  ctx.fillStyle = C.muted; ctx.fillRect(X1 + 22, TY - 34, 8, 34);
+  // graduations (0,1 m)
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+  for (let i = 0; i <= LEN * 10 + 1e-6; i++) {
+    const x = X0 + i / 10 * PPM, big = i % 5 === 0;
+    ctx.beginPath(); ctx.moveTo(x, TY + 28); ctx.lineTo(x, TY + 28 + (big ? 10 : 5)); ctx.stroke();
+    if (big) text(fmt(i / 10, 1) + ' m', x, TY + 48, C.muted, 11, 'center', 500);
+  }
+  text(`${nom} — ${desc}`, X0 - 28, 24, C.text, 15, 'left', 700);
+  text('Référentiel : la table (terrestre)', X0 - 28, 44, C.muted, 12, 'left', 500);
+
+  // chronophotographie
+  const px = X0 + (T.x - 0) * PPM, rad = PUCK_R * PPM;
+  if ($('t-chrono').checked && T.chrono.length) {
+    ctx.fillStyle = C.accent; ctx.strokeStyle = C.accent;
+    for (let i = 0; i < T.chrono.length; i++) {
+      const cx = X0 + T.chrono[i] * PPM;
+      ctx.globalAlpha = .9; ctx.beginPath(); ctx.arc(cx, 80, 3.6, 0, TAU); ctx.fill();
+      ctx.globalAlpha = .25; ctx.beginPath(); ctx.ellipse(cx, TY - PUCK_H / 2, rad, PUCK_H / 2, 0, 0, TAU); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    text('Chronophotographie : une position toutes les 0,1 s', X1 + 26, 62, C.muted, 12, 'right', 500);
+  }
+  // air sous le palet
+  if (m === 0) {
+    ctx.strokeStyle = C.dark ? 'rgba(160,200,240,.5)' : 'rgba(70,120,170,.45)'; ctx.lineWidth = 1.2;
+    for (let k = -3; k <= 3; k++) {
+      const ox = px + k * rad / 3.4, ph = (T.airPh * 6 + k * .7) % 1;
+      ctx.beginPath(); ctx.moveTo(ox, TY - 1); ctx.lineTo(ox + (ph - .5) * 3, TY - 3 - ph * 3); ctx.stroke();
+    }
+  }
+  // palet (cylindre vu de côté, légère perspective)
+  const top = TY - PUCK_H - 2, ry = 6;
+  ctx.fillStyle = C.dark ? '#c9364a' : '#d43c52';
+  ctx.beginPath(); ctx.moveTo(px - rad, top); ctx.lineTo(px - rad, top + PUCK_H);
+  ctx.ellipse(px, top + PUCK_H, rad, ry, 0, Math.PI, 0, true); ctx.lineTo(px + rad, top); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = C.dark ? '#ec6a7b' : '#ef6d80';
+  ctx.beginPath(); ctx.ellipse(px, top, rad, ry, 0, 0, TAU); ctx.fill();
+  const push = $('push').value;
+  if (push !== 'none') { // petit moteur à hélice
+    ctx.fillStyle = C.muted; ctx.fillRect(px - 6, top - 22, 12, 18);
+    ctx.fillRect(px - 16, top - 18, 10, 6);
+    const ph = (T.airPh * 30) % TAU;
+    ctx.strokeStyle = C.text; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(px - 18, top - 15 - 9 * Math.cos(ph)); ctx.lineTo(px - 18, top - 15 + 9 * Math.cos(ph)); ctx.stroke();
+  }
+  // forces
+  const cy = top + PUCK_H / 2;
+  if ($('t-forces').checked) {
+    const L = P * FS;
+    arrow(px + 4, cy, px + 4, cy + L, C.P); vlabel('P', px + 22, cy + L - 4, C.P);
+    arrow(px - 4, cy, px - 4, cy - L, C.R); vlabel('R', px - 22, cy - L + 14, C.R);
+    const moving = T.v > 1e-9;
+    if (T.f > 1e-9 && (moving || T.F > 0)) { arrow(px - rad, TY - 4, px - rad - T.f * FS, TY - 4, C.f); vlabel('f', px - rad - T.f * FS - 12, TY - 10, C.f); }
+    if (T.F > 1e-9) { arrow(px + rad, cy - 4, px + rad + T.F * FS, cy - 4, C.F); vlabel('F', px + rad + T.F * FS + 12, cy - 10, C.F); }
+  }
+  // vecteur vitesse
+  if (T.v > 1e-3) { arrow(px + 8, 100, px + 8 + T.v * 45, 100, C.vel, 2.5); vlabel('v', px + 8 + T.v * 45 + 12, 106, C.vel, 15); }
+
+  // graphe v(t)
+  const gx = 90, gy = 318, gw = 760, gh = 165;
+  const tmax = Math.max(4, Math.ceil((T.t + 0.2) / 2) * 2), vmax = 3;
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+  for (let i = 0; i <= tmax; i += (tmax > 10 ? 2 : 1)) { const x = gx + i / tmax * gw; ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy + gh); ctx.stroke();
+    text(String(i), x, gy + gh + 12, C.muted, 11, 'center', 500); }
+  for (let v = 0; v <= vmax + 1e-6; v += 0.5) { const y = gy + gh - v / vmax * gh; ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke();
+    if (v % 1 === 0) text(fmt(v, 0), gx - 8, y, C.muted, 11, 'right', 500); }
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(gx, gy - 4); ctx.lineTo(gx, gy + gh); ctx.lineTo(gx + gw + 6, gy + gh); ctx.stroke();
+  text('v (m/s)', gx - 8, gy - 12, C.muted, 12, 'left', 600);
+  text('t (s)', gx + gw + 4, gy + gh + 12, C.muted, 12, 'right', 600);
+  if (T.gv.length) {
+    ctx.strokeStyle = C.vel; ctx.lineWidth = 2.5; ctx.beginPath();
+    T.gv.forEach(([t, v], i) => { const x = gx + t / tmax * gw, y = gy + gh - v / vmax * gh; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    if (T.run) ctx.lineTo(gx + T.t / tmax * gw, gy + gh - T.v / vmax * gh);
+    ctx.stroke();
+  }
+  text('Vitesse du palet en fonction du temps', gx + gw, gy - 12, C.muted, 12, 'right', 500);
+}
+function tUI() {
+  const m = mu(), [nom, desc] = surf(m);
+  $('mu-out').textContent = m === 0 ? 'nuls' : fmt(m * P, 2) + ' N';
+  $('mu-hint').textContent = `${nom} : ${desc}.` + (m === 0 ? ' L\'air soulève le palet.' : '');
+  $('v0-out').textContent = fmt(+$('v0').value, 1) + ' m/s';
+  $('r-v').textContent = fmt(T.v) + ' m/s';
+  $('r-f').textContent = fmt(T.v > 1e-9 || T.F > 0 ? T.f : 0) + ' N';
+}
+$('t-go').addEventListener('click', () => { tReset(true); T.run = true; });
+$('t-pause').addEventListener('click', () => { if (!T.run) return; T.paused = !T.paused; $('t-pause').textContent = T.paused ? 'Reprendre' : 'Pause'; });
+$('t-reset').addEventListener('click', () => { T.run = false; tReset(false); T.f = 0; T.F = 0; T.a = 0; });
+['mu', 'v0', 'push'].forEach(id => $(id).addEventListener('input', tUI));
+$('push').addEventListener('change', () => { if (T.run) { /* le changement agit en direct */ } });
+
+/* =====================================================================
+   2. SONDE SPATIALE
+   ===================================================================== */
+const SV0 = 90, KMS = 17 / SV0;
+const stars = Array.from({ length: 140 }, () => [Math.random() * W, Math.random() * H, Math.random() * 1.4 + .3, Math.random()]);
+const S = { x: 70, y: 170, vx: SV0, vy: 0, engine: false, planet: false, trail: [], nextC: 0, t: 0, crash: 0, wrapped: false, gx: 0, gy: 0 };
+const PL = { x: 600, y: 420, r: 55, GM: 2.2e6 };
+function sReset() { Object.assign(S, { x: 70, y: 170, vx: SV0, vy: 0, trail: [], nextC: 0, t: 0, crash: 0, wrapped: false }); }
+function sStep(dt) {
+  S.t += dt;
+  if (S.crash > 0) { S.crash -= dt; if (S.crash <= 0) sReset(); return; }
+  let ax = 0, ay = 0; S.gx = S.gy = 0;
+  const sp = Math.hypot(S.vx, S.vy) || 1;
+  if (S.engine) { ax += 55 * S.vx / sp; ay += 55 * S.vy / sp; }
+  if (S.planet) {
+    const dx = PL.x - S.x, dy = PL.y - S.y, r = Math.hypot(dx, dy), g = PL.GM / (r * r);
+    S.gx = g * dx / r; S.gy = g * dy / r; ax += S.gx; ay += S.gy;
+    if (r < PL.r + 6) { S.crash = 1.6; return; }
+  }
+  S.vx += ax * dt; S.vy += ay * dt;
+  const sp2 = Math.hypot(S.vx, S.vy); if (sp2 > 420) { S.vx *= 420 / sp2; S.vy *= 420 / sp2; }
+  S.x += S.vx * dt; S.y += S.vy * dt;
+  while (S.t >= S.nextC) { S.trail.push([S.x, S.y]); if (S.trail.length > 60) S.trail.shift(); S.nextC += 0.4; }
+  if (S.x > W + 30 || S.x < -30 || S.y < -30 || S.y > H + 30) {
+    const s = clamp(Math.hypot(S.vx, S.vy), 50, 250);
+    Object.assign(S, { x: -10, y: 170, vx: s, vy: 0, trail: [], wrapped: true });
+  }
+}
+function sMessage() {
+  if (S.crash > 0) { say(`${tag('Collision')} L'attraction de la planète a tellement courbé la trajectoire que la sonde s'est écrasée. On recommence…`); return; }
+  if (!S.engine && !S.planet)
+    say(`${tag('Rectiligne uniforme')} Loin de tout astre et sans air, les forces sur la sonde sont négligeables. Moteur éteint, elle garde <strong>la même vitesse en ligne droite</strong> : c'est le principe d'inertie. ` +
+      `Les sondes Voyager, lancées en 1977, avancent ainsi depuis des dizaines d'années sans moteur.`);
+  else if (S.engine && !S.planet)
+    say(`${tag('Rectiligne accéléré')} Le moteur exerce une force de poussée ${V('F')} qui n'est pas compensée : la vitesse augmente (les points s'écartent). Éteins le moteur : la sonde garde la vitesse atteinte.`);
+  else
+    say(`${tag('Trajectoire courbe')} La planète attire la sonde (force ${V('F')}<sub>planète</sub>). Cette force n'est pas compensée : la <strong>direction</strong> de la vitesse change, la trajectoire n'est plus rectiligne. Contraposée du principe d'inertie.`);
+}
+function drawSonde() {
+  ctx.fillStyle = '#070b18'; ctx.fillRect(0, 0, W, H);
+  for (const [x, y, r, tw] of stars) { ctx.globalAlpha = .45 + .45 * Math.sin(S.t * 1.5 + tw * 9) ** 2; ctx.fillStyle = '#dfe8ff'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (S.planet) {
+    const g = ctx.createRadialGradient(PL.x - 18, PL.y - 20, 8, PL.x, PL.y, PL.r);
+    g.addColorStop(0, '#f3c27a'); g.addColorStop(1, '#a5612a');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(PL.x, PL.y, PL.r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(243,194,122,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(PL.x, PL.y, PL.r * 1.7, PL.r * .35, -.25, 0, TAU); ctx.stroke();
+  }
+  if ($('s-chrono').checked) {
+    ctx.fillStyle = '#7fc4ff';
+    for (const [x, y] of S.trail) { ctx.beginPath(); ctx.arc(x, y, 3, 0, TAU); ctx.fill(); }
+  }
+  if (S.crash > 0) {
+    const k = 1.6 - S.crash;
+    ctx.fillStyle = `rgba(255,170,60,${Math.max(0, 1 - k)})`; ctx.beginPath(); ctx.arc(S.x, S.y, 10 + k * 40, 0, TAU); ctx.fill();
+    return;
+  }
+  const ang = Math.atan2(S.vy, S.vx);
+  ctx.save(); ctx.translate(S.x, S.y); ctx.rotate(ang);
+  if (S.engine) { const fl = 18 + Math.random() * 8; ctx.fillStyle = '#ffb347'; ctx.beginPath(); ctx.moveTo(-14, -5); ctx.lineTo(-14 - fl, 0); ctx.lineTo(-14, 5); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = '#c9ced8'; ctx.fillRect(-14, -7, 22, 14);
+  ctx.strokeStyle = '#e9edf4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-4, -7); ctx.lineTo(-10, -28); ctx.moveTo(-4, 7); ctx.lineTo(-14, 20); ctx.stroke();
+  ctx.fillStyle = '#f2f4f8'; ctx.beginPath(); ctx.ellipse(14, 0, 6, 20, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#9aa3b4'; ctx.beginPath(); ctx.ellipse(13, 0, 3, 14, 0, 0, TAU); ctx.fill();
+  ctx.restore();
+  const sp = Math.hypot(S.vx, S.vy);
+  arrow(S.x, S.y - 34, S.x + S.vx * .45, S.y - 34 + S.vy * .45, '#6aa9ff', 2.5); vlabel('v', S.x + S.vx * .45 + 10, S.y - 38 + S.vy * .45, '#6aa9ff', 15);
+  if (S.engine) { arrow(S.x, S.y, S.x + S.vx / sp * 70, S.y + S.vy / sp * 70, '#c08bff'); vlabel('F', S.x + S.vx / sp * 70 + 4, S.y + S.vy / sp * 70 + 22, '#c08bff'); }
+  if (S.planet) { const gl = Math.hypot(S.gx, S.gy), k = clamp(gl * 1.4, 0, 110) / (gl || 1);
+    arrow(S.x, S.y, S.x + S.gx * k, S.y + S.gy * k, '#ffad42'); vlabel('F', S.x + S.gx * k + 14, S.y + S.gy * k + 4, '#ffad42'); }
+  text('Référentiel : lié aux étoiles lointaines', 16, 22, '#aab6cc', 12, 'left', 500);
+  if ($('s-chrono').checked) text('Une position toutes les 0,4 s', W - 16, 22, '#aab6cc', 12, 'right', 500);
+}
+function sUI() {
+  $('r-sv').textContent = fmt(Math.hypot(S.vx, S.vy) * KMS, 1) + ' km/s';
+  $('r-sf').textContent = S.engine && S.planet ? 'moteur + planète' : S.engine ? 'poussée du moteur' : S.planet ? 'attraction' : 'négligeables';
+}
+$('s-engine').addEventListener('click', e => { S.engine = !S.engine; e.currentTarget.setAttribute('aria-pressed', S.engine);
+  e.currentTarget.textContent = S.engine ? 'Éteindre le moteur' : 'Allumer le moteur'; });
+$('s-planet').addEventListener('click', e => { S.planet = !S.planet; e.currentTarget.setAttribute('aria-pressed', S.planet);
+  e.currentTarget.textContent = S.planet ? 'Retirer la planète' : 'Ajouter une planète'; });
+$('s-reset').addEventListener('click', sReset);
+
+/* =====================================================================
+   3. PASSAGER D'UN BUS
+   ===================================================================== */
+const BPPM = 45, BUS_L = 13, BX = 140, BV0 = 10, RMIN = 1.2, RMAX = 11.3;
+const B = { X: 0, v: BV0, a: 0, act: 'cruise', xp: 6, vp: BV0, contact: '', wheel: 0, lastAct: 'cruise', stopT: 0 };
+function bReset() { Object.assign(B, { X: 0, v: BV0, a: 0, act: 'cruise', xp: 6, vp: BV0, contact: '', wheel: 0, lastAct: 'cruise', stopT: 0 }); }
+function bStep(dt) {
+  const hold = $('b-hold').checked;
+  if (B.act === 'brake') { B.a = -(+$('b-force').value); if (B.v + B.a * dt <= 0) { B.a = 0; B.v = 0; B.act = 'stop'; } }
+  else if (B.act === 'acc') { B.a = 2.5; if (B.v + B.a * dt >= 14) { B.v = 14; B.a = 0; B.act = 'cruise'; } }
+  else B.a = 0;
+  B.v += B.a * dt; B.X += B.v * dt; B.wheel += B.v * dt / 0.5;
+  B.contact = '';
+  if (hold) { B.xp = B.X + clamp(B.xp - B.X, RMIN, RMAX); B.vp = B.v; if (B.a) B.contact = 'barre'; }
+  else {
+    B.xp += B.vp * dt;
+    let r = B.xp - B.X;
+    if (r >= RMAX && B.vp >= B.v) { B.xp = B.X + RMAX; B.vp = B.v; if (B.a < 0 || B.lastAct === 'brake') B.contact = 'avant'; }
+    if (r <= RMIN && B.vp <= B.v) { B.xp = B.X + RMIN; B.vp = B.v; if (B.a > 0) B.contact = 'arriere'; }
+  }
+  if (B.act === 'stop' && Math.abs(B.vp - B.v) < 1e-6) B.stopT += dt;
+}
+function bMessage() {
+  const hold = $('b-hold').checked, rel = B.vp - B.v;
+  if (B.act === 'cruise' && Math.abs(rel) < 1e-6)
+    say(`${tag('Rectiligne uniforme')} Le bus roule en ligne droite à vitesse constante. Le passager a la même vitesse que le bus : il est immobile <em>dans le bus</em> et en mouvement rectiligne uniforme <em>par rapport à la route</em>. ` +
+      `Son poids ${V('P')} et la réaction ${V('R')} du plancher se compensent.`);
+  else if (B.act === 'brake' && hold)
+    say(`${tag('Ralenti')} La barre exerce sur le passager une force vers l'arrière. Elle n'est pas compensée : sa vitesse diminue en même temps que celle du bus. C'est pour ça qu'il faut se tenir !`);
+  else if (B.contact === 'avant')
+    say(`${tag('Choc')} Le dossier du siège avant arrête le passager : c'est la première force horizontale qui s'exerce sur lui, et c'est elle qui le ralentit.`);
+  else if (B.act === 'brake' || (B.act === 'stop' && rel > 1e-6))
+    say(`${tag('Le passager continue')} Le bus freine, mais <strong>rien ne freine le passager</strong> : les forces sur lui se compensent toujours, donc d'après le principe d'inertie il garde sa vitesse (${fmt(B.vp * 3.6, 0)} km/h) par rapport à la route. ` +
+      `Il n'est pas « projeté » vers l'avant : c'est le bus qui ralentit sous ses pieds.`);
+  else if (B.act === 'acc' && hold)
+    say(`${tag('Accéléré')} La barre tire le passager vers l'avant : cette force non compensée le fait accélérer avec le bus.`);
+  else if (B.act === 'acc' || B.contact === 'arriere' || rel < -1e-6)
+    say(`${tag('Le passager reste en arrière')} Le bus accélère mais rien ne pousse le passager vers l'avant : il garde sa vitesse et semble partir vers l'arrière du bus` +
+      (B.contact === 'arriere' ? `. La paroi arrière finit par le pousser.` : '.'));
+  else if (B.act === 'stop')
+    say(`${tag('Arrêt')} Le bus est arrêté, le passager aussi. Recommence en cochant « se tenir à la barre », ou appuie sur <strong>Accélérer</strong>.`);
+  else say('');
+}
+function person(x, floorY, lean, holding) {
+  ctx.save(); ctx.translate(x, floorY); ctx.rotate(lean);
+  ctx.strokeStyle = C.dark ? '#f0e6d8' : '#2d3442'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(0, -40); ctx.lineTo(9, 0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -40); ctx.lineTo(0, -82); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -74);
+  if (holding) { ctx.lineTo(4, -100); } else { ctx.lineTo(-12, -50); ctx.moveTo(0, -74); ctx.lineTo(12, -52); }
+  ctx.stroke();
+  ctx.fillStyle = '#e8b98e'; ctx.beginPath(); ctx.arc(0, -95, 11, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+function drawBus() {
+  // ciel et route
+  const sky = ctx.createLinearGradient(0, 0, 0, 380);
+  sky.addColorStop(0, C.dark ? '#1a2540' : '#cfe6fb'); sky.addColorStop(1, C.dark ? '#2a3550' : '#eef6ff');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, 380);
+  ctx.fillStyle = C.dark ? '#2b2f36' : '#5e636c'; ctx.fillRect(0, 380, W, 140);
+  ctx.fillStyle = C.dark ? '#3a7d47' : '#7fbf6a'; ctx.fillRect(0, 370, W, 12);
+  // marquages et poteaux (défilent : la caméra suit le bus)
+  const sx = X => BX + (X - B.X) * BPPM;
+  ctx.fillStyle = '#f4f4f4';
+  for (let k = Math.floor((B.X - 10) / 6) * 6; k < B.X + 25; k += 6) { const x = sx(k); ctx.fillRect(x, 450, 3 * BPPM, 8); }
+  for (let k = Math.floor((B.X - 10) / 20) * 20; k < B.X + 30; k += 20) {
+    const x = sx(k);
+    ctx.fillStyle = C.dark ? '#7a828e' : '#6c7380'; ctx.fillRect(x - 3, 190, 6, 182);
+    ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.arc(x + 10, 192, 7, 0, TAU); ctx.fill();
+    ctx.fillStyle = C.dark ? '#6c7380' : '#6c7380'; ctx.fillRect(x - 3, 188, 16, 4);
+  }
+  // bus (vue en coupe)
+  const bx0 = sx(B.X), bx1 = sx(B.X + BUS_L), top = 200, floor = 348;
+  ctx.fillStyle = C.dark ? '#c4462f' : '#e2563a'; rrect(bx0, top, bx1 - bx0, floor - top + 18, 18); ctx.fill();
+  ctx.fillStyle = C.dark ? '#22262e' : '#f5f1ea'; rrect(bx0 + 10, top + 12, bx1 - bx0 - 20, floor - top - 12, 10); ctx.fill();
+  ctx.fillStyle = C.dark ? 'rgba(120,170,230,.18)' : 'rgba(120,170,230,.25)'; ctx.fillRect(bx0 + 10, top + 12, bx1 - bx0 - 20, 60);
+  ctx.strokeStyle = C.dark ? '#c4462f' : '#e2563a'; ctx.lineWidth = 5;
+  for (let k = 1; k < 6; k++) { const x = bx0 + 10 + k * (bx1 - bx0 - 20) / 6; ctx.beginPath(); ctx.moveTo(x, top + 12); ctx.lineTo(x, top + 72); ctx.stroke(); }
+  ctx.fillStyle = C.dark ? '#7a8392' : '#8a919c'; ctx.fillRect(bx0 + 10, floor - 4, bx1 - bx0 - 20, 6);
+  // sièges : avant (butée) et arrière
+  ctx.fillStyle = '#2f63b8';
+  ctx.fillRect(sx(B.X + RMAX + .45), floor - 70, 14, 66); ctx.fillRect(sx(B.X + RMAX + .45), floor - 30, 34, 12);
+  ctx.fillRect(sx(B.X + RMIN - .5), floor - 70, 14, 66); ctx.fillRect(sx(B.X + RMIN - .5) - 14, floor - 30, 28, 12);
+  // barre
+  ctx.strokeStyle = C.dark ? '#c9ced8' : '#9aa1ab'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(bx0 + 12, top + 92); ctx.lineTo(bx1 - 12, top + 92); ctx.stroke();
+  // roues
+  for (const wx of [bx0 + 95, bx1 - 105]) {
+    ctx.fillStyle = '#1c1f25'; ctx.beginPath(); ctx.arc(wx, floor + 22, 26, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#8a919c'; ctx.lineWidth = 3;
+    for (let k = 0; k < 3; k++) { const a = B.wheel + k * TAU / 3; ctx.beginPath(); ctx.moveTo(wx, floor + 22); ctx.lineTo(wx + 15 * Math.cos(a), floor + 22 + 15 * Math.sin(a)); ctx.stroke(); }
+  }
+  // passager
+  const rel = B.vp - B.v, hold = $('b-hold').checked;
+  const lean = hold ? clamp(-B.a * 0.015, -.12, .12) : clamp(rel * 0.06, -.35, .35);
+  const pxp = sx(B.xp);
+  person(pxp, floor - 4, lean, hold);
+  // vecteurs vitesse par rapport à la route
+  const k = 9;
+  arrow(bx0 + 40, top - 26, bx0 + 40 + B.v * k, top - 26, C.vel, 3); text('bus', bx0 + 40 + B.v * k + 10, top - 26, C.vel, 13, 'left', 700);
+  arrow(pxp, top + 32, pxp + B.vp * k, top + 32, C.vel2, 3); text('passager', pxp + B.vp * k + 8, top + 32, C.vel2, 13, 'left', 700);
+  text('Vitesses par rapport à la route', bx0 + 40, top - 50, C.muted, 12, 'left', 600);
+  // force exercée par la barre ou le siège
+  if (B.contact) {
+    const dir = B.contact === 'avant' ? -1 : B.contact === 'arriere' ? 1 : Math.sign(B.a);
+    const y = floor - 62;
+    arrow(pxp, y, pxp + dir * 60, y, C.f, 3);
+    text(B.contact === 'barre' ? 'force de la barre' : 'force du siège', pxp + dir * 64, y - 14, C.f, 12, dir > 0 ? 'left' : 'right', 700);
+  }
+  text('La caméra suit le bus', W - 16, 22, C.muted, 12, 'right', 500);
+}
+function bUI() {
+  $('r-bv').textContent = fmt(B.v * 3.6, 0) + ' km/h';
+  $('r-pv').textContent = fmt(B.vp * 3.6, 0) + ' km/h';
+  $('b-brake').disabled = B.v === 0 || B.act === 'brake';
+  $('b-acc').disabled = B.v >= 14 || B.act === 'acc';
+}
+$('b-brake').addEventListener('click', () => { if (B.v > 0) { B.act = 'brake'; B.lastAct = 'brake'; } });
+$('b-acc').addEventListener('click', () => { B.act = 'acc'; B.lastAct = 'acc'; });
+$('b-reset').addEventListener('click', bReset);
+
+/* =====================================================================
+   Onglets et boucle
+   ===================================================================== */
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['table', 'sonde', 'bus'].forEach(m => $('p-' + m).classList.toggle('hide', m !== mode));
+  lastMsg = null;
+}));
+
+let last = performance.now();
+function frame(now) {
+  let dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (mode === 'table') { const slow = $('t-slow').checked ? .5 : 1; for (let i = 0; i < 4; i++) tStep(dt * slow / 4); tUI(); tMessage(); }
+  else if (mode === 'sonde') { for (let i = 0; i < 4; i++) sStep(dt / 4); sUI(); sMessage(); }
+  else { for (let i = 0; i < 4; i++) bStep(dt / 4); bUI(); bMessage(); }
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = C.canvas; ctx.fillRect(0, 0, W, H);
+  if (mode === 'table') drawTable(); else if (mode === 'sonde') drawSonde(); else drawBus();
+  requestAnimationFrame(frame);
+}
+tUI();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
