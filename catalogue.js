@@ -62,5 +62,15 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "vecteur-vitesse",
+    titre: "Le vecteur vitesse",
+    resume: "Construire le vecteur vitesse point par point sur une chronophotographie (lancer, chute libre, mouvement circulaire, glissade), puis le vecteur variation de vitesse et le relier à la somme des forces. Exercices corrigés.",
+    theme: "mouvement",
+    niveau: "seconde",
+    chapitre: "Décrire et modéliser un mouvement",
+    mots: ["vecteur vitesse", "chronophotographie", "variation de vitesse", "échelle", "principe d'inertie", "somme des forces", "exercices"],
+    statut: "en-ligne"
   }
 ];
