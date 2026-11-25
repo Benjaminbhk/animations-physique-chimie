@@ -1,6 +1,6 @@
 # Animations de physique-chimie
 
-Petites animations web interactives de physique-chimie (Seconde, et bientôt Quatrième), réalisées par **Benjamin Barre**.
+Petites animations web interactives de physique-chimie (Seconde et Quatrième), réalisées par **Benjamin Barre**.
 
 Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du niveau), puis `/seconde/` et `/quatrieme/`.
 
@@ -24,6 +24,9 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Le vecteur vitesse | https://benjaminbhk.github.io/animations-physique-chimie/vecteur-vitesse/ |
 | Chronophotographie et référentiels | https://benjaminbhk.github.io/animations-physique-chimie/chronophotographie/ |
 | Transformations physiques | https://benjaminbhk.github.io/animations-physique-chimie/transformations-physiques/ |
+| Les combustions (4e) | https://benjaminbhk.github.io/animations-physique-chimie/combustions/ |
+| La vitesse de la lumière (4e) | https://benjaminbhk.github.io/animations-physique-chimie/vitesse-lumiere/ |
+| Série, dérivation et loi d'Ohm (4e) | https://benjaminbhk.github.io/animations-physique-chimie/circuits-serie-derivation/ |
 
 ## Organisation
 

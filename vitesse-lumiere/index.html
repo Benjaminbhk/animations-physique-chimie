@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La vitesse de la lumière</title>
+<meta name="description" content="Simulation interactive : voyage de la lumière dans le système solaire et vers les étoiles, année-lumière, éclair et tonnerre (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#c0640f; --accent-soft:#fdf0e1; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#f0a85a; --accent-soft:#33240f; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#f0a85a; --accent-soft:#33240f; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/440}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.list{display:grid;grid-template-columns:1fr;gap:5px}
+.list button{text-align:left;font-size:.9rem;padding:.35rem .6rem;min-height:38px}
+.list button small{float:right;font-weight:500;color:var(--muted)}
+.list button[aria-pressed="true"] small{color:inherit;opacity:.85}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.55;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem}
+[hidden]{display:none!important}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>La vitesse de la lumière</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">La lumière va très vite, mais pas infiniment vite : environ <strong>300 000 km par seconde</strong>.
+    Envoie un éclair de lumière vers la Lune, les planètes ou les étoiles, et découvre l'<strong>année-lumière</strong>.
+    Puis compare avec le son lors d'un orage.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de la propagation de la lumière et du son">
+    <div class="tabs" role="group" aria-label="Choisir l'expérience">
+      <button type="button" class="seg" data-mode="voyage" aria-pressed="true">☀ Voyage de la lumière</button>
+      <button type="button" class="seg" data-mode="orage" aria-pressed="false">⚡ L'éclair et le tonnerre</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Animation de la propagation de la lumière"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-voyage">
+          <h3>1. Choisir un trajet</h3>
+          <div class="list" id="trajets" role="group" aria-label="Trajets"></div>
+          <div class="grid2" style="margin-top:10px">
+            <button id="go" type="button">Envoyer la lumière</button>
+            <button id="stop" class="ghost" type="button">Recommencer</button>
+          </div>
+          <h3 style="margin-top:14px">2. Le calcul</h3>
+          <div class="info" id="calc"></div>
+        </div>
+        <div id="p-orage" hidden>
+          <h3>1. Placer l'orage</h3>
+          <div class="row"><label for="dist">Distance</label><input id="dist" type="range" min="0.5" max="6" step="0.1" value="2.0"><output id="dist-out" for="dist"></output></div>
+          <label class="check" style="margin-top:8px"><input type="checkbox" id="hide"> Cacher la distance (à toi de la trouver)</label>
+          <div class="grid2" style="margin-top:10px">
+            <button id="flash" type="button">⚡ Éclair !</button>
+            <button id="rand" class="ghost" type="button">Orage au hasard</button>
+          </div>
+          <h3 style="margin-top:14px">2. Ce qu'on mesure</h3>
+          <div class="info" id="calc2"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Vitesse de la lumière</h3>Dans le vide (et presque dans l'air) : <strong>c = 300 000 km/s = 3,00 × 10<sup>8</sup> m/s</strong>. La lumière se propage aussi dans le vide, par exemple du Soleil jusqu'à la Terre.</div>
+      <div><h3>L'année-lumière (al)</h3>C'est une <strong>distance</strong> : celle parcourue par la lumière en un an. 1 al = 3,00 × 10<sup>5</sup> km/s × 3,16 × 10<sup>7</sup> s ≈ <strong>9,46 × 10<sup>12</sup> km</strong>. Voir loin, c'est voir dans le passé.</div>
+      <div><h3>Et le son ?</h3>Dans l'air, le son va à environ <strong>340 m/s</strong>, près d'un million de fois moins vite que la lumière. Il ne se propage pas dans le vide. Relation : <strong>d = v × t</strong>.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Utilise d = v × t, donc t = d / v.</p>
+    <div id="exo-lum"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Distances moyennes arrondies ; tailles des astres non à l'échelle.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const { fmt, sci } = Exo;
+const W = 820, H = 440, C = 3.00e5, AL = 9.46e12, AN = AL / C, SON = 340;   // AN : une année, cohérente avec 1 al = c × 1 an
+const BODY = {
+  terre:   { nom: 'la Terre', r: 18, c1: '#7fc4ff', c2: '#1f5fae' },
+  lune:    { nom: 'la Lune', r: 10, c1: '#e6e6e6', c2: '#8d8d8d' },
+  soleil:  { nom: 'le Soleil', r: 42, c1: '#fff6b0', c2: '#ffae1a', glow: true },
+  mars:    { nom: 'Mars', r: 12, c1: '#ff9a6e', c2: '#b4431f' },
+  jupiter: { nom: 'Jupiter', r: 30, c1: '#f3d7b0', c2: '#b9814a', bands: true },
+  neptune: { nom: 'Neptune', r: 20, c1: '#9fd0ff', c2: '#2a55c9' },
+  proxima: { nom: 'Proxima du Centaure', r: 9, c1: '#ffd0b0', c2: '#ff6a3a', glow: true, star: true },
+  sirius:  { nom: 'Sirius', r: 11, c1: '#ffffff', c2: '#a9c8ff', glow: true, star: true },
+  betel:   { nom: 'Bételgeuse', r: 14, c1: '#ffd2a8', c2: '#ff5a1f', glow: true, star: true }
+};
+const TRAJ = [
+  { de: 'terre', a: 'lune', d: 3.84e5 },
+  { de: 'soleil', a: 'terre', d: 1.50e8 },
+  { de: 'soleil', a: 'mars', d: 2.28e8 },
+  { de: 'soleil', a: 'jupiter', d: 7.78e8 },
+  { de: 'soleil', a: 'neptune', d: 4.50e9 },
+  { de: 'soleil', a: 'proxima', d: 4.24 * AL, al: 4.24 },
+  { de: 'soleil', a: 'sirius', d: 8.60 * AL, al: 8.60 },
+  { de: 'soleil', a: 'betel', d: 548 * AL, al: 548 }
+];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const nu = s => s.replace(/^(la |le )/, '');
+
+/* durée lisible */
+function duree(t) {
+  if (t < 60) return Exo.fmt(t, 3) + ' s';
+  if (t < 3600) { const m = Math.floor(t / 60), s = Math.round(t - 60 * m); return `${m} min ${String(s).padStart(2, '0')} s`; }
+  if (t < 86400 * 2) { const h = Math.floor(t / 3600), m = Math.round((t - 3600 * h) / 60); return `${h} h ${String(m).padStart(2, '0')} min`; }
+  const an = t / AN;
+  if (an < 1) return Math.round(t / 86400) + ' jours';
+  return Exo.fmt(an, 3) + ' ans';
+}
+const km = d => `${sci(d, 3)} km`;
+
+let mode = 'voyage', sel = 1, run = null, done = false;
+let storm = null;
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const STARS = Array.from({ length: 140 }, () => [Math.random() * W, Math.random() * H, Math.random() * 1.3 + .3, Math.random()]);
+
+/* ---------- mode 1 : voyage ---------- */
+function trajButtons() {
+  $('trajets').innerHTML = TRAJ.map((t, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === sel}">${cap(BODY[t.de].nom)} → ${nu(BODY[t.a].nom)}<small>${duree(t.d / C)}</small></button>`).join('');
+  $('trajets').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    sel = +b.dataset.i; $('trajets').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    run = null; done = false; calc(); voyageMsg();
+  }));
+}
+function calc() {
+  const T = TRAJ[sel], t = T.d / C, avion = T.d / 900 / 24 / 365.25;
+  let h = `Distance : <b>d = ${km(T.d)}</b>${T.al ? ` = ${fmt(T.al, 3)} al` : ''}<br>Vitesse : <b>c = 3,00 × 10<sup>5</sup> km/s</b><br>
+    Durée : t = d / c = ${sci(T.d, 3)} / 3,00 × 10<sup>5</sup><br>t = <b>${sci(t, 3)} s</b>${t >= 60 ? ` soit <b>${duree(t)}</b>` : ''}`;
+  h += `<br><span style="color:var(--muted)">En avion de ligne (900 km/h), il faudrait ${avion < 1 ? Math.round(avion * 365.25) + ' jours' : fmt(avion, 2) + ' ans'}.</span>`;
+  $('calc').innerHTML = h;
+}
+function voyageMsg() {
+  const T = TRAJ[sel];
+  $('msg').innerHTML = `Clique sur « Envoyer la lumière » : un éclair de lumière part de ${BODY[T.de].nom} vers ${BODY[T.a].nom}. L'horloge indique le temps réel écoulé (l'animation est accélérée si le trajet est long).`;
+}
+function startVoyage() {
+  const T = TRAJ[sel], t = T.d / C;
+  run = { t: 0, total: t, anim: Math.max(t, 1.2) > 6 ? 6 : Math.max(t, 1.2) };
+  if (t < 6) run.anim = t;                                 // trajets courts : en temps réel
+  done = false;
+  $('msg').innerHTML = t < 6 ? 'La lumière se propage… (en temps réel !)' : `La lumière se propage… L'animation est accélérée : 1 s à l'écran représente ${duree(t / run.anim)} de temps réel.`;
+}
+function arrive() {
+  const T = TRAJ[sel], t = T.d / C;
+  done = true;
+  let s = `La lumière est arrivée sur ${BODY[T.a].nom} après <strong>${duree(t)}</strong>.`;
+  if (T.de === 'soleil' && T.a === 'terre') s += ' Quand on regarde le Soleil (avec des lunettes spéciales !), on le voit donc tel qu’il était il y a environ 8 minutes.';
+  if (T.al) s += ` ${cap(BODY[T.a].nom)} est à ${fmt(T.al, 3)} années-lumière : sa lumière met ${fmt(T.al, 3)} ans pour nous parvenir. On voit cette étoile telle qu'elle était il y a ${fmt(T.al, 3)} ans !`;
+  if (T.a === 'lune') s += ' Des miroirs déposés sur la Lune par les astronautes permettent de mesurer cette distance avec un laser (aller-retour : 2,56 s).';
+  $('msg').innerHTML = s;
+}
+function body(x, y, b) {
+  const B = BODY[b];
+  if (B.glow) {
+    const g = ctx.createRadialGradient(x, y, B.r * .5, x, y, B.r * (B.star ? 4 : 2));
+    g.addColorStop(0, 'rgba(255,210,120,.45)'); g.addColorStop(1, 'rgba(255,200,100,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, B.r * (B.star ? 4 : 2), 0, 7); ctx.fill();
+  }
+  const g = ctx.createRadialGradient(x - B.r * .35, y - B.r * .35, B.r * .1, x, y, B.r);
+  g.addColorStop(0, B.c1); g.addColorStop(1, B.c2);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, B.r, 0, 7); ctx.fill();
+  if (B.bands) {
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, B.r, 0, 7); ctx.clip();
+    ctx.fillStyle = 'rgba(150,90,40,.35)';
+    [-14, -4, 8, 17].forEach(dy => ctx.fillRect(x - B.r, y + dy, 2 * B.r, 4));
+    ctx.restore();
+  }
+  ctx.fillStyle = '#e8eefc'; ctx.font = '600 15px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(cap(B.nom), x, y + Math.max(B.r, 12) + 22);
+}
+function drawVoyage() {
+  ctx.fillStyle = '#070b1c'; ctx.fillRect(0, 0, W, H);
+  const tw = performance.now() / 1000;
+  STARS.forEach(([x, y, r, p]) => { ctx.fillStyle = `rgba(255,255,255,${.35 + .35 * Math.sin(tw * 1.5 + p * 6)})`; ctx.fillRect(x, y, r, r); });
+  const T = TRAJ[sel], x0 = 100, x1 = 720, y = 200;
+  // trajet
+  ctx.setLineDash([6, 8]); ctx.strokeStyle = 'rgba(200,215,255,.35)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.setLineDash([]);
+  body(x0, y, T.de); body(x1, y, T.a);
+  // flèche de distance
+  ctx.strokeStyle = '#9fb3e8'; ctx.fillStyle = '#9fb3e8'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x0, 300); ctx.lineTo(x1, 300); ctx.stroke();
+  [[x0, 1], [x1, -1]].forEach(([x, s]) => { ctx.beginPath(); ctx.moveTo(x, 300); ctx.lineTo(x + 10 * s, 294); ctx.lineTo(x + 10 * s, 306); ctx.fill(); });
+  ctx.font = '600 16px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#dfe7ff';
+  ctx.fillText(`d = ${sci(T.d, 3).replace(/<sup>(.*?)<\/sup>/, (m, e) => sup(e))} km${T.al ? `  (${fmt(T.al, 3)} al)` : ''}`, (x0 + x1) / 2, 325);
+  // impulsion lumineuse
+  let p = 0;
+  if (run) p = Math.min(1, run.t / run.anim);
+  if (run) {
+    const x = x0 + (x1 - x0) * p;
+    const g = ctx.createLinearGradient(x - 160, 0, x, 0);
+    g.addColorStop(0, 'rgba(255,230,120,0)'); g.addColorStop(1, 'rgba(255,240,170,.85)');
+    ctx.fillStyle = g; ctx.fillRect(Math.max(x0, x - 160), y - 3, Math.min(160, x - x0), 6);
+    const h = ctx.createRadialGradient(x, y, 0, x, y, 18);
+    h.addColorStop(0, 'rgba(255,255,230,1)'); h.addColorStop(.4, 'rgba(255,230,120,.8)'); h.addColorStop(1, 'rgba(255,200,80,0)');
+    ctx.fillStyle = h; ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.fill();
+  }
+  // horloge
+  const tr = run ? p * run.total : 0;
+  ctx.fillStyle = 'rgba(20,30,60,.85)'; ctx.strokeStyle = 'rgba(160,180,230,.5)';
+  ctx.beginPath(); ctx.roundRect(W / 2 - 170, 352, 340, 64, 12); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#9fb3e8'; ctx.font = '13px system-ui, sans-serif'; ctx.fillText('temps écoulé depuis le départ de la lumière', W / 2, 370);
+  ctx.fillStyle = '#ffe58a'; ctx.font = '700 26px ui-monospace, Menlo, Consolas, monospace';
+  ctx.fillText(run ? duree(tr).replace(/<[^>]+>/g, '') : '0 s', W / 2, 400);
+  ctx.fillStyle = '#9fb3e8'; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(run && run.total > 6 ? 'animation accélérée' : (run ? 'temps réel' : ''), 16, 24);
+}
+const SUPC = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '−': '⁻', '-': '⁻' };
+const sup = e => String(e).split('').map(ch => SUPC[ch] || ch).join('');
+
+/* ---------- mode 2 : orage ---------- */
+const OX = 90, GY = 360, PXKM = 112;
+function stormX() { return OX + +$('dist').value * PXKM; }
+function calc2() {
+  const d = +$('dist').value, hide = $('hide').checked;
+  $('dist-out').textContent = hide ? '? km' : fmt(d, 2) + ' km';
+  let h = `Vitesse du son dans l'air : <b>v = 340 m/s</b><br>`;
+  if (storm && storm.heard) {
+    const dt = storm.dt;
+    h += `Durée entre l'éclair et le tonnerre : <b>Δt = ${fmt(dt, 2)} s</b><br>Distance : d = v × Δt = 340 × ${fmt(dt, 2)}<br>d = <b>${sci(340 * dt, 2)} m</b> ≈ ${fmt(340 * dt / 1000, 2)} km`;
+    h += `<br><span style="color:var(--muted)">La lumière de l'éclair, elle, a mis ${sci(d * 1000 / 3e8, 2)} s : c'est instantané pour nous.</span>`;
+  } else h += 'Clique sur « Éclair ! » puis regarde le chronomètre : il démarre quand tu vois l’éclair et s’arrête quand tu entends le tonnerre.';
+  $('calc2').innerHTML = h;
+}
+function startStorm() {
+  const d = +$('dist').value;
+  storm = { t: 0, d, dt: d * 1000 / SON, heard: false, x: stormX(), seed: Math.random() };
+  $('msg').innerHTML = 'Éclair ! La lumière arrive presque instantanément : le chronomètre démarre. Le son (le tonnerre) se propage beaucoup moins vite…';
+  calc2();
+}
+function heard() {
+  storm.heard = true;
+  const hide = $('hide').checked;
+  $('msg').innerHTML = `Boum ! Le tonnerre arrive <strong>${fmt(storm.dt, 2)} s</strong> après l'éclair. L'orage est donc à d = 340 × ${fmt(storm.dt, 2)} ≈ <strong>${fmt(storm.d, 2)} km</strong>${hide ? ' (décoche « Cacher la distance » pour vérifier)' : ''}. Astuce : environ <strong>3 secondes par kilomètre</strong>.`;
+  calc2();
+}
+function bolt(x, seed) {
+  let r = seed * 1000;
+  const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; };
+  ctx.beginPath(); let y = 95, cx = x; ctx.moveTo(cx, y);
+  while (y < GY) { y += 18 + rnd() * 16; cx += (rnd() - .5) * 34; ctx.lineTo(cx, Math.min(y, GY)); }
+  ctx.strokeStyle = 'rgba(255,255,220,.95)'; ctx.lineWidth = 3.2; ctx.shadowColor = '#fff6a0'; ctx.shadowBlur = 16; ctx.stroke(); ctx.shadowBlur = 0;
+}
+function drawOrage() {
+  const fl = storm && storm.t < .25 ? 1 - storm.t / .25 : 0;
+  const sky = ctx.createLinearGradient(0, 0, 0, GY);
+  sky.addColorStop(0, `rgb(${40 + 150 * fl},${48 + 150 * fl},${70 + 140 * fl})`); sky.addColorStop(1, `rgb(${90 + 120 * fl},${100 + 120 * fl},${120 + 110 * fl})`);
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, GY);
+  ctx.fillStyle = '#3d5a34'; ctx.fillRect(0, GY, W, H - GY);
+  const x = storm ? storm.x : stormX(), hide = $('hide').checked;
+  // nuage
+  ctx.fillStyle = '#4a4f5c';
+  [[0, 0, 46], [-50, 12, 34], [48, 10, 38], [-20, -22, 34], [24, -20, 30], [86, 22, 26], [-88, 24, 24]].forEach(([dx, dy, r]) => { ctx.beginPath(); ctx.arc(x + dx, 80 + dy, r, 0, 7); ctx.fill(); });
+  if (storm && storm.t < .35) bolt(x, storm.seed);
+  // ondes sonores
+  if (storm) {
+    const rpx = SON * storm.t / 1000 * PXKM;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, GY); ctx.clip();
+    for (let k = 0; k < 4; k++) {
+      const rr = rpx - k * 14; if (rr <= 0) continue;
+      ctx.strokeStyle = `rgba(255,210,120,${.75 - k * .17})`; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(x, GY, rr, Math.PI, 2 * Math.PI); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // observateur
+  ctx.strokeStyle = '#f5f5f5'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(OX, GY - 62, 9, 0, 7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(OX, GY - 53); ctx.lineTo(OX, GY - 24); ctx.moveTo(OX, GY - 24); ctx.lineTo(OX - 9, GY); ctx.moveTo(OX, GY - 24); ctx.lineTo(OX + 9, GY);
+  ctx.moveTo(OX - 12, GY - 44); ctx.lineTo(OX + 12, GY - 44); ctx.stroke();
+  ctx.fillStyle = '#f5f5f5'; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textAlign = 'right'; ctx.fillText('toi', OX - 14, GY - 4); ctx.textAlign = 'center';
+  // distance
+  ctx.strokeStyle = '#f2f2f2'; ctx.fillStyle = '#f2f2f2'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(OX, GY + 44); ctx.lineTo(x, GY + 44); ctx.stroke();
+  ctx.font = '600 15px system-ui, sans-serif';
+  ctx.fillText(hide ? 'd = ?' : `d = ${fmt(+(storm ? storm.d : $('dist').value), 2)} km`, (OX + x) / 2, GY + 66);
+  // graduations (km)
+  ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = 'rgba(240,240,240,.75)';
+  if (!hide) for (let k = 0; k <= 6; k++) { const gx = OX + k * PXKM; ctx.fillRect(gx, GY + 38, 1, 12); ctx.fillText(k + ' km', gx, GY + 30); }
+  // chrono
+  const t = storm ? Math.min(storm.t, storm.dt) : 0;
+  ctx.fillStyle = 'rgba(10,15,30,.75)'; ctx.beginPath(); ctx.roundRect(W - 230, 14, 214, 62, 10); ctx.fill();
+  ctx.fillStyle = '#b9c6e8'; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('chronomètre', W - 123, 30);
+  ctx.fillStyle = storm && storm.heard ? '#7dffb0' : '#ffe58a'; ctx.font = '700 28px ui-monospace, Menlo, Consolas, monospace';
+  ctx.fillText(t.toFixed(1).replace('.', ',') + ' s', W - 123, 62);
+}
+
+/* ---------- boucle ---------- */
+function draw() {
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'voyage' ? drawVoyage() : drawOrage();
+}
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (mode === 'voyage' && run && !done) { run.t += dt; if (run.t >= run.anim) { run.t = run.anim; arrive(); } }
+  if (mode === 'orage' && storm) { storm.t += dt; if (!storm.heard && storm.t >= storm.dt) heard(); }
+  draw(); requestAnimationFrame(loop);
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('p-voyage').hidden = mode !== 'voyage'; $('p-orage').hidden = mode !== 'orage';
+  if (mode === 'voyage') voyageMsg();
+  else { storm = null; calc2(); $('msg').innerHTML = 'Pendant un orage, on voit l’éclair avant d’entendre le tonnerre. Règle la distance de l’orage puis clique sur « Éclair ! ».'; }
+}));
+$('go').addEventListener('click', startVoyage);
+$('stop').addEventListener('click', () => { run = null; done = false; voyageMsg(); });
+$('flash').addEventListener('click', startStorm);
+$('rand').addEventListener('click', () => { $('dist').value = (0.5 + Math.round(Math.random() * 55) / 10).toFixed(1); $('hide').checked = true; storm = null; calc2(); startStorm(); });
+$('dist').addEventListener('input', () => { storm = null; calc2(); });
+$('hide').addEventListener('change', () => { calc2(); if (storm && storm.heard) heard(); });
+window.addEventListener('resize', resize);
+resize(); trajButtons(); calc(); calc2(); voyageMsg();
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, fmt, res, shuffle, etape, texte, sci } = Exo;
+const RAPPEL = `d = v × t, donc t = d / v et v = d / t. Vitesse de la lumière : c = 3,00 × 10<sup>5</sup> km/s = 3,00 × 10<sup>8</sup> m/s.
+  Vitesse du son dans l'air : 340 m/s. 1 année-lumière = 9,46 × 10<sup>12</sup> km. Le résultat garde autant de chiffres significatifs que la donnée qui en a le moins.`;
+const LOIN = [
+  { nom: 'la Lune', d: [3.6e5, 4.06e5] }, { nom: 'un satellite géostationnaire', d: [3.58e4, 3.6e4] },
+  { nom: 'Vénus', d: [4.0e7, 2.6e8] }, { nom: 'Mars', d: [5.6e7, 4.0e8] }, { nom: 'Jupiter', d: [5.9e8, 9.7e8] }, { nom: 'Saturne', d: [1.2e9, 1.66e9] }
+];
+const ETOILES = [
+  { nom: 'Proxima du Centaure', al: 4.24 }, { nom: 'Sirius', al: 8.60 }, { nom: 'Véga', al: 25.0 }, { nom: 'Arcturus', al: 36.7 },
+  { nom: 'Aldébaran', al: 65.3 }, { nom: 'Rigel', al: 863 }, { nom: 'Bételgeuse', al: 548 }, { nom: 'l’étoile Polaire', al: 433 }
+];
+Exo.monter('exo-lum', [
+  { id: 't', label: 'Durée du trajet', rappel: RAPPEL, gen() {
+    const o = pick(LOIN), d = rnd(o.d[0], o.d[1], 3), t = d / 3.00e5;
+    const qs = [{ label: '1. Combien de temps la lumière met-elle pour faire ce trajet ?', unite: 's', rep: t, cs: 3 }];
+    let corr = etape({ q: '1.', lit: 't = d / c', an: `t = ${sci(d, 3)} / 3,00 × 10<sup>5</sup>`, res: `t = ${res(t, 3, 's')}` });
+    if (t > 100) {
+      qs.push({ label: '2. Convertis cette durée en minutes.', unite: 'min', rep: t / 60, cs: 3 });
+      corr += etape({ q: '2.', lit: '1 min = 60 s', an: `t = ${fmt(t, 3)} / 60`, res: `t = ${res(t / 60, 3, 'min')}` });
+    }
+    return {
+      enonce: `<p>À un certain moment, <strong>${o.nom}</strong> se trouve à <strong>d = ${sci(d, 3)} km</strong> de la Terre.
+        On envoie un signal lumineux (ou radio, qui va à la même vitesse) depuis la Terre. Donnée : c = 3,00 × 10<sup>5</sup> km/s.</p>`,
+      questions: qs, correction: corr
+    };
+  } },
+  { id: 'al', label: 'Année-lumière', rappel: RAPPEL, gen() {
+    const e = pick(ETOILES), d = e.al * 9.46e12;
+    return {
+      enonce: `<p>L'étoile <strong>${e.nom}</strong> est située à <strong>${fmt(e.al, 3)} années-lumière</strong> (al) de la Terre. Donnée : 1 al = 9,46 × 10<sup>12</sup> km.</p>`,
+      questions: [
+        { label: '1. Exprime cette distance en kilomètres.', unite: 'km', rep: d, cs: 3 },
+        { label: '2. Combien d’années la lumière de cette étoile met-elle pour nous parvenir ?', unite: 'ans', rep: e.al, cs: 3 },
+        { label: '3. Quand on regarde cette étoile, on la voit…', choix: ['telle qu’elle était dans le passé', 'telle qu’elle est maintenant', 'telle qu’elle sera dans le futur'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', lit: 'd = n × 1 al', an: `d = ${fmt(e.al, 3)} × 9,46 × 10<sup>12</sup>`, res: `d = ${res(d, 3, 'km')}` }) +
+        texte('2.', `Une année-lumière est la distance parcourue par la lumière en un an : il faut donc <strong>${fmt(e.al, 3)} ans</strong> à la lumière.`) +
+        texte('3.', `La lumière que l'on reçoit est partie il y a ${fmt(e.al, 3)} ans : on voit l'étoile <strong>telle qu'elle était dans le passé</strong>.`)
+    };
+  } },
+  { id: 'orage', label: 'Orage', rappel: RAPPEL, gen() {
+    const dt = rnd(2.0, 14.0, 2), d = 340 * dt;
+    return {
+      enonce: `<p>Pendant un orage, Léa voit un éclair, puis entend le tonnerre <strong>Δt = ${fmt(dt, 2)} s</strong> plus tard. Vitesse du son dans l'air : v = 340 m/s.</p>`,
+      questions: [
+        { label: '1. À quelle distance l’éclair est-il tombé ?', unite: 'm', rep: d, cs: 2 },
+        { label: '2. Convertis cette distance en kilomètres.', unite: 'km', rep: d / 1000, cs: 2 },
+        { label: '3. Pourquoi voit-on l’éclair avant d’entendre le tonnerre ?', choix: ['La lumière va beaucoup plus vite que le son', 'Le son part plus tard que la lumière', 'Les yeux sont plus rapides que les oreilles'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', lit: 'd = v × Δt', an: `d = 340 × ${fmt(dt, 2)}`, res: `d = ${res(d, 2, 'm')}` }) +
+        etape({ q: '2.', lit: '1 km = 1 000 m', an: `d = ${fmt(d, 2)} / 1 000`, res: `d = ${res(d / 1000, 2, 'km')}` }) +
+        texte('3.', 'Le son et la lumière sont produits en même temps, mais <strong>la lumière va environ un million de fois plus vite</strong> : elle arrive presque instantanément.')
+    };
+  } },
+  { id: 'laser', label: 'Laser Terre-Lune', rappel: RAPPEL, gen() {
+    const ar = rnd(2.40, 2.70, 3), t = ar / 2, d = 3.00e5 * t;
+    return {
+      enonce: `<p>On envoie une impulsion laser vers un miroir posé sur la Lune. La lumière revient sur Terre <strong>${fmt(ar, 3)} s</strong> après son départ (aller-retour). Donnée : c = 3,00 × 10<sup>5</sup> km/s.</p>`,
+      questions: [
+        { label: '1. Quelle est la durée du trajet aller ?', unite: 's', rep: t, cs: 3 },
+        { label: '2. Calcule la distance Terre-Lune.', unite: 'km', rep: d, cs: 3 }
+      ],
+      correction: etape({ q: '1.', note: 'La lumière fait l’aller puis le retour : la durée de l’aller est la moitié.', lit: 't = t<sub>aller-retour</sub> / 2', an: `t = ${fmt(ar, 3)} / 2`, res: `t = ${res(t, 3, 's')}` }) +
+        etape({ q: '2.', lit: 'd = c × t', an: `d = 3,00 × 10<sup>5</sup> × ${fmt(t, 3)}`, res: `d = ${res(d, 3, 'km')}` })
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

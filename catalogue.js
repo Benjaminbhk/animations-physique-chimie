@@ -176,5 +176,35 @@ window.CATALOGUE = [
     chapitre: "Transformations physiques",
     mots: ["changement d'état", "fusion", "vaporisation", "sublimation", "palier", "corps pur", "mélange", "endothermique", "exothermique", "énergie massique", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "combustions",
+    titre: "Les combustions",
+    resume: "Carbone, méthane ou dihydrogène brûlent dans un flacon fermé : les molécules se cassent et les atomes se réarrangent. Compter les atomes avant et après, voir la masse se conserver, tester les produits (eau de chaux, sulfate de cuivre anhydre). Exercices corrigés.",
+    theme: "matiere-4",
+    niveau: "quatrieme",
+    chapitre: "Atomes, molécules et transformations chimiques",
+    mots: ["combustion", "atomes", "molécules", "conservation de la masse", "équation de réaction", "eau de chaux", "sulfate de cuivre anhydre", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "vitesse-lumiere",
+    titre: "La vitesse de la lumière",
+    resume: "Envoyer un éclair de lumière vers la Lune, les planètes et les étoiles avec une horloge en temps réel, découvrir l'année-lumière, puis mesurer la distance d'un orage avec le décalage entre l'éclair et le tonnerre. Exercices corrigés.",
+    theme: "signaux-4",
+    niveau: "quatrieme",
+    chapitre: "Lumière et son : propagation",
+    mots: ["vitesse de la lumière", "année-lumière", "d = v × t", "vitesse du son", "orage", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "circuits-serie-derivation",
+    titre: "Série, dérivation et loi d'Ohm",
+    resume: "Deux lampes en série ou en dérivation : dévisser une lampe, ouvrir l'interrupteur, lire ampèremètres et voltmètres pour trouver les lois des intensités et des tensions. Puis tracer U = f(I) pour une résistance : la loi d'Ohm. Exercices corrigés.",
+    theme: "energie-4",
+    niveau: "quatrieme",
+    chapitre: "Circuits électriques",
+    mots: ["série", "dérivation", "intensité", "tension", "loi des nœuds", "loi d'Ohm", "résistance", "exercices"],
+    statut: "en-ligne"
   }
 ];
