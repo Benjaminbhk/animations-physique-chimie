@@ -12,7 +12,7 @@
   --canvas:#fbfcff; --grid:rgba(40,60,90,.11); --ink:#3a4458; --ink-soft:#8a93a6;
   --wood:#c89462; --wood-dark:#8f6236; --snow:#eef4fb; --snow-edge:#9fb3c8; --skin:#e8b48c;
   --vP:#d0352b; --vR:#1f8a4c; --vT:#7b3fc4; --vf:#d97a00; --vv:#7a8499;
-  --exo-bg:#e6f3fc; --exo-border:#b7dbf3; --exo-card:#ffffff;
+  --exo-bg:var(--ex-bg); --exo-border:var(--ex-line); --exo-card:var(--ex-card);
   --ok:#1f8a4c; --ok-soft:#e5f5ec; --bad:#c0392b; --bad-soft:#fbe9e7;
 }
 @media (prefers-color-scheme: dark){
@@ -22,7 +22,6 @@
     --canvas:#12151d; --grid:rgba(200,215,240,.10); --ink:#c6cddb; --ink-soft:#6f788c;
     --wood:#9a7048; --wood-dark:#6b4a2a; --snow:#26303e; --snow-edge:#566a82; --skin:#c99470;
     --vP:#ff6b5e; --vR:#5ccf8c; --vT:#b88cff; --vf:#ffab40; --vv:#8a93a6;
-    --exo-bg:#13222f; --exo-border:#24435a; --exo-card:#18212c;
     --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b; --bad-soft:#3a1d1a;
   }
 }
@@ -32,7 +31,6 @@
   --canvas:#12151d; --grid:rgba(200,215,240,.10); --ink:#c6cddb; --ink-soft:#6f788c;
   --wood:#9a7048; --wood-dark:#6b4a2a; --snow:#26303e; --snow-edge:#566a82; --skin:#c99470;
   --vP:#ff6b5e; --vR:#5ccf8c; --vT:#b88cff; --vf:#ffab40; --vv:#8a93a6;
-  --exo-bg:#13222f; --exo-border:#24435a; --exo-card:#18212c;
   --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b; --bad-soft:#3a1d1a;
 }
 *{box-sizing:border-box}
@@ -136,6 +134,7 @@ footer strong{color:var(--text)}
   .scene,.exercices{padding:12px}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -209,8 +208,8 @@ footer strong{color:var(--text)}
     </div>
   </section>
 
-  <section class="exercices" aria-labelledby="exo-t">
-    <h2 id="exo-t">Exercices d'application</h2>
+  <section class="scene exercices" aria-labelledby="exo-t">
+    <h2 id="exo-t"><span class="ex-badge">✎ Exercices</span> Exercices d'application</h2>
     <p>De petits exercices pour s'entraîner. Réponds, vérifie, puis lis la correction. Les boutons « Nouvelles valeurs » changent les données. Donne tes résultats avec le bon nombre de chiffres significatifs.</p>
     <div class="exos" id="exos"></div>
   </section>
