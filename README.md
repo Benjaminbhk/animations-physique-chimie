@@ -19,6 +19,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Interaction gravitationnelle | https://benjaminbhk.github.io/animations-physique-chimie/interaction-gravitationnelle/ |
 | Transformations nucléaires | https://benjaminbhk.github.io/animations-physique-chimie/transformations-nucleaires/ |
 | Le principe d'inertie | https://benjaminbhk.github.io/animations-physique-chimie/principe-inertie/ |
+| Circuits électriques | https://benjaminbhk.github.io/animations-physique-chimie/circuits-electriques/ |
 
 ## Organisation
 
