@@ -17,5 +17,14 @@ window.CATALOGUE = [
     chapitre: "Solutions aqueuses",
     mots: ["concentration en masse", "facteur de dilution", "soluté", "solvant"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "colonne-densites",
+    titre: "Colonne de densités",
+    resume: "Verser 2 à 4 liquides non miscibles dans n'importe quel ordre : ils se rangent selon leur masse volumique. Des objets coulent puis se stabilisent aux interfaces.",
+    theme: "matiere",
+    chapitre: "Corps purs et mélanges",
+    mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
+    statut: "en-ligne"
   }
 ];
