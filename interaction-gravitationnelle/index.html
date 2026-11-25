@@ -11,7 +11,7 @@
   --accent:#1f7fbf; --accent-soft:#e4f1fa; --accent-ink:#ffffff;
   --canvas:#0f1730; --space-star:rgba(255,255,255,.75);
   --fab:#e0452b; --fba:#7a3fd0; --vit:#20a060;
-  --ex-bg:#e3f2fd; --ex-border:#a9d3f2; --ex-card:#ffffff; --ex-title:#0d5a8f;
+  --ex-bg:#e6f3fc; --ex-border:#a9d3f0; --ex-card:#ffffff; --ex-title:#0d5a8f;
   --ok:#1d8a4a; --ok-soft:#e5f5ea; --ko:#c2412d; --ko-soft:#fdecea;
 }
 @media (prefers-color-scheme: dark){
@@ -20,7 +20,7 @@
     --accent:#6cb8ee; --accent-soft:#1a2a3a; --accent-ink:#0b1520;
     --canvas:#070b18; --space-star:rgba(255,255,255,.6);
     --fab:#ff7a5c; --fba:#b79bff; --vit:#4fd08a;
-    --ex-bg:#132536; --ex-border:#24496a; --ex-card:#182b3d; --ex-title:#8fcaf3;
+    --ex-bg:#0f2234; --ex-border:#25496b; --ex-card:#182b3d; --ex-title:#8fcaf3;
     --ok:#4fd08a; --ok-soft:#173225; --ko:#ff8a73; --ko-soft:#3a1d18;
   }
 }
@@ -29,7 +29,7 @@
   --accent:#6cb8ee; --accent-soft:#1a2a3a; --accent-ink:#0b1520;
   --canvas:#070b18; --space-star:rgba(255,255,255,.6);
   --fab:#ff7a5c; --fba:#b79bff; --vit:#4fd08a;
-  --ex-bg:#132536; --ex-border:#24496a; --ex-card:#182b3d; --ex-title:#8fcaf3;
+  --ex-bg:#0f2234; --ex-border:#25496b; --ex-card:#182b3d; --ex-title:#8fcaf3;
   --ok:#4fd08a; --ok-soft:#173225; --ko:#ff8a73; --ko-soft:#3a1d18;
 }
 *{box-sizing:border-box}
@@ -89,6 +89,7 @@ sup{line-height:0}
 /* ---------- exercices : fond distinct ---------- */
 .exercices{background:var(--ex-bg);border:1px solid var(--ex-border);border-radius:14px;padding:18px 16px;margin:0 0 22px}
 .exercices > h2{margin:0 0 .25rem;color:var(--ex-title);font-size:1.3rem}
+.ex-badge{display:inline-flex;align-items:center;gap:.3em;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .6rem;border-radius:999px;background:var(--accent);color:var(--accent-ink);vertical-align:middle;white-space:nowrap}
 .exercices > p.intro{margin:0 0 14px;max-width:80ch}
 .exo{background:var(--ex-card);border:1px solid var(--ex-border);border-radius:12px;padding:.8rem 1rem;margin:0 0 12px}
 .exo h3{margin:0 0 .35rem;font-size:1.02rem;color:var(--ex-title)}
@@ -250,7 +251,7 @@ footer strong{color:var(--text)}
 
   <!-- ================= Exercices ================= -->
   <section class="exercices" id="exercices" aria-label="Exercices d'application directe">
-    <h2>Exercices d'application directe</h2>
+    <h2><span class="ex-badge">✎ Exercices</span> Exercices d'application directe</h2>
     <p class="intro">Pour t'entraîner. Écris d'abord l'expression littérale, puis l'application numérique, et donne le résultat en écriture scientifique avec le bon nombre de chiffres significatifs.
       <br><span class="small">Données pour tous les exercices : G = 6,67 × 10<sup>−11</sup> N·m²·kg<sup>−2</sup> ; M<sub>Terre</sub> = 5,97 × 10<sup>24</sup> kg ; R<sub>Terre</sub> = 6,37 × 10<sup>6</sup> m ; M<sub>Lune</sub> = 7,35 × 10<sup>22</sup> kg.</span></p>
 
