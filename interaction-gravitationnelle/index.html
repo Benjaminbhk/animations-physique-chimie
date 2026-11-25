@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interaction gravitationnelle</title>
+<meta name="description" content="Simulation interactive : la force d'interaction gravitationnelle F = G·mA·mB/d², son effet sur une orbite, et le poids sur la Terre et d'autres astres (physique-chimie, Seconde), avec exercices corrigés.">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f7fbf; --accent-soft:#e4f1fa; --accent-ink:#ffffff;
+  --canvas:#0f1730; --space-star:rgba(255,255,255,.75);
+  --fab:#e0452b; --fba:#7a3fd0; --vit:#20a060;
+  --ex-bg:#e6f3fc; --ex-border:#a9d3f0; --ex-card:#ffffff; --ex-title:#0d5a8f;
+  --ok:#1d8a4a; --ok-soft:#e5f5ea; --ko:#c2412d; --ko-soft:#fdecea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#6cb8ee; --accent-soft:#1a2a3a; --accent-ink:#0b1520;
+    --canvas:#070b18; --space-star:rgba(255,255,255,.6);
+    --fab:#ff7a5c; --fba:#b79bff; --vit:#4fd08a;
+    --ex-bg:#0f2234; --ex-border:#25496b; --ex-card:#182b3d; --ex-title:#8fcaf3;
+    --ok:#4fd08a; --ok-soft:#173225; --ko:#ff8a73; --ko-soft:#3a1d18;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#6cb8ee; --accent-soft:#1a2a3a; --accent-ink:#0b1520;
+  --canvas:#070b18; --space-star:rgba(255,255,255,.6);
+  --fab:#ff7a5c; --fba:#b79bff; --vit:#4fd08a;
+  --ex-bg:#0f2234; --ex-border:#25496b; --ex-card:#182b3d; --ex-title:#8fcaf3;
+  --ok:#4fd08a; --ok-soft:#173225; --ko:#ff8a73; --ko-soft:#3a1d18;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1rem;max-width:78ch}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+nav.toc a{font-size:.9rem;font-weight:600;text-decoration:none;padding:.3rem .75rem;border-radius:999px;border:1px solid var(--border);background:var(--surface)}
+nav.toc a.ex{background:var(--ex-bg);border-color:var(--ex-border);color:var(--ex-title)}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.25rem}
+.scene > p.intro{margin:0 0 12px;color:var(--muted);max-width:80ch}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:none}
+#cv1{aspect-ratio:820/430} #cv2{aspect-ratio:820/560} #cv3{aspect-ratio:820/330}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:1rem;margin:0 0 .35rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.45rem .7rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:40px}
+button.ghost{background:transparent;color:var(--accent)}
+button.sel{background:var(--accent);color:var(--accent-ink)}
+button.small{min-height:34px;padding:.25rem .5rem;font-size:.86rem}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ctl{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
+.ctl label{font-weight:600;font-size:.92rem}
+.ctl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);text-align:right}
+.ctl input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.ctl .btns{grid-column:1/-1;display:flex;gap:6px}
+.ctl .btns button{flex:1}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;margin:12px 0 0;min-height:3.2em}
+.calc{font-variant-numeric:tabular-nums;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.6rem .8rem;margin-top:10px;font-size:.95rem;overflow-x:auto}
+.calc .res{font-weight:700;color:var(--accent);font-size:1.08rem}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h4{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:72px 1fr 92px;gap:8px;align-items:center;font-size:.88rem;cursor:pointer;border-radius:8px;padding:2px 4px;border:1px solid transparent;background:none;color:inherit;font-weight:500;min-height:0;text-align:left}
+.bar.on{border-color:var(--accent);background:var(--accent-soft)}
+.bar .track{display:block;height:12px;border-radius:6px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+.bar .fill{display:block;height:100%;border-radius:6px}
+.bar .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+sup{line-height:0}
+
+/* ---------- exercices : fond distinct ---------- */
+.exercices{background:var(--ex-bg);border:1px solid var(--ex-border);border-radius:14px;padding:18px 16px;margin:0 0 22px}
+.exercices > h2{margin:0 0 .25rem;color:var(--ex-title);font-size:1.3rem}
+.ex-badge{display:inline-flex;align-items:center;gap:.3em;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .6rem;border-radius:999px;background:var(--accent);color:var(--accent-ink);vertical-align:middle;white-space:nowrap}
+.exercices > p.intro{margin:0 0 14px;max-width:80ch}
+.exo{background:var(--ex-card);border:1px solid var(--ex-border);border-radius:12px;padding:.8rem 1rem;margin:0 0 12px}
+.exo h3{margin:0 0 .35rem;font-size:1.02rem;color:var(--ex-title)}
+.exo p{margin:.3rem 0}
+.exo ol{margin:.3rem 0;padding-left:1.4rem}
+.exo .data{font-size:.92rem;color:var(--muted)}
+.exo details{margin-top:.5rem}
+.exo summary{cursor:pointer;font-weight:700;color:var(--ok);width:max-content}
+.corr{border:2px solid var(--ok);background:var(--ok-soft);border-radius:10px;padding:.55rem .8rem;margin-top:.45rem}
+.corr p{margin:.25rem 0}
+.corr .lit{font-style:italic}
+.corr .r{font-weight:700}
+.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.exgrid .exo{margin:0}
+.train{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:.5rem}
+.train input{font:inherit;padding:.4rem .6rem;border-radius:8px;border:1px solid var(--ex-border);background:var(--surface);color:var(--text);width:14ch}
+.fb{margin-top:.5rem;padding:.45rem .7rem;border-radius:8px;display:none}
+.fb.ok{display:block;background:var(--ok-soft);color:var(--ok);font-weight:600}
+.fb.ko{display:block;background:var(--ko-soft);color:var(--ko);font-weight:600}
+.score{font-weight:700;color:var(--ex-title)}
+
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo,.exgrid{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Interaction gravitationnelle</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Deux corps qui ont une masse s'attirent toujours, quelle que soit la distance qui les sépare.
+    Règle les masses et la distance pour voir comment varie la force, observe ce qu'elle fait à un satellite,
+    puis compare le poids d'un objet sur la Terre et sur d'autres astres.</p>
+  <nav class="toc" aria-label="Parties de la page">
+    <a href="#p1">1. La force entre deux corps</a>
+    <a href="#p2">2. Une orbite</a>
+    <a href="#p3">3. Le poids</a>
+    <a href="#exercices" class="ex">Exercices corrigés</a>
+  </nav>
+
+  <!-- ================= Partie 1 ================= -->
+  <section class="scene" id="p1" aria-label="Force d'interaction gravitationnelle entre deux corps">
+    <h2>1. La force entre deux corps A et B</h2>
+    <p class="intro">Les deux flèches représentent la force exercée par A sur B et la force exercée par B sur A.
+      Tu peux aussi faire glisser le corps B avec la souris (ou le doigt) pour changer la distance.</p>
+    <div class="layout">
+      <div>
+        <canvas id="cv1" role="img" aria-label="Deux astres A et B et les deux forces d'attraction gravitationnelle"></canvas>
+        <div class="calc" id="calc1" aria-live="polite"></div>
+        <p class="explain" id="msg1" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div>
+          <h3>Situation</h3>
+          <select id="preset" aria-label="Choisir une situation"></select>
+        </div>
+        <div class="ctl">
+          <label for="mA">Masse de A</label><output id="mA-out" for="mA"></output>
+          <input id="mA" type="range" min="-1" max="1" step="0.01" value="0">
+          <div class="btns"><button class="ghost small" data-k="mA" data-f="0.5" type="button">÷ 2</button><button class="ghost small" data-k="mA" data-f="2" type="button">× 2</button></div>
+        </div>
+        <div class="ctl">
+          <label for="mB">Masse de B</label><output id="mB-out" for="mB"></output>
+          <input id="mB" type="range" min="-1" max="1" step="0.01" value="0">
+          <div class="btns"><button class="ghost small" data-k="mB" data-f="0.5" type="button">÷ 2</button><button class="ghost small" data-k="mB" data-f="2" type="button">× 2</button></div>
+        </div>
+        <div class="ctl">
+          <label for="dd">Distance d entre les centres</label><output id="dd-out" for="dd"></output>
+          <input id="dd" type="range" min="0.5" max="2.2" step="0.01" value="1">
+          <div class="btns"><button class="ghost small" data-k="dd" data-f="0.5" type="button">÷ 2</button><button class="ghost small" data-k="dd" data-f="2" type="button">× 2</button><button class="ghost small" data-k="dd" data-f="3" type="button">× 3</button></div>
+        </div>
+        <div class="grid2">
+          <button id="reset1" class="ghost" type="button">Revenir au départ</button>
+          <button id="rescale" class="ghost" type="button">Recaler les flèches</button>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h4>La loi</h4>F<sub>A/B</sub> = F<sub>B/A</sub> = G × m<sub>A</sub> × m<sub>B</sub> / d²<br>
+        F en newtons (N), m en kilogrammes (kg), d en mètres (m).<br>G = 6,67 × 10<sup>−11</sup> N·m²·kg<sup>−2</sup>.</div>
+      <div><h4>Les deux forces</h4>Elles ont la même valeur et la même direction (la droite qui joint les centres), mais des sens opposés : chacune est dirigée vers le corps qui attire. C'est une <em>interaction</em> : A attire B autant que B attire A.</div>
+      <div><h4>Proportionnalités</h4>Masse multipliée par 2 → force multipliée par 2.<br>Distance multipliée par 2 → force divisée par 2² = 4.<br>Distance multipliée par 3 → force divisée par 3² = 9.</div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Les tailles des astres et les distances ne sont pas à l'échelle. Les flèches sont à l'échelle entre elles : leur longueur est proportionnelle à la valeur de la force, par rapport à la situation de départ.</p>
+  </section>
+
+  <!-- ================= Partie 2 ================= -->
+  <section class="scene" id="p2" aria-label="Effet de l'attraction de la Terre sur un satellite">
+    <h2>2. L'attraction de la Terre courbe la trajectoire d'un satellite</h2>
+    <p class="intro">On lance un satellite horizontalement, à une altitude et une vitesse choisies. La seule force qui s'exerce sur lui est l'attraction de la Terre, toujours dirigée vers le centre de la Terre.
+      Coupe l'attraction en cours de route pour voir ce qui se passerait sans elle.</p>
+    <div class="layout">
+      <div>
+        <canvas id="cv2" role="img" aria-label="La Terre et la trajectoire d'un satellite"></canvas>
+        <div class="calc" id="calc2" aria-live="off"></div>
+        <p class="explain" id="msg2" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div class="ctl">
+          <label for="alt">Altitude de départ</label><output id="alt-out" for="alt"></output>
+          <input id="alt" type="range" min="200" max="36000" step="100" value="400">
+          <div class="btns"><button class="ghost small" data-alt="400" type="button">ISS (400 km)</button><button class="ghost small" data-alt="35800" type="button">Géostationnaire</button></div>
+        </div>
+        <div class="ctl">
+          <label for="v0">Vitesse de lancement</label><output id="v0-out" for="v0"></output>
+          <input id="v0" type="range" min="0" max="12" step="0.01" value="7.67">
+          <div class="btns"><button class="ghost small" id="vcirc" type="button">Vitesse pour une orbite circulaire</button></div>
+        </div>
+        <div class="grid2">
+          <button id="launch" type="button">Lancer</button>
+          <button id="pause" class="ghost" type="button">Pause</button>
+        </div>
+        <label class="check"><input type="checkbox" id="grav" checked> Attraction de la Terre active</label>
+        <label class="check"><input type="checkbox" id="showv" checked> Afficher le vecteur vitesse</label>
+        <p class="small" style="margin:0">Masse du satellite : m = 1,00 × 10³ kg. Le temps est accéléré : un tour d'orbite circulaire dure environ 8 s à l'écran.</p>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h4>Sans attraction</h4>Le satellite part en ligne droite à vitesse constante (principe d'inertie) : il s'éloigne de la Terre.</div>
+      <div><h4>Avec attraction</h4>La force, dirigée vers le centre de la Terre, courbe sans cesse la trajectoire. À la bonne vitesse, le satellite « tombe » autour de la Terre sans jamais la toucher.</div>
+      <div><h4>Trop lent, trop rapide</h4>Trop lent : il retombe sur la Terre. Plus rapide : l'orbite s'allonge (ellipse). Beaucoup plus rapide : il s'échappe.</div>
+    </div>
+  </section>
+
+  <!-- ================= Partie 3 ================= -->
+  <section class="scene" id="p3" aria-label="Le poids sur la Terre et sur d'autres astres">
+    <h2>3. Le poids : l'attraction d'un astre sur un objet posé à sa surface</h2>
+    <p class="intro">Pour un objet de masse m posé à la surface d'un astre de masse M et de rayon R, la distance entre les centres vaut R.
+      La force d'attraction vaut alors F = G × M × m / R² : on l'appelle le <strong>poids</strong>, et on l'écrit P = m × g avec g = G × M / R².</p>
+    <div class="layout">
+      <div>
+        <canvas id="cv3" role="img" aria-label="Un astronaute à la surface d'un astre et son poids"></canvas>
+        <div class="calc" id="calc3" aria-live="polite"></div>
+      </div>
+      <div class="panel">
+        <div class="ctl">
+          <label for="mo">Masse de l'astronaute équipé</label><output id="mo-out" for="mo"></output>
+          <input id="mo" type="range" min="10" max="200" step="1" value="120">
+        </div>
+        <div>
+          <h3>Poids sur chaque astre <small>clique pour choisir</small></h3>
+          <div class="bars" id="bars"></div>
+        </div>
+        <div class="ctl" id="altbox">
+          <label for="h3">Altitude au-dessus de la Terre</label><output id="h3-out" for="h3"></output>
+          <input id="h3" type="range" min="0" max="2000" step="10" value="0">
+        </div>
+      </div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Sur le Soleil, le poids est si grand que sa barre dépasse le cadre. Valeurs calculées avec g = G × M / R², sans tenir compte de la rotation des astres. Pour Jupiter et le Soleil, qui n'ont pas de sol, on se place au niveau de la « surface » visible.</p>
+  </section>
+
+  <!-- ================= Exercices ================= -->
+  <section class="exercices" id="exercices" aria-label="Exercices d'application directe">
+    <h2><span class="ex-badge">✎ Exercices</span> Exercices d'application directe</h2>
+    <p class="intro">Pour t'entraîner. Écris d'abord l'expression littérale, puis l'application numérique, et donne le résultat en écriture scientifique avec le bon nombre de chiffres significatifs.
+      <br><span class="small">Données pour tous les exercices : G = 6,67 × 10<sup>−11</sup> N·m²·kg<sup>−2</sup> ; M<sub>Terre</sub> = 5,97 × 10<sup>24</sup> kg ; R<sub>Terre</sub> = 6,37 × 10<sup>6</sup> m ; M<sub>Lune</sub> = 7,35 × 10<sup>22</sup> kg.</span></p>
+
+    <div class="exgrid">
+      <article class="exo">
+        <h3>Exercice 1 · La Terre et la Lune</h3>
+        <p>La distance entre les centres de la Terre et de la Lune vaut d = 3,84 × 10<sup>8</sup> m.</p>
+        <ol><li>Calculer la valeur de la force exercée par la Terre sur la Lune.</li>
+          <li>Quelle est la valeur de la force exercée par la Lune sur la Terre ?</li></ol>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p>1. <span class="lit">F<sub>T/L</sub> = G × M<sub>T</sub> × M<sub>L</sub> / d²</span></p>
+          <p>F<sub>T/L</sub> = 6,67 × 10<sup>−11</sup> × 5,97 × 10<sup>24</sup> × 7,35 × 10<sup>22</sup> / (3,84 × 10<sup>8</sup>)²</p>
+          <p class="r">F<sub>T/L</sub> = 1,98 × 10<sup>20</sup> N</p>
+          <p>2. C'est une interaction : la force exercée par la Lune sur la Terre a la même valeur, F<sub>L/T</sub> = 1,98 × 10<sup>20</sup> N (même direction, sens opposé).</p>
+        </div></details>
+      </article>
+
+      <article class="exo">
+        <h3>Exercice 2 · La Station spatiale internationale</h3>
+        <p>L'ISS, de masse m = 4,20 × 10<sup>5</sup> kg, tourne à l'altitude h = 4,10 × 10<sup>5</sup> m au-dessus du sol.</p>
+        <ol><li>Calculer la distance d entre le centre de la Terre et l'ISS.</li>
+          <li>Calculer la valeur de la force exercée par la Terre sur l'ISS.</li></ol>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p>1. <span class="lit">d = R<sub>T</sub> + h</span> = 6,37 × 10<sup>6</sup> + 4,10 × 10<sup>5</sup> = 6,78 × 10<sup>6</sup> m <span class="small">(attention : convertir avant d'additionner)</span></p>
+          <p>2. <span class="lit">F = G × M<sub>T</sub> × m / d²</span></p>
+          <p>F = 6,67 × 10<sup>−11</sup> × 5,97 × 10<sup>24</sup> × 4,20 × 10<sup>5</sup> / (6,78 × 10<sup>6</sup>)²</p>
+          <p class="r">F = 3,64 × 10<sup>6</sup> N</p>
+        </div></details>
+      </article>
+
+      <article class="exo">
+        <h3>Exercice 3 · Une pomme et la Terre</h3>
+        <p>Une pomme de masse m = 0,150 kg est posée sur le sol.</p>
+        <ol><li>Calculer la force exercée par la Terre sur la pomme.</li>
+          <li>Comparer au poids P = m × g de la pomme, avec g = 9,81 N/kg.</li>
+          <li>La pomme attire-t-elle la Terre ? Avec quelle force ?</li></ol>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p>1. La pomme est à la surface : d = R<sub>T</sub>. <span class="lit">F = G × M<sub>T</sub> × m / R<sub>T</sub>²</span></p>
+          <p>F = 6,67 × 10<sup>−11</sup> × 5,97 × 10<sup>24</sup> × 0,150 / (6,37 × 10<sup>6</sup>)² <span class="r">= 1,47 N</span></p>
+          <p>2. <span class="lit">P = m × g</span> = 0,150 × 9,81 <span class="r">= 1,47 N</span> : on trouve la même valeur. Près de la Terre, le poids est (en très bonne approximation) la force d'attraction gravitationnelle de la Terre.</p>
+          <p>3. Oui : la pomme attire la Terre avec une force de même valeur, 1,47 N, dirigée vers la pomme. La Terre, énormément plus massive, ne bouge pratiquement pas.</p>
+        </div></details>
+      </article>
+
+      <article class="exo">
+        <h3>Exercice 4 · Sans calculatrice</h3>
+        <p>Deux corps s'attirent avec une force F = 8,0 × 10<sup>3</sup> N. Que devient cette force si :</p>
+        <ol><li>la masse d'un des deux corps est multipliée par 3 ?</li>
+          <li>la distance entre les corps est multipliée par 2 ?</li>
+          <li>la distance est divisée par 2 ?</li></ol>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p>1. F est proportionnelle à chaque masse : F est multipliée par 3, <span class="r">F' = 2,4 × 10<sup>4</sup> N</span>.</p>
+          <p>2. F est inversement proportionnelle à d² : d × 2 donne F ÷ 2² = F ÷ 4, <span class="r">F' = 2,0 × 10<sup>3</sup> N</span>.</p>
+          <p>3. d ÷ 2 donne F × 4, <span class="r">F' = 3,2 × 10<sup>4</sup> N</span>.</p>
+        </div></details>
+      </article>
+
+      <article class="exo">
+        <h3>Exercice 5 · Deux élèves</h3>
+        <p>Deux élèves de masses m<sub>1</sub> = 60 kg et m<sub>2</sub> = 55 kg sont assis à d = 1,0 m l'un de l'autre.</p>
+        <ol><li>Calculer la force d'attraction gravitationnelle entre eux.</li>
+          <li>Pourquoi ne la ressent-on pas ?</li></ol>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p>1. <span class="lit">F = G × m<sub>1</sub> × m<sub>2</sub> / d²</span> = 6,67 × 10<sup>−11</sup> × 60 × 55 / 1,0²</p>
+          <p class="r">F = 2,2 × 10<sup>−7</sup> N <span class="small" style="font-weight:400">(2 chiffres significatifs, comme les données les moins précises)</span></p>
+          <p>2. Cette force est minuscule par rapport au poids d'un élève (environ 6 × 10² N) : l'interaction gravitationnelle n'est importante que si au moins une des masses est très grande (un astre).</p>
+        </div></details>
+      </article>
+
+      <article class="exo">
+        <h3>Exercice 6 · L'intensité de pesanteur</h3>
+        <ol><li>Montrer que g<sub>Terre</sub> = G × M<sub>T</sub> / R<sub>T</sub>² et calculer sa valeur.</li>
+          <li>Calculer de même g<sub>Lune</sub>, avec R<sub>Lune</sub> = 1,74 × 10<sup>6</sup> m.</li></ol>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p>1. À la surface, P = F donc m × g = G × M<sub>T</sub> × m / R<sub>T</sub>², et en simplifiant par m : <span class="lit">g<sub>T</sub> = G × M<sub>T</sub> / R<sub>T</sub>²</span></p>
+          <p>g<sub>T</sub> = 6,67 × 10<sup>−11</sup> × 5,97 × 10<sup>24</sup> / (6,37 × 10<sup>6</sup>)² <span class="r">= 9,81 N/kg</span></p>
+          <p>2. <span class="lit">g<sub>L</sub> = G × M<sub>L</sub> / R<sub>L</sub>²</span> = 6,67 × 10<sup>−11</sup> × 7,35 × 10<sup>22</sup> / (1,74 × 10<sup>6</sup>)² <span class="r">= 1,62 N/kg</span>, environ 6 fois moins que sur Terre.</p>
+        </div></details>
+      </article>
+
+      <article class="exo">
+        <h3>Exercice 7 · Sur la Lune</h3>
+        <p>Un astronaute équipé a une masse m = 1,20 × 10<sup>2</sup> kg. On donne g<sub>Terre</sub> = 9,81 N/kg et g<sub>Lune</sub> = 1,62 N/kg.</p>
+        <ol><li>Calculer son poids sur la Terre puis sur la Lune.</li>
+          <li>Sa masse change-t-elle sur la Lune ?</li></ol>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p>1. <span class="lit">P = m × g</span></p>
+          <p>Sur Terre : P<sub>T</sub> = 1,20 × 10<sup>2</sup> × 9,81 <span class="r">= 1,18 × 10<sup>3</sup> N</span></p>
+          <p>Sur la Lune : P<sub>L</sub> = 1,20 × 10<sup>2</sup> × 1,62 <span class="r">= 1,94 × 10<sup>2</sup> N</span></p>
+          <p>2. Non : la masse (en kg) est la quantité de matière de l'objet, elle ne dépend pas du lieu. Seul le poids (en N) change.</p>
+        </div></details>
+      </article>
+
+      <article class="exo">
+        <h3>Exercice 8 · Retrouver une masse</h3>
+        <p>Sur Mars, où g<sub>Mars</sub> = 3,73 N/kg, un robot a un poids P = 3,36 × 10<sup>3</sup> N. Calculer sa masse.</p>
+        <details><summary>Voir la correction</summary><div class="corr">
+          <p><span class="lit">P = m × g donc m = P / g</span></p>
+          <p>m = 3,36 × 10<sup>3</sup> / 3,73</p>
+          <p class="r">m = 9,01 × 10<sup>2</sup> kg</p>
+        </div></details>
+      </article>
+    </div>
+
+    <article class="exo" style="margin-top:12px" id="gen">
+      <h3>Entraînement : un nouvel énoncé à chaque clic <span class="score" id="score"></span></h3>
+      <p id="g-enonce"></p>
+      <div class="train">
+        <label for="g-rep"><strong id="g-q">Réponse</strong></label>
+        <input id="g-rep" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 3,64e6">
+        <span id="g-unit"></span>
+        <button id="g-check" type="button">Vérifier</button>
+        <button id="g-new" class="ghost" type="button">Nouvel énoncé</button>
+        <button id="g-sol" class="ghost" type="button">Voir la correction</button>
+      </div>
+      <p class="small" style="margin:.3rem 0 0">Tu peux écrire 3,64e6 ou 3,64 × 10^6. La réponse est acceptée à 1 % près.</p>
+      <div class="fb" id="g-fb" aria-live="polite"></div>
+      <div class="corr" id="g-corr" hidden></div>
+    </article>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>G = 6,67 × 10⁻¹¹ N·m²·kg⁻² · valeurs des astres arrondies à 3 chiffres significatifs.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const G = 6.67e-11;
+
+/* ---------- écriture scientifique ---------- */
+const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+const supTxt = n => String(n).split('').map(c => SUP[c]).join('');
+function sciParts(x, n = 3) {
+  if (x === 0) return { m: (0).toFixed(n - 1), e: 0 };
+  let e = Math.floor(Math.log10(Math.abs(x)));
+  let m = x / Math.pow(10, e);
+  let ms = m.toFixed(n - 1);
+  if (Math.abs(parseFloat(ms)) >= 10) { e += 1; ms = (x / Math.pow(10, e)).toFixed(n - 1); }
+  return { m: ms.replace('.', ','), e };
+}
+/* HTML : 1,98 × 10<sup>20</sup> */
+function sci(x, n = 3) {
+  const { m, e } = sciParts(x, n);
+  return e === 0 ? m : `${m} × 10<sup>${String(e).replace('-', '−')}</sup>`;
+}
+/* texte pour le canvas : 1,98 × 10²⁰ */
+function sciT(x, n = 3) {
+  const { m, e } = sciParts(x, n);
+  return e === 0 ? m : `${m} × 10${supTxt(e)}`;
+}
+const fr = (x, d) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+/* ---------- thème ---------- */
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = { canvas: g('--canvas'), star: g('--space-star'), fab: g('--fab'), fba: g('--fba'), vit: g('--vit'), accent: g('--accent') };
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readTheme(); draw1(); draw3(); });
+
+function setupCanvas(cv, W, H) {
+  const o = { cv, ctx: cv.getContext('2d'), W, H, scale: 1, dpr: 1 };
+  const resize = () => {
+    const w = cv.clientWidth || W; o.dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    o.scale = w / W; cv.width = Math.round(w * o.dpr); cv.height = Math.round(w * H / W * o.dpr);
+    o.onresize && o.onresize();
+  };
+  new ResizeObserver(resize).observe(cv); resize();
+  o.begin = () => { o.ctx.setTransform(o.scale * o.dpr, 0, 0, o.scale * o.dpr, 0, 0); };
+  return o;
+}
+
+/* étoiles de fond (fixes) */
+function makeStars(W, H, n) {
+  let s = 12345; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  return Array.from({ length: n }, () => ({ x: r() * W, y: r() * H, a: .25 + r() * .75, r: r() < .1 ? 1.4 : .8 }));
+}
+function drawStars(ctx, stars) {
+  ctx.fillStyle = C.star;
+  for (const s of stars) { ctx.globalAlpha = s.a; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill(); }
+  ctx.globalAlpha = 1;
+}
+/* astre avec dégradé */
+function drawBody(ctx, x, y, r, look) {
+  const g = ctx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
+  g.addColorStop(0, look.c1); g.addColorStop(1, look.c2);
+  if (look.glow) { ctx.save(); ctx.shadowColor = look.c1; ctx.shadowBlur = r * .8; }
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+  if (look.glow) ctx.restore();
+  if (look.bands) {
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.clip();
+    ctx.strokeStyle = 'rgba(120,70,30,.35)'; ctx.lineWidth = r * .12;
+    for (const k of [-.45, -.1, .25, .55]) { ctx.beginPath(); ctx.moveTo(x - r, y + k * r); ctx.lineTo(x + r, y + k * r * 1.05); ctx.stroke(); }
+    ctx.restore();
+  }
+  if (look.land) {
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.clip();
+    ctx.fillStyle = 'rgba(60,150,70,.85)';
+    const blobs = [[-.3, -.25, .35], [.35, .1, .3], [-.05, .45, .22], [.1, -.55, .18]];
+    for (const [bx, by, br] of blobs) { ctx.beginPath(); ctx.ellipse(x + bx * r, y + by * r, br * r, br * r * .7, .4, 0, TAU); ctx.fill(); }
+    ctx.restore();
+  }
+  if (look.craters) {
+    ctx.fillStyle = 'rgba(80,80,90,.25)';
+    for (const [bx, by, br] of [[-.3, -.2, .18], [.3, .25, .14], [.1, -.45, .1], [-.15, .4, .12]]) { ctx.beginPath(); ctx.arc(x + bx * r, y + by * r, br * r, 0, TAU); ctx.fill(); }
+  }
+}
+function arrow(ctx, x0, y0, x1, y1, color, w = 4) {
+  const a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0), h = Math.min(14, L * .6);
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a) * h * .8, y1 - Math.sin(a) * h * .8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - h * Math.cos(a - .42), y1 - h * Math.sin(a - .42));
+  ctx.lineTo(x1 - h * Math.cos(a + .42), y1 - h * Math.sin(a + .42)); ctx.closePath(); ctx.fill();
+}
+function label(ctx, txt, x, y, color, align = 'center', size = 15, bold = true) {
+  ctx.font = `${bold ? 700 : 500} ${size}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+  ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(5,10,25,.75)'; ctx.strokeText(txt, x, y);
+  ctx.fillStyle = color; ctx.fillText(txt, x, y);
+}
+
+const LOOK = {
+  terre:   { c1: '#7ec3ff', c2: '#1d4f9a', land: true },
+  lune:    { c1: '#e8e8ea', c2: '#8a8a92', craters: true },
+  soleil:  { c1: '#fff3a0', c2: '#f59a1b', glow: true },
+  jupiter: { c1: '#f2d6b0', c2: '#b57a45', bands: true },
+  mars:    { c1: '#f2a070', c2: '#a8401e', craters: true },
+  venus:   { c1: '#fbe7b5', c2: '#c9a055' },
+  iss:     { c1: '#e8eef6', c2: '#8b98aa' },
+  eleve:   { c1: '#ffd0a8', c2: '#c77d48' },
+  pomme:   { c1: '#ff7b6b', c2: '#b0201a' }
+};
+
+/* =====================================================================
+   PARTIE 1 : la force entre deux corps
+   ===================================================================== */
+const PRESETS = [
+  { nom: 'La Terre et la Lune', A: ['Terre', 5.97e24, 'terre'], B: ['Lune', 7.35e22, 'lune'], d: 3.84e8 },
+  { nom: 'Le Soleil et la Terre', A: ['Soleil', 1.99e30, 'soleil'], B: ['Terre', 5.97e24, 'terre'], d: 1.50e11 },
+  { nom: 'Le Soleil et Jupiter', A: ['Soleil', 1.99e30, 'soleil'], B: ['Jupiter', 1.90e27, 'jupiter'], d: 7.78e11 },
+  { nom: 'La Terre et la Station spatiale (ISS)', A: ['Terre', 5.97e24, 'terre'], B: ['ISS', 4.20e5, 'iss'], d: 6.78e6 },
+  { nom: 'La Terre et une pomme posée au sol', A: ['Terre', 5.97e24, 'terre'], B: ['Pomme', 0.150, 'pomme'], d: 6.37e6 },
+  { nom: 'Deux élèves à 1 m l’un de l’autre', A: ['Élève 1', 60, 'eleve'], B: ['Élève 2', 55, 'eleve'], d: 1.0 }
+];
+const P1 = { p: PRESETS[0], mA: 0, mB: 0, k: 1, Fref: 1, drag: false };
+const s1 = setupCanvas($('cv1'), 820, 430);
+const stars1 = makeStars(820, 430, 90);
+$('preset').innerHTML = PRESETS.map((p, i) => `<option value="${i}">${p.nom}</option>`).join('');
+
+const mAv = () => P1.p.A[1] * Math.pow(10, P1.mA);
+const mBv = () => P1.p.B[1] * Math.pow(10, P1.mB);
+const dv = () => P1.p.d * P1.k;
+const F1 = () => G * mAv() * mBv() / (dv() * dv());
+const visR = m => clamp(9 + Math.log10(Math.max(m, 1e-3)) * 1.9, 8, 66);
+
+function choosePreset(i) {
+  P1.p = PRESETS[i]; P1.mA = 0; P1.mB = 0; P1.k = 1; P1.Fref = F1();
+  $('mA').value = 0; $('mB').value = 0; $('dd').value = 1;
+  ui1(); say1(`Situation de départ : ${P1.p.nom}. Les deux flèches ont la même longueur : les deux forces ont la même valeur.`);
+}
+function geom1() {
+  const W = 820, cy = 205, sd = 300 * P1.k;
+  const rA = visR(mAv()), rB = visR(mBv());
+  const xA = (W - sd) / 2, xB = xA + sd;
+  return { cy, sd, rA, rB, xA, xB };
+}
+function draw1() {
+  const { ctx } = s1; s1.begin();
+  ctx.fillStyle = C.canvas; ctx.fillRect(0, 0, 820, 430);
+  drawStars(ctx, stars1);
+  const g = geom1(), F = F1();
+  // ligne des centres + distance
+  ctx.setLineDash([5, 6]); ctx.strokeStyle = 'rgba(200,215,240,.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(g.xA, g.cy); ctx.lineTo(g.xB, g.cy); ctx.stroke(); ctx.setLineDash([]);
+  const yd = g.cy + 92;
+  ctx.strokeStyle = 'rgba(220,230,250,.8)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(g.xA, yd - 8); ctx.lineTo(g.xA, yd + 8); ctx.moveTo(g.xB, yd - 8); ctx.lineTo(g.xB, yd + 8);
+  ctx.moveTo(g.xA, yd); ctx.lineTo(g.xB, yd); ctx.stroke();
+  label(ctx, 'd = ' + sciT(dv()) + ' m', (g.xA + g.xB) / 2, yd + 20, '#e6edf8', 'center', 15);
+  // astres
+  drawBody(ctx, g.xA, g.cy, g.rA, LOOK[P1.p.A[2]]);
+  drawBody(ctx, g.xB, g.cy, g.rB, LOOK[P1.p.B[2]]);
+  label(ctx, 'A : ' + P1.p.A[0], g.xA, g.cy - g.rA - 40, '#ffffff', 'center', 16);
+  label(ctx, sciT(mAv()) + ' kg', g.xA, g.cy - g.rA - 20, '#c9d6ea', 'center', 14, false);
+  label(ctx, 'B : ' + P1.p.B[0], g.xB, g.cy - g.rB - 40, '#ffffff', 'center', 16);
+  label(ctx, sciT(mBv()) + ' kg', g.xB, g.cy - g.rB - 20, '#c9d6ea', 'center', 14, false);
+  // flèches (même longueur, sens opposés)
+  const Lwant = 90 * F / P1.Fref, Lmax = Math.min(250, g.sd * .92);
+  const L = clamp(Lwant, 4, Lmax), cut = Lwant > Lmax + .5;
+  arrow(ctx, g.xB, g.cy, g.xB - L, g.cy, C.fab, 5);
+  arrow(ctx, g.xA, g.cy, g.xA + L, g.cy, C.fba, 5);
+  ctx.fillStyle = '#fff'; for (const x of [g.xA, g.xB]) { ctx.beginPath(); ctx.arc(x, g.cy, 3.5, 0, TAU); ctx.fill(); }
+  label(ctx, 'F(A/B)', g.xB - Math.max(L, 50) / 2, g.cy + 26, C.fab, 'center', 15);
+  label(ctx, 'F(B/A)', g.xA + Math.max(L, 50) / 2, g.cy - 26 + (L < 60 ? 52 : 0), C.fba, 'center', 15);
+  label(ctx, 'F(A/B) = F(B/A) = ' + sciT(F) + ' N', 410, 28, '#ffffff', 'center', 18);
+  if (cut) label(ctx, 'flèches trop longues : clique sur « Recaler les flèches »', 410, 410, '#ffd27a', 'center', 13, false);
+  else label(ctx, 'Astres et distances non représentés à l’échelle', 410, 410, 'rgba(200,215,240,.7)', 'center', 12, false);
+}
+function ui1() {
+  $('mA-out').innerHTML = sci(mAv()) + ' kg';
+  $('mB-out').innerHTML = sci(mBv()) + ' kg';
+  $('dd-out').innerHTML = sci(dv()) + ' m';
+  const F = F1();
+  $('calc1').innerHTML = `F = G × m<sub>A</sub> × m<sub>B</sub> / d² = 6,67 × 10<sup>−11</sup> × ${sci(mAv())} × ${sci(mBv())} / (${sci(dv())})²
+    <br>F = <span class="res">${sci(F)} N</span>`;
+  draw1();
+}
+function say1(h) { $('msg1').innerHTML = h; }
+function ratioText(r) {
+  if (Math.abs(r - 1) < 0.005) return 'la même valeur';
+  if (r > 1) return 'une valeur multipliée par ' + fr(r, r >= 10 ? 0 : 2);
+  return 'une valeur divisée par ' + fr(1 / r, 1 / r >= 10 ? 0 : 2);
+}
+function explain1(what, f) {
+  const r = F1() / P1.Fref;
+  let t = '';
+  if (what === 'dd') {
+    if (f) t = `On a ${f > 1 ? 'multiplié' : 'divisé'} la distance par ${f > 1 ? f : 1 / f} : la force est ${f > 1 ? 'divisée' : 'multipliée'} par ${(f > 1 ? f : 1 / f)}² = ${(f > 1 ? f * f : 1 / (f * f))}. `;
+    else t = 'Quand la distance augmente, la force diminue très vite (comme 1/d²). ';
+  } else if (f) {
+    t = `On a ${f > 1 ? 'multiplié' : 'divisé'} la masse de ${what === 'mA' ? 'A' : 'B'} par 2 : la force est ${f > 1 ? 'multipliée' : 'divisée'} par 2, et c'est vrai pour les deux flèches. `;
+  } else t = `La force est proportionnelle à la masse de ${what === 'mA' ? 'A' : 'B'}. `;
+  say1(t + `Par rapport au départ, la force a ${ratioText(r)}.`);
+}
+$('preset').addEventListener('change', e => choosePreset(+e.target.value));
+for (const id of ['mA', 'mB']) $(id).addEventListener('input', e => { P1[id] = +e.target.value; ui1(); explain1(id); });
+$('dd').addEventListener('input', e => { P1.k = +e.target.value; ui1(); explain1('dd'); });
+document.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
+  const k = b.dataset.k, f = +b.dataset.f, el = $(k);
+  if (k === 'dd') {
+    const nk = P1.k * f;
+    if (nk < 0.5 - 1e-9 || nk > 2.2 + 1e-9) { say1(`Impossible d'aller plus loin ici : la distance doit rester entre 0,5 et 2,2 fois la distance de départ. Reviens au départ puis réessaie.`); return; }
+    P1.k = nk; el.value = nk;
+  } else {
+    const nv = P1[k] + Math.log10(f);
+    if (nv < -1 - 1e-9 || nv > 1 + 1e-9) { say1('Limite du curseur atteinte.'); return; }
+    P1[k] = nv; el.value = nv;
+  }
+  ui1(); explain1(k, f);
+}));
+$('reset1').addEventListener('click', () => choosePreset(+$('preset').value));
+$('rescale').addEventListener('click', () => { P1.Fref = F1(); ui1(); say1('Échelle des flèches recalée sur la situation actuelle : la longueur de départ correspond maintenant à ' + sci(P1.Fref) + ' N.'); });
+// glisser le corps B
+function ptr1(e) { const r = s1.cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * 820, y: (e.clientY - r.top) / r.height * 430 }; }
+s1.cv.addEventListener('pointerdown', e => {
+  const p = ptr1(e), g = geom1();
+  if (Math.hypot(p.x - g.xB, p.y - g.cy) < g.rB + 22) { P1.drag = true; s1.cv.setPointerCapture(e.pointerId); }
+});
+s1.cv.addEventListener('pointermove', e => {
+  const p = ptr1(e), g = geom1();
+  s1.cv.style.cursor = P1.drag || Math.hypot(p.x - g.xB, p.y - g.cy) < g.rB + 22 ? 'grab' : 'default';
+  if (!P1.drag) return;
+  // xB = 410 + 150 k  =>  k = (xB - 410) / 150
+  P1.k = clamp((p.x - 410) / 150, 0.5, 2.2); $('dd').value = P1.k; ui1(); explain1('dd');
+});
+const endDrag = () => { P1.drag = false; };
+s1.cv.addEventListener('pointerup', endDrag); s1.cv.addEventListener('pointercancel', endDrag);
+s1.onresize = draw1;
+choosePreset(0);
+
+/* =====================================================================
+   PARTIE 2 : orbite d'un satellite
+   ===================================================================== */
+const MT = 5.97e24, RT = 6.37e6, MU = G * MT, MSAT = 1.00e3;
+const s2 = setupCanvas($('cv2'), 820, 560);
+const stars2 = makeStars(820, 560, 130);
+const O = { x: 0, y: 0, vx: 0, vy: 0, r0: 0, v0: 0, ppm: 1, tscale: 1, run: false, pause: false, trail: [], state: 'idle', grav: true, t: 0, last: 0, cx: 410, cy: 280, said: '' };
+const vCirc = r => Math.sqrt(MU / r);
+function ui2out() {
+  const h = +$('alt').value, v = +$('v0').value;
+  $('alt-out').textContent = fr(h, 0) + ' km';
+  $('v0-out').textContent = fr(v, 2) + ' km/s';
+}
+function launch() {
+  const h = +$('alt').value * 1e3, v = +$('v0').value * 1e3;
+  O.r0 = RT + h; O.v0 = v;
+  O.x = O.r0; O.y = 0; O.vx = 0; O.vy = v;     // départ à droite, vers le haut (sens trigonométrique)
+  O.ppm = 118 / O.r0;
+  const T0 = TAU * Math.sqrt(O.r0 ** 3 / MU);
+  O.tscale = T0 / 8;
+  O.trail = []; O.t = 0; O.run = true; O.pause = false; O.state = 'vol'; O.grav = $('grav').checked;
+  $('pause').textContent = 'Pause';
+  // prévision
+  const vc = vCirc(O.r0), vl = Math.SQRT2 * vc;
+  let t;
+  if (!O.grav) t = "Sans attraction, aucune force ne s'exerce : le satellite avance en ligne droite à vitesse constante (principe d'inertie).";
+  else if (v < 1) t = 'Lâché sans vitesse, le satellite tombe tout droit vers le centre de la Terre.';
+  else if (Math.abs(v - vc) / vc < 0.015) t = `Vitesse ≈ vitesse circulaire (${fr(vc / 1e3, 2)} km/s à cette altitude) : la trajectoire est un cercle. La force, toujours dirigée vers le centre, est perpendiculaire à la vitesse.`;
+  else if (v >= vl) t = `Vitesse supérieure à ${fr(vl / 1e3, 2)} km/s : l'attraction de la Terre courbe la trajectoire mais ne suffit pas à retenir le satellite, qui s'échappe.`;
+  else {
+    const r2 = O.r0 * v * v / (2 * MU / O.r0 - v * v);
+    if (v < vc && r2 < RT) t = `Vitesse trop faible (il faudrait ${fr(vc / 1e3, 2)} km/s pour une orbite circulaire) : la trajectoire est courbée vers la Terre et le satellite s'écrase.`;
+    else if (v < vc) t = `Vitesse un peu trop faible pour un cercle : le satellite se rapproche de la Terre puis remonte. L'orbite est une ellipse.`;
+    else t = `Vitesse supérieure à la vitesse circulaire (${fr(vc / 1e3, 2)} km/s) : le satellite s'éloigne puis revient. L'orbite est une ellipse.`;
+  }
+  $('msg2').innerHTML = t; O.said = t;
+}
+function step2(dtReal) {
+  if (!O.run || O.pause || O.state !== 'vol') return;
+  let T = dtReal * O.tscale;
+  const T0 = TAU * Math.sqrt(O.r0 ** 3 / MU);
+  const hmax = T0 / 3000;
+  while (T > 0) {
+    const h = Math.min(hmax, T); T -= h;
+    const acc = (x, y) => { if (!O.grav) return [0, 0]; const r = Math.hypot(x, y), k = -MU / (r * r * r); return [k * x, k * y]; };
+    const [ax, ay] = acc(O.x, O.y);
+    O.vx += ax * h / 2; O.vy += ay * h / 2;
+    O.x += O.vx * h; O.y += O.vy * h;
+    const [bx, by] = acc(O.x, O.y);
+    O.vx += bx * h / 2; O.vy += by * h / 2;
+    O.t += h;
+    const r = Math.hypot(O.x, O.y);
+    if (r <= RT) { const k = RT / r; O.x *= k; O.y *= k; O.state = 'crash'; $('msg2').innerHTML = "Le satellite s'est écrasé sur la Terre : sa vitesse était trop faible pour « tomber à côté » de la Terre. Augmente la vitesse et relance."; break; }
+    if (r * O.ppm > 900) { O.state = 'loin'; $('msg2').innerHTML = (O.grav ? "Le satellite s'est échappé : il s'éloigne indéfiniment de la Terre (l'attraction diminue comme 1/d²)." : "Sans force, le satellite poursuit en ligne droite à vitesse constante et ne revient jamais.") + ' Relance pour essayer autre chose.'; break; }
+  }
+  const last = O.trail[O.trail.length - 1];
+  if (!last || Math.hypot(last[0] - O.x, last[1] - O.y) * O.ppm > 2) { O.trail.push([O.x, O.y]); if (O.trail.length > 1600) O.trail.shift(); }
+}
+function draw2() {
+  const { ctx } = s2; s2.begin();
+  ctx.fillStyle = C.canvas; ctx.fillRect(0, 0, 820, 560);
+  drawStars(ctx, stars2);
+  const cx = O.cx, cy = O.cy, ppm = O.ppm || 118 / (RT + 4e5);
+  const X = x => cx + x * ppm, Y = y => cy - y * ppm;
+  drawBody(ctx, cx, cy, RT * ppm, LOOK.terre);
+  label(ctx, 'Terre', cx, cy + RT * ppm + 16, '#ffffff', 'center', 14);
+  // orbite circulaire de référence
+  if (O.r0) {
+    ctx.setLineDash([4, 7]); ctx.strokeStyle = 'rgba(200,215,240,.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx, cy, O.r0 * ppm, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // traînée
+  if (O.trail.length > 1) {
+    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,214,110,.85)';
+    ctx.beginPath(); O.trail.forEach(([x, y], i) => i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y))); ctx.lineTo(X(O.x), Y(O.y)); ctx.stroke();
+  }
+  if (O.state === 'idle') {
+    const r0 = RT + (+$('alt').value) * 1e3;
+    label(ctx, 'Règle l’altitude et la vitesse, puis clique sur « Lancer »', 410, 520, '#e6edf8', 'center', 15, false);
+    drawSat(ctx, X(r0), Y(0), 0, 1);
+    return;
+  }
+  const sx = X(O.x), sy = Y(O.y);
+  const r = Math.hypot(O.x, O.y), v = Math.hypot(O.vx, O.vy);
+  // vecteurs
+  if (O.grav && O.state !== 'crash') {
+    const F = G * MT * MSAT / (r * r), F0 = G * MT * MSAT / (O.r0 * O.r0);
+    const L = clamp(55 * F / F0, 6, 110);
+    arrow(ctx, sx, sy, sx - O.x / r * L, sy + O.y / r * L, C.fab, 4);
+    label(ctx, 'F', sx - O.x / r * (L + 14), sy + O.y / r * (L + 14), C.fab, 'center', 15);
+  }
+  if ($('showv').checked && O.state === 'vol') {
+    const L = clamp(55 * v / Math.max(O.v0, 1), 4, 130);
+    arrow(ctx, sx, sy, sx + O.vx / v * L, sy - O.vy / v * L, C.vit, 3);
+    label(ctx, 'v', sx + O.vx / v * (L + 12), sy - O.vy / v * (L + 12), C.vit, 'center', 15);
+  }
+  drawSat(ctx, sx, sy, Math.atan2(-O.vy, O.vx), 1);
+  if (O.state === 'crash') label(ctx, '💥', sx, sy - 4, '#fff', 'center', 26);
+}
+function drawSat(ctx, x, y, a, s) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+  ctx.fillStyle = '#3d74c9'; ctx.fillRect(-4 * s, -16 * s, 8 * s, 10 * s); ctx.fillRect(-4 * s, 6 * s, 8 * s, 10 * s);
+  ctx.fillStyle = '#e8eef6'; ctx.fillRect(-6 * s, -6 * s, 12 * s, 12 * s);
+  ctx.strokeStyle = '#8b98aa'; ctx.lineWidth = 1; ctx.strokeRect(-6 * s, -6 * s, 12 * s, 12 * s);
+  ctx.restore();
+}
+function calc2() {
+  if (O.state === 'idle') { $('calc2').innerHTML = 'F = G × M<sub>Terre</sub> × m / d², avec d = R<sub>Terre</sub> + altitude.'; return; }
+  const r = Math.hypot(O.x, O.y), v = Math.hypot(O.vx, O.vy);
+  const F = O.grav ? G * MT * MSAT / (r * r) : 0;
+  $('calc2').innerHTML = `Altitude : ${fr(Math.max(0, (r - RT) / 1e3), 0)} km · vitesse : ${fr(v / 1e3, 2)} km/s<br>` +
+    (O.grav ? `F = G × M<sub>T</sub> × m / d² = <span class="res">${sci(F)} N</span> (d = ${sci(r)} m)` : `Attraction coupée : <span class="res">F = 0 N</span>`);
+}
+let last2 = 0, calcT = 0;
+function loop2(t) {
+  const dt = Math.min(0.05, (t - last2) / 1000 || 0); last2 = t;
+  step2(dt); draw2();
+  calcT += dt; if (calcT > 0.12) { calcT = 0; calc2(); }
+  requestAnimationFrame(loop2);
+}
+$('alt').addEventListener('input', () => { ui2out(); if (O.state === 'idle') calc2(); });
+$('v0').addEventListener('input', ui2out);
+document.querySelectorAll('[data-alt]').forEach(b => b.addEventListener('click', () => {
+  $('alt').value = b.dataset.alt; $('v0').value = (vCirc(RT + b.dataset.alt * 1e3) / 1e3).toFixed(2); ui2out();
+}));
+$('vcirc').addEventListener('click', () => {
+  const v = vCirc(RT + $('alt').value * 1e3);
+  $('v0').value = (v / 1e3).toFixed(2); ui2out();
+  $('msg2').innerHTML = `À ${fr(+$('alt').value, 0)} km d'altitude, la vitesse pour une orbite circulaire vaut ${fr(v / 1e3, 2)} km/s. Clique sur « Lancer ».`;
+});
+$('launch').addEventListener('click', launch);
+$('pause').addEventListener('click', () => { if (!O.run) return; O.pause = !O.pause; $('pause').textContent = O.pause ? 'Reprendre' : 'Pause'; });
+$('grav').addEventListener('change', e => {
+  O.grav = e.target.checked;
+  if (O.state !== 'vol') return;
+  $('msg2').innerHTML = O.grav
+    ? "L'attraction est rétablie : la trajectoire se courbe de nouveau vers la Terre."
+    : "Attraction coupée : plus aucune force ne s'exerce sur le satellite. Il part en ligne droite, dans la direction de sa vitesse à cet instant (principe d'inertie).";
+});
+ui2out(); calc2();
+$('msg2').innerHTML = "Le réglage proposé correspond à l'ISS : 400 km d'altitude et 7,67 km/s. Clique sur « Lancer ».";
+requestAnimationFrame(loop2);
+
+/* =====================================================================
+   PARTIE 3 : le poids sur différents astres
+   ===================================================================== */
+const ASTRES = [
+  { nom: 'Terre', M: 5.97e24, R: 6.37e6, look: 'terre', sol: '#4f8a4a' },
+  { nom: 'Lune', M: 7.35e22, R: 1.74e6, look: 'lune', sol: '#a6a6ad' },
+  { nom: 'Mars', M: 6.42e23, R: 3.39e6, look: 'mars', sol: '#b8532c' },
+  { nom: 'Vénus', M: 4.87e24, R: 6.05e6, look: 'venus', sol: '#c9a055' },
+  { nom: 'Jupiter', M: 1.90e27, R: 6.99e7, look: 'jupiter', sol: '#c89566' },
+  { nom: 'Soleil', M: 1.99e30, R: 6.96e8, look: 'soleil', sol: '#f5a623' }
+];
+const gOf = a => G * a.M / (a.R * a.R);
+const P3 = { i: 0 };
+const s3 = setupCanvas($('cv3'), 820, 330);
+const stars3 = makeStars(820, 330, 70);
+const BARCOL = { terre: '#2f7fd0', lune: '#8a8a92', mars: '#c0532c', venus: '#c9a055', jupiter: '#b57a45', soleil: '#f59a1b' };
+function buildBars() {
+  $('bars').innerHTML = ASTRES.map((a, i) => `<button type="button" class="bar" data-i="${i}" aria-label="Choisir ${a.nom}">
+    <span>${a.nom}</span><span class="track"><span class="fill" style="background:${BARCOL[a.look]}"></span></span><span class="val"></span></button>`).join('');
+  $('bars').querySelectorAll('.bar').forEach(b => b.addEventListener('click', () => { P3.i = +b.dataset.i; ui3(); }));
+}
+function ui3() {
+  const m = +$('mo').value, h = P3.i === 0 ? +$('h3').value * 1e3 : 0;
+  $('mo-out').innerHTML = fr(m, 0) + ' kg';
+  $('h3-out').textContent = fr(h / 1e3, 0) + ' km';
+  $('altbox').style.display = P3.i === 0 ? '' : 'none';
+  const Pmax = 1.15 * m * gOf(ASTRES[4]);   // échelle linéaire calée sur Jupiter (le Soleil dépasse)
+  $('bars').querySelectorAll('.bar').forEach((b, i) => {
+    const P = m * gOf(ASTRES[i]);
+    b.classList.toggle('on', i === P3.i);
+    b.querySelector('.fill').style.width = clamp(P / Pmax, 0.01, 1) * 100 + '%';
+    b.querySelector('.val').innerHTML = sciT(P) + ' N';
+  });
+  const a = ASTRES[P3.i], d = a.R + h, g = G * a.M / (d * d), P = m * g;
+  let t = `<strong>${a.nom}</strong> : g = G × M / ${h ? '(R + h)²' : 'R²'} = 6,67 × 10<sup>−11</sup> × ${sci(a.M)} / (${sci(d)})² = <span class="res">${sci(g)} N/kg</span><br>
+    P = m × g = ${fr(m, 0)} × ${sci(g)} = <span class="res">${sci(P)} N</span>`;
+  if (P3.i === 0 && h === 0) t += `<br>Vérification : F = G × M<sub>T</sub> × m / R<sub>T</sub>² = ${sci(G * a.M * m / (a.R * a.R))} N, c'est bien le poids : près de la Terre, P = m × g est une très bonne approximation de l'attraction gravitationnelle.`;
+  if (P3.i === 0 && h > 0) t += `<br>En altitude, d augmente donc g diminue : à ${fr(h / 1e3, 0)} km, g vaut ${fr(100 * g / gOf(a), 0)} % de sa valeur au sol. ${h >= 300e3 ? "Dans l'ISS (400 km), les astronautes ne sont donc pas « sans pesanteur » : ils sont en chute libre autour de la Terre." : ''}`;
+  if (P3.i !== 0) t += `<br>C'est ${P > m * gOf(ASTRES[0]) ? fr(P / (m * gOf(ASTRES[0])), 1) + ' fois plus' : fr((m * gOf(ASTRES[0])) / P, 1) + ' fois moins'} que sur la Terre. La masse, elle, reste ${fr(m, 0)} kg partout.`;
+  $('calc3').innerHTML = t;
+  draw3();
+}
+function draw3() {
+  const { ctx } = s3; s3.begin();
+  ctx.fillStyle = C.canvas; ctx.fillRect(0, 0, 820, 330);
+  drawStars(ctx, stars3);
+  const a = ASTRES[P3.i], m = +$('mo').value;
+  const h = P3.i === 0 ? +$('h3').value * 1e3 : 0;
+  const g = G * a.M / ((a.R + h) ** 2);
+  // sol courbe de l'astre
+  const R = 1400, cx = 300, cy = 300 + R - 40;
+  const lk = LOOK[a.look];
+  const gr = ctx.createLinearGradient(0, 250, 0, 330); gr.addColorStop(0, lk.c1); gr.addColorStop(1, lk.c2);
+  if (lk.glow) { ctx.save(); ctx.shadowColor = lk.c1; ctx.shadowBlur = 30; }
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
+  if (lk.glow) ctx.restore();
+  label(ctx, a.nom, 60, 312, '#ffffff', 'left', 16);
+  // astronaute : hauteur fixe ; en altitude il "flotte" au-dessus
+  const lift = h ? 18 + 60 * h / 2000e3 : 0;
+  const footY = 260 - lift, x = 300;
+  drawAstro(ctx, x, footY, m);
+  // poids
+  const L = clamp(60 * g / 9.81, 6, 200);
+  const gy = footY - 38;
+  if (L > 140) {
+    arrow(ctx, x, gy, x, gy + 140, C.fab, 5);
+    label(ctx, '(flèche coupée)', x + 16, gy + 120, '#ffd27a', 'left', 12, false);
+  } else arrow(ctx, x, gy, x, gy + L, C.fab, 5);
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, gy, 3.5, 0, TAU); ctx.fill();
+  label(ctx, 'P', x - 18, gy + Math.min(L, 140) / 2, C.fab, 'center', 17);
+  // panneau d'infos
+  const px = 470;
+  label(ctx, 'm = ' + fr(m, 0) + ' kg', px, 70, '#ffffff', 'left', 18);
+  label(ctx, 'g = ' + sciT(g) + ' N/kg', px, 104, '#c9d6ea', 'left', 18);
+  label(ctx, 'P = m × g = ' + sciT(m * g) + ' N', px, 140, C.fab, 'left', 20);
+  if (h) label(ctx, 'altitude : ' + fr(h / 1e3, 0) + ' km', px, 176, '#c9d6ea', 'left', 15, false);
+  label(ctx, 'Flèche de 60 px pour g = 9,81 N/kg (sur Terre)', px, 210, 'rgba(200,215,240,.7)', 'left', 12, false);
+}
+function drawAstro(ctx, x, footY, m) {
+  const s = 1;
+  ctx.save(); ctx.translate(x, footY);
+  ctx.fillStyle = '#f2f4f8'; ctx.strokeStyle = '#7c8799'; ctx.lineWidth = 1.5;
+  // jambes
+  ctx.beginPath(); ctx.roundRect(-11, -26, 9, 26, 3); ctx.roundRect(2, -26, 9, 26, 3); ctx.fill(); ctx.stroke();
+  // corps + sac
+  ctx.fillStyle = '#d9dee8'; ctx.beginPath(); ctx.roundRect(-16, -62, 10, 30, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#f2f4f8'; ctx.beginPath(); ctx.roundRect(-12, -64, 26, 40, 7); ctx.fill(); ctx.stroke();
+  // bras
+  ctx.beginPath(); ctx.roundRect(12, -60, 8, 26, 3); ctx.fill(); ctx.stroke();
+  // casque
+  ctx.beginPath(); ctx.arc(1, -76, 13, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#2a4b7c'; ctx.beginPath(); ctx.ellipse(4, -76, 8, 6.5, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(7, -79, 2, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+$('mo').addEventListener('input', ui3);
+$('h3').addEventListener('input', ui3);
+s3.onresize = draw3;
+buildBars(); ui3();
+
+/* =====================================================================
+   EXERCICES : générateur
+   ===================================================================== */
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const r3 = (a, b) => { const x = a + Math.random() * (b - a); return parseFloat(x.toPrecision(3)); };
+const GEN = { cur: null, ok: 0, tot: 0, done: false };
+const KINDS = [
+  () => { // force entre une planète et un satellite
+    const a = pick([ASTRES[0], ASTRES[2], ASTRES[1]]);
+    const m = r3(1.0, 9.9) * Math.pow(10, pick([2, 3, 4]));
+    const hkm = Math.round(r3(2.0, 9.0) * 100) * (a.nom === 'Lune' ? 1 : 1);
+    const h = hkm * 1e3, d = parseFloat((a.R + h).toPrecision(3));
+    const F = G * a.M * m / (d * d);
+    return {
+      en: `Un satellite de masse m = ${sci(m)} kg tourne autour ${a.nom === 'Terre' ? 'de la Terre' : a.nom === 'Lune' ? 'de la Lune' : 'de Mars'} (M = ${sci(a.M)} kg). La distance entre son centre et celui de l'astre vaut d = ${sci(d)} m. Calculer la valeur de la force d'attraction exercée par l'astre sur le satellite.`,
+      q: 'F =', unit: 'N', ans: F,
+      corr: `<p><span class="lit">F = G × M × m / d²</span></p><p>F = 6,67 × 10<sup>−11</sup> × ${sci(a.M)} × ${sci(m)} / (${sci(d)})²</p><p class="r">F = ${sci(F)} N</p>`
+    };
+  },
+  () => { // poids sur un astre
+    const a = pick(ASTRES.slice(0, 5));
+    const g = parseFloat(gOf(a).toPrecision(3));
+    const m = r3(1.0, 9.9) * Math.pow(10, pick([0, 1, 2]));
+    const P = m * g;
+    return {
+      en: `Sur ${a.nom === 'Terre' ? 'la Terre' : a.nom === 'Lune' ? 'la Lune' : a.nom}, l'intensité de pesanteur vaut g = ${sci(g)} N/kg. Calculer le poids d'un objet de masse m = ${sci(m)} kg.`,
+      q: 'P =', unit: 'N', ans: P,
+      corr: `<p><span class="lit">P = m × g</span></p><p>P = ${sci(m)} × ${sci(g)}</p><p class="r">P = ${sci(P)} N</p>`
+    };
+  },
+  () => { // masse à partir du poids
+    const a = pick(ASTRES.slice(0, 5));
+    const g = parseFloat(gOf(a).toPrecision(3));
+    const P = r3(1.0, 9.9) * Math.pow(10, pick([1, 2, 3]));
+    const m = P / g;
+    return {
+      en: `Sur ${a.nom === 'Terre' ? 'la Terre' : a.nom === 'Lune' ? 'la Lune' : a.nom}, où g = ${sci(g)} N/kg, un objet a un poids P = ${sci(P)} N. Calculer sa masse.`,
+      q: 'm =', unit: 'kg', ans: m,
+      corr: `<p><span class="lit">P = m × g donc m = P / g</span></p><p>m = ${sci(P)} / ${sci(g)}</p><p class="r">m = ${sci(m)} kg</p>`
+    };
+  },
+  () => { // intensité de pesanteur
+    const a = pick([ASTRES[1], ASTRES[2], ASTRES[3], ASTRES[4]]);
+    const g = gOf(a);
+    return {
+      en: `${a.nom === 'Lune' ? 'La Lune' : a.nom} a une masse M = ${sci(a.M)} kg et un rayon R = ${sci(a.R)} m. Calculer l'intensité de pesanteur g à sa surface.`,
+      q: 'g =', unit: 'N/kg', ans: g,
+      corr: `<p><span class="lit">g = G × M / R²</span></p><p>g = 6,67 × 10<sup>−11</sup> × ${sci(a.M)} / (${sci(a.R)})²</p><p class="r">g = ${sci(g)} N/kg</p>`
+    };
+  },
+  () => { // proportionnalité
+    const F = r3(1.0, 9.9) * Math.pow(10, pick([2, 3, 5, 20]));
+    const k = pick([2, 3, 4, 5, 10]);
+    const ans = F / (k * k);
+    return {
+      en: `Deux corps s'attirent avec une force F = ${sci(F)} N. On multiplie la distance qui les sépare par ${k}, sans changer les masses. Calculer la nouvelle valeur de la force.`,
+      q: "F' =", unit: 'N', ans,
+      corr: `<p>F est inversement proportionnelle à d² : si d est multipliée par ${k}, F est divisée par ${k}² = ${k * k}.</p><p>F' = ${sci(F)} / ${k * k}</p><p class="r">F' = ${sci(ans)} N</p>`
+    };
+  }
+];
+function parseAns(s) {
+  s = s.trim().replace(/\s/g, '').replace(/,/g, '.').replace(/[×x*]10\^?/i, 'e').replace(/·10\^?/, 'e').replace(/−/g, '-');
+  s = s.replace(/e\(?([-+]?\d+)\)?$/, 'e$1');
+  const v = Number(s);
+  return Number.isFinite(v) ? v : NaN;
+}
+function newGen() {
+  GEN.cur = pick(KINDS)(); GEN.done = false;
+  $('g-enonce').innerHTML = GEN.cur.en; $('g-q').textContent = GEN.cur.q; $('g-unit').textContent = GEN.cur.unit;
+  $('g-rep').value = ''; $('g-fb').className = 'fb'; $('g-fb').textContent = '';
+  $('g-corr').hidden = true; $('g-corr').innerHTML = GEN.cur.corr;
+}
+function checkGen() {
+  const v = parseAns($('g-rep').value), fb = $('g-fb'), a = GEN.cur.ans;
+  if (!Number.isFinite(v)) { fb.className = 'fb ko'; fb.textContent = 'Écris un nombre, par exemple 3,64e6 ou 3,64 × 10^6.'; return; }
+  const ok = Math.abs(v - a) / Math.abs(a) <= 0.01;
+  if (!GEN.done) { GEN.tot++; if (ok) GEN.ok++; GEN.done = true; }
+  if (ok) { fb.className = 'fb ok'; fb.innerHTML = `Bravo ! ${GEN.cur.q} ${sci(a)} ${GEN.cur.unit}.`; }
+  else {
+    const r = v / a, e = Math.round(Math.log10(Math.abs(r)));
+    fb.className = 'fb ko';
+    fb.innerHTML = 'Pas tout à fait. ' + (Math.abs(e) >= 1 && Math.abs(r / Math.pow(10, e) - 1) < 0.02 ? `Ton résultat est décalé d'un facteur 10${supTxt(e)} : vérifie les puissances de 10 (et le carré de la distance).` : 'Reprends l’expression littérale, puis l’application numérique.');
+  }
+  $('score').textContent = `· ${GEN.ok} / ${GEN.tot}`;
+}
+$('g-new').addEventListener('click', newGen);
+$('g-check').addEventListener('click', checkGen);
+$('g-rep').addEventListener('keydown', e => { if (e.key === 'Enter') checkGen(); });
+$('g-sol').addEventListener('click', () => { $('g-corr').hidden = false; if (!GEN.done) { GEN.done = true; GEN.tot++; $('score').textContent = `· ${GEN.ok} / ${GEN.tot}`; } });
+newGen();
+})();
+</script>
+</body>
+</html>
