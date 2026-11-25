@@ -188,18 +188,17 @@ footer strong{color:var(--text)}
       </div>
     </div>
     <div class="memo">
-      <div><h3>Vecteur vitesse</h3>Au point M<sub>i</sub> : <span class="vec">v</span><sub>i</sub> ≈ <span class="vec">M<sub>i</sub>M<sub>i+1</sub></span> / Δt.
-        Direction : celle de (M<sub>i</sub>M<sub>i+1</sub>). Sens : celui du mouvement. Valeur : v<sub>i</sub> = M<sub>i</sub>M<sub>i+1</sub> / Δt, en m·s<sup>−1</sup>.
-        On le dessine avec une échelle, par exemple 1 carreau ↔ 1 m·s<sup>−1</sup>.</div>
-      <div><h3>Variation de vitesse</h3>Δ<span class="vec">v</span><sub>i</sub> = <span class="vec">v</span><sub>i+1</sub> − <span class="vec">v</span><sub>i</sub>.
-        On reporte <span class="vec">v</span><sub>i+1</sub> à partir du point M<sub>i</sub> : Δ<span class="vec">v</span><sub>i</sub> va de l'extrémité de <span class="vec">v</span><sub>i</sub>
+      <div><h3>Vecteur vitesse</h3>On utilise le point d'avant et le point d'après : au point M<sub>i</sub>, <span class="vec">v</span><sub>i</sub> ≈ <span class="vec">M<sub>i−1</sub>M<sub>i+1</sub></span> / (2Δt).
+        Direction : celle de (M<sub>i−1</sub>M<sub>i+1</sub>). Sens : celui du mouvement. Valeur : v<sub>i</sub> = M<sub>i−1</sub>M<sub>i+1</sub> / (2Δt), en m·s<sup>−1</sup>.
+        Exemple : v<sub>4</sub> = M<sub>3</sub>M<sub>5</sub> / (2Δt). On le dessine avec une échelle, par exemple 1 carreau ↔ 1 m·s<sup>−1</sup>.</div>
+      <div><h3>Variation de vitesse</h3>Même méthode : Δ<span class="vec">v</span><sub>i</sub> = <span class="vec">v</span><sub>i+1</sub> − <span class="vec">v</span><sub>i−1</sub>.
+        On reporte <span class="vec">v</span><sub>i−1</sub> et <span class="vec">v</span><sub>i+1</sub> à partir du point M<sub>i</sub> : Δ<span class="vec">v</span><sub>i</sub> va de l'extrémité de <span class="vec">v</span><sub>i−1</sub>
         à l'extrémité de <span class="vec">v</span><sub>i+1</sub>. On le représente au point M<sub>i</sub>.</div>
       <div><h3>Lien avec les forces</h3>Si Δ<span class="vec">v</span> = <span class="vec">0</span>, alors Σ<span class="vec">F</span> = <span class="vec">0</span> (principe d'inertie) : le mouvement est rectiligne uniforme.
         Sinon, Δ<span class="vec">v</span> et Σ<span class="vec">F</span> ont <strong>même direction et même sens</strong>.</div>
     </div>
     <p class="small" style="margin:.6rem 0 0">Modèle : frottements de l'air négligés pour le lancer et la chute (g = 9,81 N·kg<sup>−1</sup>).
-      Δ<span class="vec">v</span><sub>i</sub> tracé au point M<sub>i</sub> n'est qu'approximativement parallèle à Σ<span class="vec">F</span> dans le mouvement circulaire :
-      l'accord est d'autant meilleur que Δt est petit (essaie les trois valeurs de Δt).</p>
+      Avec la méthode « point d'avant, point d'après », on ne peut construire ni <span class="vec">v</span> au premier et au dernier point, ni Δ<span class="vec">v</span> aux deux premiers et aux deux derniers.</p>
   </section>
 
   <!-- ===================== EXERCICES ===================== -->
@@ -211,17 +210,18 @@ footer strong{color:var(--text)}
     <article class="exo">
       <h3><span>1</span>Calculer la valeur d'une vitesse</h3>
       <p>Sur la chronophotographie d'un skateur, les positions sont enregistrées toutes les Δt = 40 ms.
-        La distance réelle entre les positions M<sub>3</sub> et M<sub>4</sub> est M<sub>3</sub>M<sub>4</sub> = 0,48 m.</p>
-      <p>Exprimer puis calculer la valeur v<sub>3</sub> de la vitesse du skateur au point M<sub>3</sub>.</p>
+        La distance réelle entre les positions M<sub>3</sub> et M<sub>5</sub> est M<sub>3</sub>M<sub>5</sub> = 0,96 m.</p>
+      <p>Exprimer puis calculer la valeur v<sub>4</sub> de la vitesse du skateur au point M<sub>4</sub>.</p>
       <div class="ans" data-ans="12" data-tol="0.03">
-        <label>v<sub>3</sub> = <input inputmode="decimal" aria-label="Valeur de v3 en m/s"> m·s<sup>−1</sup></label>
+        <label>v<sub>4</sub> = <input inputmode="decimal" aria-label="Valeur de v4 en m/s"> m·s<sup>−1</sup></label>
         <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
       </div>
       <details class="corr"><summary>Voir la correction</summary>
         <div class="correction"><h4>Correction</h4>
-          <p>Expression littérale : v<sub>3</sub> = M<sub>3</sub>M<sub>4</sub> / Δt</p>
-          <p>Application numérique (Δt = 40 ms = 40 × 10<sup>−3</sup> s) : v<sub>3</sub> = 0,48 / (40 × 10<sup>−3</sup>)</p>
-          <p class="res">v<sub>3</sub> = 1,2 × 10<sup>1</sup> m·s<sup>−1</sup> (2 chiffres significatifs, comme 0,48 et 40)</p>
+          <p>On utilise le point d'avant (M<sub>3</sub>) et le point d'après (M<sub>5</sub>), séparés par une durée 2Δt.</p>
+          <p>Expression littérale : v<sub>4</sub> = M<sub>3</sub>M<sub>5</sub> / (2Δt)</p>
+          <p>Application numérique (Δt = 40 ms = 40 × 10<sup>−3</sup> s) : v<sub>4</sub> = 0,96 / (2 × 40 × 10<sup>−3</sup>)</p>
+          <p class="res">v<sub>4</sub> = 1,2 × 10<sup>1</sup> m·s<sup>−1</sup> (2 chiffres significatifs, comme 0,96 et 40)</p>
         </div>
       </details>
     </article>
@@ -255,37 +255,42 @@ footer strong{color:var(--text)}
       <h3><span>3</span>Exploiter une chronophotographie</h3>
       <p>Une bille roule sur un plan incliné. On a relevé ses positions toutes les Δt = 0,10 s. Échelle des distances : 1 carreau ↔ 10 cm.</p>
       <figure>
-        <svg viewBox="0 0 620 110" width="620" role="img" aria-label="Chronophotographie : cinq positions alignées, espacées de 2, 3, 4 puis 5 carreaux">
+        <svg viewBox="0 0 640 120" width="640" role="img" aria-label="Chronophotographie : six positions alignées, espacées de 2, 3, 4, 5 puis 6 carreaux">
           <defs><pattern id="g3" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="currentColor" stroke-opacity=".18"/></pattern></defs>
-          <rect x="0" y="0" width="620" height="110" fill="url(#g3)" style="color:var(--muted)"/>
+          <rect x="0" y="0" width="640" height="120" fill="url(#g3)" style="color:var(--muted)"/>
           <g fill="currentColor" style="color:var(--text)" font-size="15" text-anchor="middle">
-            <circle cx="60" cy="60" r="5"/><text x="60" y="40">M₀</text>
-            <circle cx="100" cy="60" r="5"/><text x="100" y="40">M₁</text>
-            <circle cx="160" cy="60" r="5"/><text x="160" y="40">M₂</text>
-            <circle cx="240" cy="60" r="5"/><text x="240" y="40">M₃</text>
-            <circle cx="340" cy="60" r="5"/><text x="340" y="40">M₄</text>
+            <circle cx="40" cy="60" r="5"/><text x="40" y="40">M₀</text>
+            <circle cx="80" cy="60" r="5"/><text x="80" y="40">M₁</text>
+            <circle cx="140" cy="60" r="5"/><text x="140" y="40">M₂</text>
+            <circle cx="220" cy="60" r="5"/><text x="220" y="40">M₃</text>
+            <circle cx="320" cy="60" r="5"/><text x="320" y="40">M₄</text>
+            <circle cx="440" cy="60" r="5"/><text x="440" y="40">M₅</text>
           </g>
-          <g style="color:var(--muted)" fill="currentColor" font-size="13"><path d="M440 90h20" stroke="currentColor" stroke-width="2"/><text x="468" y="94">1 carreau ↔ 10 cm</text></g>
+          <g style="color:var(--muted)" fill="currentColor" font-size="13"><path d="M480 100h20" stroke="currentColor" stroke-width="2"/><text x="506" y="104">1 carreau ↔ 10 cm</text></g>
         </svg>
       </figure>
       <ol>
         <li>Quelle est la nature du mouvement de la bille ? Justifier.</li>
-        <li>Calculer les valeurs v<sub>1</sub> et v<sub>2</sub> de la vitesse aux points M<sub>1</sub> et M<sub>2</sub>.</li>
-        <li>En déduire la valeur, la direction et le sens de Δ<span class="vec">v</span><sub>1</sub> = <span class="vec">v</span><sub>2</sub> − <span class="vec">v</span><sub>1</sub>, puis ce que l'on peut dire de la somme des forces.</li>
+        <li>Calculer les valeurs v<sub>2</sub> et v<sub>4</sub> de la vitesse aux points M<sub>2</sub> et M<sub>4</sub> (méthode du point d'avant et du point d'après).</li>
+        <li>En déduire la valeur, la direction et le sens de Δ<span class="vec">v</span><sub>3</sub> = <span class="vec">v</span><sub>4</sub> − <span class="vec">v</span><sub>2</sub>, puis ce que l'on peut dire de la somme des forces.</li>
       </ol>
-      <div class="ans" data-ans="3.0" data-tol="0.02">
-        <label>v<sub>1</sub> = <input inputmode="decimal" aria-label="v1 en m/s"> m·s<sup>−1</sup></label>
+      <div class="ans" data-ans="3.5" data-tol="0.02">
+        <label>v<sub>2</sub> = <input inputmode="decimal" aria-label="v2 en m/s"> m·s<sup>−1</sup></label>
+        <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
+      </div>
+      <div class="ans" data-ans="2.0" data-tol="0.02">
+        <label>Δv<sub>3</sub> = <input inputmode="decimal" aria-label="Delta v3 en m/s"> m·s<sup>−1</sup></label>
         <button type="button">Vérifier</button><span class="fb" aria-live="polite"></span>
       </div>
       <details class="corr"><summary>Voir la correction</summary>
         <div class="correction"><h4>Correction</h4>
           <p>1. Les positions sont alignées : le mouvement est <strong>rectiligne</strong>. Pendant des durées égales, la bille parcourt des distances
-            de plus en plus grandes (2, 3, 4 puis 5 carreaux) : le mouvement est <strong>accéléré</strong>.</p>
-          <p>2. M<sub>1</sub>M<sub>2</sub> = 3 carreaux = 0,30 m et M<sub>2</sub>M<sub>3</sub> = 4 carreaux = 0,40 m.<br>
-            v<sub>1</sub> = M<sub>1</sub>M<sub>2</sub> / Δt = 0,30 / 0,10 donc <span class="res">v<sub>1</sub> = 3,0 m·s<sup>−1</sup></span><br>
-            v<sub>2</sub> = M<sub>2</sub>M<sub>3</sub> / Δt = 0,40 / 0,10 donc <span class="res">v<sub>2</sub> = 4,0 m·s<sup>−1</sup></span></p>
-          <p>3. Les deux vecteurs ont la même direction et le même sens : Δv<sub>1</sub> = v<sub>2</sub> − v<sub>1</sub> = 4,0 − 3,0, donc
-            <span class="res">Δv<sub>1</sub> = 1,0 m·s<sup>−1</sup></span>, direction : celle du mouvement, sens : celui du mouvement.
+            de plus en plus grandes (2, 3, 4, 5 puis 6 carreaux) : le mouvement est <strong>accéléré</strong>.</p>
+          <p>2. M<sub>1</sub>M<sub>3</sub> = 3 + 4 = 7 carreaux = 0,70 m et M<sub>3</sub>M<sub>5</sub> = 5 + 6 = 11 carreaux = 1,1 m.<br>
+            v<sub>2</sub> = M<sub>1</sub>M<sub>3</sub> / (2Δt) = 0,70 / (2 × 0,10) donc <span class="res">v<sub>2</sub> = 3,5 m·s<sup>−1</sup></span><br>
+            v<sub>4</sub> = M<sub>3</sub>M<sub>5</sub> / (2Δt) = 1,1 / (2 × 0,10) donc <span class="res">v<sub>4</sub> = 5,5 m·s<sup>−1</sup></span></p>
+          <p>3. Les deux vecteurs ont la même direction et le même sens : Δv<sub>3</sub> = v<sub>4</sub> − v<sub>2</sub> = 5,5 − 3,5, donc
+            <span class="res">Δv<sub>3</sub> = 2,0 m·s<sup>−1</sup></span>, direction : celle du mouvement, sens : celui du mouvement.
             Δ<span class="vec">v</span> ≠ <span class="vec">0</span>, donc Σ<span class="vec">F</span> ≠ <span class="vec">0</span> :
             la somme des forces est dirigée dans le sens du mouvement.</p>
         </div>
@@ -294,10 +299,10 @@ footer strong{color:var(--text)}
 
     <article class="exo">
       <h3><span>4</span>Construire le vecteur variation de vitesse</h3>
-      <p>Lors du lancer d'un ballon, on a représenté à partir du même point les vecteurs vitesse <span class="vec">v</span><sub>5</sub> et
-        <span class="vec">v</span><sub>6</sub>. Échelle : 1 carreau ↔ 0,50 m·s<sup>−1</sup>.</p>
+      <p>Lors du lancer d'un ballon, on a représenté à partir du même point les vecteurs vitesse <span class="vec">v</span><sub>4</sub> (point d'avant) et
+        <span class="vec">v</span><sub>6</sub> (point d'après) du point M<sub>5</sub>. Échelle : 1 carreau ↔ 0,50 m·s<sup>−1</sup>.</p>
       <figure>
-        <svg viewBox="0 0 300 180" width="300" role="img" aria-label="Deux vecteurs issus d'un même point : v5 vaut 4 carreaux vers la droite et 2 vers le haut, v6 vaut 4 carreaux vers la droite">
+        <svg viewBox="0 0 300 180" width="300" role="img" aria-label="Deux vecteurs issus d'un même point : v4 vaut 4 carreaux vers la droite et 2 vers le haut, v6 vaut 4 carreaux vers la droite">
           <defs>
             <pattern id="g4" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="currentColor" stroke-opacity=".18"/></pattern>
             <marker id="ab4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>
@@ -308,11 +313,11 @@ footer strong{color:var(--text)}
             <path d="M60 120L180 120" stroke="var(--vcol)" stroke-dasharray="7 4" marker-end="url(#ab4)"/>
           </g>
           <circle cx="60" cy="120" r="4" fill="currentColor" style="color:var(--text)"/>
-          <g font-size="16" font-style="italic" fill="var(--vcol)"><text x="98" y="78">v₅</text><text x="110" y="142">v₆</text></g>
+          <g font-size="16" font-style="italic" fill="var(--vcol)"><text x="98" y="78">v₄</text><text x="110" y="142">v₆</text></g>
         </svg>
       </figure>
       <ol>
-        <li>Construire Δ<span class="vec">v</span><sub>5</sub> = <span class="vec">v</span><sub>6</sub> − <span class="vec">v</span><sub>5</sub> et donner sa valeur.</li>
+        <li>Construire Δ<span class="vec">v</span><sub>5</sub> = <span class="vec">v</span><sub>6</sub> − <span class="vec">v</span><sub>4</sub> et donner sa valeur.</li>
         <li>En déduire la direction et le sens de la somme des forces exercées sur le ballon. Quelle force peut-on reconnaître ?</li>
       </ol>
       <div class="ans" data-ans="1.0" data-tol="0.02">
@@ -321,16 +326,16 @@ footer strong{color:var(--text)}
       </div>
       <details class="corr"><summary>Voir la correction</summary>
         <div class="correction"><h4>Correction</h4>
-          <svg viewBox="0 0 300 180" width="260" role="img" aria-label="Le vecteur delta v va de l'extrémité de v5 à l'extrémité de v6 : 2 carreaux verticalement vers le bas">
+          <svg viewBox="0 0 300 180" width="260" role="img" aria-label="Le vecteur delta v va de l'extrémité de v4 à l'extrémité de v6 : 2 carreaux verticalement vers le bas">
             <rect width="300" height="180" fill="url(#g4)" style="color:var(--muted)"/>
             <g stroke-width="3" fill="none">
               <path d="M60 120L180 60" stroke="var(--vcol)" marker-end="url(#ab4)"/>
               <path d="M60 120L180 120" stroke="var(--vcol)" stroke-dasharray="7 4" marker-end="url(#ab4)"/>
               <path d="M180 60L180 120" stroke="var(--dvcol)" marker-end="url(#ab4)"/>
             </g>
-            <g font-size="16" font-style="italic"><text x="98" y="78" fill="var(--vcol)">v₅</text><text x="110" y="142" fill="var(--vcol)">v₆</text><text x="188" y="96" fill="var(--dvcol)">Δv₅</text></g>
+            <g font-size="16" font-style="italic"><text x="98" y="78" fill="var(--vcol)">v₄</text><text x="110" y="142" fill="var(--vcol)">v₆</text><text x="188" y="96" fill="var(--dvcol)">Δv₅</text></g>
           </svg>
-          <p>1. Δ<span class="vec">v</span><sub>5</sub> relie l'extrémité de <span class="vec">v</span><sub>5</sub> à l'extrémité de <span class="vec">v</span><sub>6</sub> :
+          <p>1. Δ<span class="vec">v</span><sub>5</sub> relie l'extrémité de <span class="vec">v</span><sub>4</sub> à l'extrémité de <span class="vec">v</span><sub>6</sub> :
             il mesure 2 carreaux, verticalement vers le bas.<br>Δv<sub>5</sub> = 2 × 0,50 donc <span class="res">Δv<sub>5</sub> = 1,0 m·s<sup>−1</sup></span></p>
           <p>2. Σ<span class="vec">F</span> a la même direction et le même sens que Δ<span class="vec">v</span> : <strong>verticale, vers le bas</strong>.
             On reconnaît le <strong>poids</strong> <span class="vec">P</span> du ballon (frottements de l'air négligés).</p>
@@ -411,7 +416,7 @@ const SC = {
     nom: 'Lancer d’un ballon', court: 'Lancer',
     params: [{ id: 'v0', lab: 'Vitesse initiale', min: 3, max: 8, step: 0.5, val: 6, u: 'm·s⁻¹', d: 1 },
              { id: 'ang', lab: 'Angle de tir', min: 20, max: 80, step: 5, val: 55, u: '°', d: 0 }],
-    dts: [0.06, 0.08, 0.10], dt: 0.08, vs: 2, dvs: 0.5, L: 0.25, ground: true, obj: 'ballon',
+    dts: [0.06, 0.08, 0.10], dt: 0.08, vs: 2, dvs: 1, L: 0.25, ground: true, obj: 'ballon',
     pos(t, p) { const a = p.ang * Math.PI / 180; return [p.v0 * Math.cos(a) * t, 0.3 + p.v0 * Math.sin(a) * t - G * t * t / 2]; },
     tEnd(p) { const a = p.ang * Math.PI / 180, vy = p.v0 * Math.sin(a); return (vy + Math.sqrt(vy * vy + 2 * G * 0.3)) / G; },
     force: () => ({ d: [0, -1], nom: 'P', txt: 'Une seule force : le poids <b class="f"><span class="vec">P</span></b>, vertical et vers le bas (frottements de l’air négligés). Σ<b class="f"><span class="vec">F</span></b> = <b class="f"><span class="vec">P</span></b>.' })
@@ -458,27 +463,43 @@ const S = { key: 'lancer', p: {}, dt: 0.08, pts: [], v: [], dv: [], built: 0, se
   vs: 2, dvs: 0.5, showdv: false, showf: false };
 
 /* ---------- calcul de la chronophotographie ---------- */
+/* Méthode centrée (point d'avant, point d'après) :
+   v_i = M_{i-1}M_{i+1} / (2Δt), tracé au point M_i
+   Δv_i = v_{i+1} − v_{i-1}, tracé au point M_i
+   Pour le mouvement circulaire, les indices sont pris modulo le nombre de points d'un tour. */
+const wrap = () => S.key === 'cercle';
+const prevI = i => wrap() ? (i - 1 + S.N) % S.N : i - 1;
+const nextI = i => wrap() ? (i + 1) % S.N : i + 1;
 function compute() {
   const sc = SC[S.key];
   sc.dtCur = S.dt;
   const tEnd = sc.tEnd(S.p);
   let n = Math.floor(tEnd / S.dt + 1e-9);
-  if (S.key === 'cercle') n = Math.round(S.p.T / S.dt);
+  if (wrap()) n = Math.round(S.p.T / S.dt) - 1;   // un tour : M0 … M(n), le suivant serait M0
   const pts = [];
   for (let i = 0; i <= n; i++) pts.push(sc.pos(i * S.dt, S.p));
-  // pour le cercle, on garde les points d'un tour (le dernier rejoint M0) + un point pour v
-  S.pts = pts;
-  S.v = []; S.dv = [];
-  for (let i = 0; i + 1 < pts.length; i++) S.v.push([(pts[i + 1][0] - pts[i][0]) / S.dt, (pts[i + 1][1] - pts[i][1]) / S.dt]);
-  for (let i = 0; i + 1 < S.v.length; i++) S.dv.push([S.v[i + 1][0] - S.v[i][0], S.v[i + 1][1] - S.v[i][1]]);
+  S.pts = pts; S.N = pts.length;
+  const ok = i => wrap() || (i >= 1 && i <= S.N - 2);
+  S.v = pts.map((_, i) => {
+    if (!ok(i)) return null;
+    const a = pts[prevI(i)], b = pts[nextI(i)];
+    return [(b[0] - a[0]) / (2 * S.dt), (b[1] - a[1]) / (2 * S.dt)];
+  });
+  S.dv = pts.map((_, i) => {
+    if (!ok(i)) return null;
+    const a = S.v[prevI(i)], b = S.v[nextI(i)];
+    return a && b ? [b[0] - a[0], b[1] - a[1]] : null;
+  });
+  S.vIdx = pts.map((_, i) => i).filter(i => S.v[i]);
   S.tEnd = n * S.dt;
-  S.built = Math.min(S.built, S.v.length);
-  S.sel = Math.min(S.sel, pts.length - 1);
+  S.built = Math.min(S.built, S.vIdx.length);
+  S.sel = Math.min(S.sel, S.N - 1);
   fit();
 }
-/* nombre de points affichés : pour le cercle, le dernier (= M0 après un tour) n'est pas redessiné */
-const nShown = () => S.key === 'cercle' ? S.pts.length - 1 : S.pts.length;
-const nVec = () => S.v.length;
+const nShown = () => S.N;
+const nVec = () => S.vIdx.length;
+const isB = i => { const k = S.vIdx.indexOf(i); return k >= 0 && k < S.built; };
+const firstSel = () => S.vIdx.length ? S.vIdx[0] : 0;
 
 /* ---------- géométrie écran ---------- */
 const cv = $('cv'), ctx = cv.getContext('2d');
@@ -490,8 +511,8 @@ function fit() {
   let xs = [], ys = [];
   const add = (x, y) => { xs.push(x); ys.push(y); };
   S.pts.forEach(p => add(p[0], p[1]));
-  S.v.forEach((v, i) => add(S.pts[i][0] + v[0] / S.vs * L, S.pts[i][1] + v[1] / S.vs * L));
-  S.dv.forEach((d, i) => add(S.pts[i][0] + d[0] / S.dvs * L, S.pts[i][1] + d[1] / S.dvs * L));
+  S.v.forEach((v, i) => v && add(S.pts[i][0] + v[0] / S.vs * L, S.pts[i][1] + v[1] / S.vs * L));
+  S.dv.forEach((d, i) => d && add(S.pts[i][0] + d[0] / S.dvs * L, S.pts[i][1] + d[1] / S.dvs * L));
   if (sc.center) add(0, 0);
   if (sc.line) S.pts.forEach(p => { add(p[0] + sc.line[0] * 4 * L, p[1] + sc.line[1] * 4 * L); if (sc.line[1]) add(p[0], p[1] - 1.6 * L); });
   if (sc.ground) add(xs[0], 0);
@@ -613,9 +634,9 @@ function draw() {
     ctx.textAlign = 'left'; ctx.fillText('M' + sub(i), lx, ly);
   }
 
-  // segment MiMi+1 du point sélectionné
-  if (!S.playing && S.sel + 1 < S.pts.length && S.sel < nVec()) {
-    const a = S.pts[S.sel], b = S.pts[S.sel + 1];
+  // segment M(i-1)M(i+1) du point sélectionné
+  if (!S.playing && S.v[S.sel]) {
+    const a = S.pts[prevI(S.sel)], b = S.pts[nextI(S.sel)];
     ctx.strokeStyle = C.accent; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(X(a[0]), Y(a[1])); ctx.lineTo(X(b[0]), Y(b[1])); ctx.stroke(); ctx.setLineDash([]);
   }
@@ -623,13 +644,15 @@ function draw() {
   if (!S.playing) {
     const vlen = (v, s) => [v[0] / s * L * K, -v[1] / s * L * K];
     // vecteurs vitesse
-    for (let i = 0; i < S.built; i++) {
+    S.vIdx.forEach(i => {
+      if (!isB(i)) return;
       const p = S.pts[i], d = vlen(S.v[i], S.vs);
       arrow(X(p[0]), Y(p[1]), X(p[0]) + d[0], Y(p[1]) + d[1], C.vcol, i === S.sel ? 3.4 : 2.6);
-    }
+    });
     // décalage perpendiculaire (mouvements rectilignes) : les vecteurs colinéaires sont tracés sur des « couloirs » parallèles
     const nl = sc.line, lane = k => nl ? [nl[0] * k * gp, -nl[1] * k * gp] : [0, 0];
     const P = (i, k = 0) => { const o = lane(k); return [X(S.pts[i][0]) + o[0], Y(S.pts[i][1]) + o[1]]; };
+    const dvOk = i => S.dv[i] && isB(prevI(i)) && isB(nextI(i));
     if (nl && S.showdv) {
       const a = P(0, 1), b = P(nShown() - 1, 1);
       ctx.strokeStyle = C.dvcol; ctx.globalAlpha = .35; ctx.setLineDash([2, 5]); ctx.lineWidth = 1;
@@ -637,40 +660,44 @@ function draw() {
     }
     // vecteurs variation de vitesse
     if (S.showdv) {
-      for (let i = 0; i < Math.min(S.built - 1, S.dv.length); i++) {
+      for (let i = 0; i < S.N; i++) {
+        if (!dvOk(i)) continue;
         const [ox, oy] = P(i, nl ? 1 : 0), d = vlen(S.dv[i], S.dvs);
         if (nl) { ctx.fillStyle = C.dvcol; ctx.beginPath(); ctx.arc(ox, oy, 2.5, 0, Math.PI * 2); ctx.fill(); }
         arrow(ox, oy, ox + d[0], oy + d[1], C.dvcol, i === S.sel ? 3.2 : 2.4);
       }
     }
-    // construction détaillée au point sélectionné
-    const i = S.sel;
-    if (i < S.built) {
-      const [ox, oy] = P(i), d1 = vlen(S.v[i], S.vs);
-      labelNear('v' + sub(i), ox, oy, ox + d1[0], oy + d1[1], C.vcol);
-      if (S.showdv && i + 1 < S.built && i < S.dv.length) {
-        const d2 = vlen(S.v[i + 1], S.vs), dd = vlen(S.dv[i], S.dvs);
-        if (nl) {
-          // construction à côté : v_i et v_{i+1} reportés depuis la même origine, sur deux couloirs
-          const [ax, ay] = P(i, 2.2), [bx, by] = P(i, 3.2);
-          ctx.strokeStyle = C.muted; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(bx, by); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(ax + d1[0], ay + d1[1]); ctx.lineTo(bx + d1[0], by + d1[1]); ctx.stroke(); ctx.setLineDash([]);
-          arrow(ax, ay, ax + d1[0], ay + d1[1], C.vcol, 2.4);
-          arrow(bx, by, bx + d2[0], by + d2[1], C.vcol, 2.4, [6, 5]);
-          arrow(bx + d1[0], by + d1[1], bx + d2[0], by + d2[1], C.dvcol, 3);
-          const off = nl[1] ? [0, -8] : [8, 0];
-          vecLabel('v' + sub(i), ax + d1[0] / 2 + (nl[1] ? -8 : 10), ay + d1[1] / 2 + (nl[1] ? -6 : 5), C.vcol, 14);
-          vecLabel('v' + sub(i + 1), bx + d2[0] / 2 + (nl[1] ? -10 : 10), by + d2[1] / 2 + (nl[1] ? -6 : 5), C.vcol, 14);
-          vecLabel('Δv' + sub(i), bx + d1[0] + dd[0] / 2 + off[0] - (nl[1] ? 12 : 0), by + d1[1] + dd[1] / 2 + off[1] + (nl[1] ? -6 : 5), C.dvcol, 14);
-          const [cx, cy] = P(i, 1);
-          labelNear('Δv' + sub(i), cx, cy, cx + dd[0], cy + dd[1], C.dvcol);
-        } else {
-          arrow(ox, oy, ox + d2[0], oy + d2[1], C.vcol, 2, [6, 5]);
-          labelNear('v' + sub(i + 1), ox, oy, ox + d2[0], oy + d2[1], C.vcol);
-          arrow(ox + d1[0], oy + d1[1], ox + d2[0], oy + d2[1], C.dvcol, 2, [4, 4]);
-          labelNear('Δv' + sub(i), ox, oy, ox + dd[0], oy + dd[1], C.dvcol);
-        }
+    // construction détaillée au point sélectionné : Δv_i = v_{i+1} − v_{i-1}
+    const i = S.sel, ip = prevI(i), iN = nextI(i);
+    if (isB(i)) {
+      const [ox, oy] = P(i), d0 = vlen(S.v[i], S.vs);
+      labelNear('v' + sub(i), ox, oy, ox + d0[0], oy + d0[1], C.vcol);
+    }
+    if (S.showdv && dvOk(i)) {
+      const [ox, oy] = P(i);
+      const d1 = vlen(S.v[ip], S.vs), d2 = vlen(S.v[iN], S.vs), dd = vlen(S.dv[i], S.dvs);
+      if (nl) {
+        // construction à côté : v_{i-1} et v_{i+1} reportés depuis la même origine, sur deux couloirs
+        const [ax, ay] = P(i, 2.2), [bx, by] = P(i, 3.2);
+        ctx.strokeStyle = C.muted; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(bx, by); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ax + d1[0], ay + d1[1]); ctx.lineTo(bx + d1[0], by + d1[1]); ctx.stroke(); ctx.setLineDash([]);
+        arrow(ax, ay, ax + d1[0], ay + d1[1], C.vcol, 2.4, [6, 5]);
+        arrow(bx, by, bx + d2[0], by + d2[1], C.vcol, 2.4, [6, 5]);
+        arrow(bx + d1[0], by + d1[1], bx + d2[0], by + d2[1], C.dvcol, 3);
+        const off = nl[1] ? [0, -8] : [8, 0];
+        vecLabel('v' + sub(ip), ax + d1[0] / 2 + (nl[1] ? -8 : 10), ay + d1[1] / 2 + (nl[1] ? -6 : 5), C.vcol, 14);
+        vecLabel('v' + sub(iN), bx + d2[0] / 2 + (nl[1] ? -10 : 10), by + d2[1] / 2 + (nl[1] ? -6 : 5), C.vcol, 14);
+        vecLabel('Δv' + sub(i), bx + d1[0] + dd[0] / 2 + off[0] - (nl[1] ? 12 : 0), by + d1[1] + dd[1] / 2 + off[1] + (nl[1] ? -6 : 5), C.dvcol, 14);
+        const [cx, cy] = P(i, 1);
+        labelNear('Δv' + sub(i), cx, cy, cx + dd[0], cy + dd[1], C.dvcol);
+      } else {
+        arrow(ox, oy, ox + d1[0], oy + d1[1], C.vcol, 2, [6, 5]);
+        labelNear('v' + sub(ip), ox, oy, ox + d1[0], oy + d1[1], C.vcol);
+        arrow(ox, oy, ox + d2[0], oy + d2[1], C.vcol, 2, [6, 5]);
+        labelNear('v' + sub(iN), ox, oy, ox + d2[0], oy + d2[1], C.vcol);
+        arrow(ox + d1[0], oy + d1[1], ox + d2[0], oy + d2[1], C.dvcol, 2, [4, 4]);
+        labelNear('Δv' + sub(i), ox, oy, ox + dd[0], oy + dd[1], C.dvcol);
       }
     }
     // somme des forces (qualitatif)
@@ -726,25 +753,32 @@ function explain() {
   const sc = SC[S.key], i = S.sel, L = sc.L;
   let h = '';
   if (S.playing) { h = 'Enregistrement en cours : une position toutes les Δt = ' + fx(S.dt * 1000, 0) + ' ms…'; $('msg').innerHTML = h; return; }
-  if (i >= nVec()) {
-    h = `<b>Point M${sub(i)}</b> (t = ${dec(i * S.dt)} s) : c'est le dernier point, il n'y a pas de point M${sub(i + 1)} pour construire <b class="v"><span class="vec">v</span>${sub(i)}</b>.`;
+  const ip = prevI(i), iN = nextI(i);
+  if (!S.v[i]) {
+    h = `<b>Point M${sub(i)}</b> (t = ${dec(i * S.dt)} s) : c'est ${i === 0 ? 'le premier' : 'le dernier'} point. Il n'y a pas de point `
+      + `${i === 0 ? 'avant' : 'après'} lui, donc on ne peut pas construire <b class="v"><span class="vec">v</span>${sub(i)}</b> avec la méthode M<sub>i−1</sub>M<sub>i+1</sub> / (2Δt).`;
   } else {
-    const a = S.pts[i], b = S.pts[i + 1], d = Math.hypot(b[0] - a[0], b[1] - a[1]), v = d / S.dt;
-    h = `<b>Point M${sub(i)}</b>, t${sub(i)} = ${dec(i * S.dt)} s. `
-      + `M${sub(i)}M${sub(i + 1)} = ${dec(d / L)} carreaux × ${fr(String(L))} m = ${sci(d)} m.<br>`
-      + `v${sub(i)} = M${sub(i)}M${sub(i + 1)} / Δt = ${sci(d)} / ${sci(S.dt, 2)} = <b class="v">${sci(v)} m·s⁻¹</b> `
-      + `→ flèche de ${dec(v / S.vs)} carreaux (échelle 1 carreau ↔ ${fr(String(S.vs))} m·s⁻¹).`;
-    if (i >= S.built) h += ` <span class="small">Clique sur « Construire v<sub>i</sub> suivant » pour tracer ce vecteur.</span>`;
-    if (S.showdv && i < S.dv.length) {
-      const dv = S.dv[i], n = Math.hypot(dv[0], dv[1]);
-      if (n < 1e-6) h += `<br><b class="dv">Δ<span class="vec">v</span>${sub(i)} = <span class="vec">0</span></b> : le vecteur vitesse ne change pas.`;
+    const a = S.pts[ip], b = S.pts[iN], d = Math.hypot(b[0] - a[0], b[1] - a[1]), v = d / (2 * S.dt);
+    h = `<b>Point M${sub(i)}</b>, t${sub(i)} = ${dec(i * S.dt)} s. On utilise le point d'avant M${sub(ip)} et le point d'après M${sub(iN)} : `
+      + `M${sub(ip)}M${sub(iN)} = ${dec(d / L)} carreaux × ${fr(String(L))} m = ${sci(d)} m.<br>`
+      + `v${sub(i)} = M${sub(ip)}M${sub(iN)} / (2Δt) = ${sci(d)} / (2 × ${sci(S.dt, 2)}) = <b class="v">${sci(v)} m·s⁻¹</b> `
+      + `→ flèche de ${dec(v / S.vs)} carreaux (échelle 1 carreau ↔ ${fr(String(S.vs))} m·s⁻¹), parallèle à (M${sub(ip)}M${sub(iN)}).`;
+    if (!isB(i)) h += ` <span class="small">Clique sur « Construire v<sub>i</sub> suivant » pour tracer ce vecteur.</span>`;
+  }
+  if (S.showdv) {
+    const dv = S.dv[i];
+    if (!dv) {
+      if (S.v[i]) h += `<br><span class="small">Pas de Δ<span class="vec">v</span>${sub(i)} ici : il faut connaître la vitesse au point d'avant et au point d'après.</span>`;
+    } else {
+      const n = Math.hypot(dv[0], dv[1]);
+      if (n < 1e-6) h += `<br><b class="dv">Δ<span class="vec">v</span>${sub(i)} = <span class="vec">v</span>${sub(iN)} − <span class="vec">v</span>${sub(ip)} = <span class="vec">0</span></b> : le vecteur vitesse ne change pas.`;
       else {
         const dir = describeDir(dv);
-        h += `<br><b class="dv">Δ<span class="vec">v</span>${sub(i)} = <span class="vec">v</span>${sub(i + 1)} − <span class="vec">v</span>${sub(i)}</b> : valeur ${sci(n)} m·s⁻¹`
-          + (dir ? `, direction ${dir}` : (sc.center ? ', dirigé vers l’intérieur du cercle' : ''))
+        h += `<br><b class="dv">Δ<span class="vec">v</span>${sub(i)} = <span class="vec">v</span>${sub(iN)} − <span class="vec">v</span>${sub(ip)}</b> : valeur ${sci(n)} m·s⁻¹`
+          + (dir ? `, direction ${dir}` : (sc.center ? ', dirigé vers le centre O du cercle' : ''))
           + ` → ${dec(n / S.dvs)} carreaux.`;
       }
-      if (i + 1 >= S.built) h += ` <span class="small">(Construis aussi <span class="vec">v</span>${sub(i + 1)} pour voir la construction.)</span>`;
+      if (!isB(ip) || !isB(iN)) h += ` <span class="small">(Construis aussi <span class="vec">v</span>${sub(ip)} et <span class="vec">v</span>${sub(iN)} pour voir la construction.)</span>`;
     }
   }
   if (S.showf) h += '<br>' + sc.force(S.pts[i]).txt;
@@ -753,12 +787,13 @@ function explain() {
 
 /* ---------- tableau ---------- */
 function table() {
-  let h = '<tr><th>Point</th><th>t (s)</th><th>MᵢMᵢ₊₁ (m)</th><th>vᵢ (m·s⁻¹)</th><th>Δvᵢ (m·s⁻¹)</th></tr>';
+  let h = '<tr><th>Point</th><th>t (s)</th><th>Mᵢ₋₁Mᵢ₊₁ (m)</th><th>vᵢ (m·s⁻¹)</th><th>Δvᵢ (m·s⁻¹)</th></tr>';
   for (let i = 0; i < nShown(); i++) {
-    const d = i < nVec() ? Math.hypot(S.pts[i + 1][0] - S.pts[i][0], S.pts[i + 1][1] - S.pts[i][1]) : null;
-    const dv = i < S.dv.length ? Math.hypot(S.dv[i][0], S.dv[i][1]) : null;
+    const a = S.pts[prevI(i)], b = S.pts[nextI(i)];
+    const d = S.v[i] ? Math.hypot(b[0] - a[0], b[1] - a[1]) : null;
+    const dv = S.dv[i] ? Math.hypot(S.dv[i][0], S.dv[i][1]) : null;
     h += `<tr class="${i === S.sel ? 'sel' : ''}"><td>M${sub(i)}</td><td>${dec(i * S.dt)}</td><td>${d === null ? '—' : dec(d)}</td>`
-      + `<td>${d === null ? '—' : dec(d / S.dt)}</td><td>${dv === null ? '—' : dec(dv)}</td></tr>`;
+      + `<td>${d === null ? '—' : dec(d / (2 * S.dt))}</td><td>${dv === null ? '—' : dec(dv)}</td></tr>`;
   }
   $('tab').innerHTML = h;
 }
@@ -808,7 +843,7 @@ function setScenario(key) {
   });
   fillDt(true);
   S.vs = sc.vs; S.dvs = sc.dvs; fillScale($('vs'), S.vs); fillScale($('dvs'), S.dvs);
-  S.built = 0; S.sel = 0;
+  S.built = 0; S.sel = 1;
   recompute(true);
 }
 function fillDt(reset) {
@@ -839,14 +874,14 @@ $('dt').addEventListener('change', e => { S.dt = +e.target.value; recompute(true
 $('play').addEventListener('click', play);
 $('step').addEventListener('click', () => {
   stopAnim();
-  if (S.built < nVec()) { S.built++; S.sel = S.built - 1; }
+  if (S.built < nVec()) { S.built++; S.sel = S.vIdx[S.built - 1]; }
   refresh();
 });
 $('all').addEventListener('click', () => { stopAnim(); S.built = nVec(); refresh(); });
-$('clear').addEventListener('click', () => { stopAnim(); S.built = 0; S.sel = 0; refresh(); });
+$('clear').addEventListener('click', () => { stopAnim(); S.built = 0; S.sel = firstSel(); refresh(); });
 $('vs').addEventListener('change', e => { S.vs = +e.target.value; fit(); refresh(); });
 $('dvs').addEventListener('change', e => { S.dvs = +e.target.value; fit(); refresh(); });
-$('showdv').addEventListener('change', e => { S.showdv = e.target.checked; if (S.showdv && S.built < 2) S.built = Math.min(nVec(), Math.max(S.built, S.sel + 2)); refresh(); });
+$('showdv').addEventListener('change', e => { S.showdv = e.target.checked; if (S.showdv) { const k = S.vIdx.indexOf(nextI(S.sel)); if (k >= S.built) S.built = Math.min(nVec(), k + 1); } refresh(); });
 $('showf').addEventListener('change', e => { S.showf = e.target.checked; refresh(); });
 $('prev').addEventListener('click', () => { stopAnim(); S.sel = Math.max(0, S.sel - 1); refresh(); });
 $('next').addEventListener('click', () => { stopAnim(); S.sel = Math.min(nShown() - 1, S.sel + 1); refresh(); });
