@@ -17,7 +17,7 @@ window.CATALOGUE = [
     chapitre: "Solutions aqueuses",
     mots: ["concentration en masse", "facteur de dilution", "soluté", "solvant"],
     statut: "en-ligne"
-    },
+  },
   {
     dossier: "preparation-dissolution",
     titre: "Préparer une solution par dissolution",
