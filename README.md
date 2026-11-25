@@ -7,6 +7,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/
 | Animation | Lien |
 |---|---|
 | Dissolution et dilution | https://benjaminbhk.github.io/animations-physique-chimie/dissolution-dilution/ |
+| Préparer une solution par dissolution | https://benjaminbhk.github.io/animations-physique-chimie/preparation-dissolution/ |
 | Visualiser une mole | https://benjaminbhk.github.io/animations-physique-chimie/mole/ |
 | Le réactif limitant | https://benjaminbhk.github.io/animations-physique-chimie/reactif-limitant/ |
 | Schémas de Lewis | https://benjaminbhk.github.io/animations-physique-chimie/schemas-lewis/ |

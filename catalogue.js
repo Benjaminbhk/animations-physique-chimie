@@ -19,6 +19,15 @@ window.CATALOGUE = [
     statut: "en-ligne"
   },
   {
+    dossier: "preparation-dissolution",
+    titre: "Préparer une solution par dissolution",
+    resume: "Le protocole avec la fiole jaugée étape par étape, puis s'entraîner : remettre les étapes dans l'ordre et choisir la bonne fiole par le calcul.",
+    theme: "matiere",
+    chapitre: "Solutions aqueuses",
+    mots: ["fiole jaugée", "protocole", "concentration en masse", "exercices"],
+    statut: "en-ligne"
+  },
+  {
     dossier: "mole",
     titre: "Visualiser une mole",
     resume: "Zoomer dans un cube d'eau jusqu'aux molécules, passer de la masse à la quantité de matière puis au nombre d'entités, et comparer 6,02 × 10²³ à d'autres grands nombres.",

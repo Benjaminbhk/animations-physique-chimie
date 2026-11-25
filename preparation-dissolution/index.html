@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Préparer une solution</title>
+<meta name="description" content="Préparer une solution par dissolution avec une fiole jaugée : animation étape par étape, remise en ordre du protocole et exercices de calcul (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.12);
+  --glass-hi:rgba(255,255,255,0.8); --bench:#e7e1d6; --bench-edge:#cfc6b6;
+  --water:110,170,230; --cu:24,104,214; --metal:#9aa3b0; --device:#3a4252; --lcd:#c9f5c4; --lcd-ink:#1d3b1a;
+  --plug:#2f6fd0; --rubber:#c8423a; --bottle:rgba(255,255,255,0.7);
+  --ok:#2f8f6b; --ok-soft:#e3f5ec; --ko:#c8423a; --ko-soft:#fbe7e5; --step:#d9822b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+    --glass-hi:rgba(255,255,255,0.35); --bench:#2a2620; --bench-edge:#3a342b;
+    --water:80,140,215; --cu:70,150,255; --metal:#7d8796; --device:#4a5468; --lcd:#9fdc98; --lcd-ink:#10240e;
+    --plug:#5b93ea; --rubber:#d9554c; --bottle:rgba(220,230,245,0.25);
+    --ok:#4cc597; --ok-soft:#173328; --ko:#ef6b62; --ko-soft:#3a1d1b; --step:#f0a04b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  --glass-hi:rgba(255,255,255,0.35); --bench:#2a2620; --bench-edge:#3a342b;
+  --water:80,140,215; --cu:70,150,255; --metal:#7d8796; --device:#4a5468; --lcd:#9fdc98; --lcd-ink:#10240e;
+  --plug:#5b93ea; --rubber:#d9554c; --bottle:rgba(220,230,245,0.25);
+  --ok:#4cc597; --ok-soft:#173328; --ko:#ef6b62; --ko-soft:#3a1d1b; --step:#f0a04b;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1rem;max-width:72ch}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+nav.toc a{font-size:.9rem;font-weight:600;text-decoration:none;padding:.35rem .75rem;border-radius:999px;border:1px solid var(--border);background:var(--surface)}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene h2{margin:0;font-size:1.35rem;display:flex;align-items:center;gap:.5rem}
+.num{display:inline-flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border-radius:50%;
+  font-size:.9rem;font-weight:700;color:#fff;background:var(--step);flex:none}
+.scene .sub{color:var(--muted);margin:.25rem 0 .8rem}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/540;border-radius:10px;background:var(--canvas);border:1px solid var(--border)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px;align-items:start}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+ol.steps button{width:100%;text-align:left;display:flex;gap:.5rem;align-items:flex-start;font-weight:500;font-size:.9rem;
+  background:var(--bg);color:var(--text);border:1px solid var(--border);padding:.4rem .55rem;min-height:38px;line-height:1.3}
+ol.steps button .k{flex:none;width:1.35rem;height:1.35rem;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;border:1.5px solid var(--muted);color:var(--muted)}
+ol.steps button.done .k{background:var(--ok);border-color:var(--ok);color:#fff}
+ol.steps button.cur{border-color:var(--step);background:var(--surface);box-shadow:0 0 0 1px var(--step) inset}
+ol.steps button.cur .k{border-color:var(--step);color:var(--step)}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:12px 0 6px}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl label{font-weight:600;font-size:.95rem}
+.ctrl output{font-variant-numeric:tabular-nums;min-width:5.5ch;font-weight:600;color:var(--accent)}
+input[type=range]{width:min(200px,55vw);accent-color:var(--accent)}
+select,input[type=text]{font:inherit;padding:.35rem .55rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+button{font:inherit;font-weight:600;padding:.55rem .9rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.check{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--muted)}
+.explain{border-left:4px solid var(--step);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;margin:10px 0 0;min-height:4.5em}
+.explain h3{margin:0 0 .2rem;font-size:1rem}
+.explain p{margin:.15rem 0}
+.why{color:var(--muted)}
+.why strong{color:var(--text)}
+.relation{margin-top:10px;font-variant-numeric:tabular-nums}
+/* ordre */
+ul.order{list-style:none;margin:10px 0;padding:0;display:flex;flex-direction:column;gap:6px;max-width:720px}
+ul.order li{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.35rem .45rem;user-select:none}
+ul.order li.drag{border-color:var(--accent);box-shadow:0 6px 18px rgba(20,30,60,.15);background:var(--surface)}
+ul.order li.good{border-color:var(--ok);background:var(--ok-soft)}
+ul.order li.bad{border-color:var(--ko);background:var(--ko-soft)}
+ul.order .pos{flex:none;width:1.6rem;height:1.6rem;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;background:var(--surface);border:1px solid var(--border)}
+ul.order .handle{flex:none;cursor:grab;touch-action:none;color:var(--muted);font-size:1.2rem;padding:0 .3rem;line-height:1}
+ul.order .txt{flex:1;font-size:.95rem;line-height:1.3;cursor:grab}
+ul.order .mv{display:flex;gap:4px}
+ul.order .mv button{min-height:34px;min-width:34px;padding:0;background:transparent;color:var(--accent);border-color:var(--border);font-size:.9rem}
+.fb{border-radius:10px;padding:.6rem .8rem;margin:8px 0 0;border:1px solid var(--border);background:var(--bg)}
+.fb.ok{border-color:var(--ok);background:var(--ok-soft)}
+.fb.ko{border-color:var(--ko);background:var(--ko-soft)}
+.fb:empty{display:none}
+.fb p{margin:.2rem 0}
+/* calcul */
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+.modes button{background:var(--surface);color:var(--muted);border-color:var(--border);border-radius:999px;font-size:.9rem;min-height:38px;padding:.35rem .85rem}
+.modes button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.enonce{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.75rem .9rem;font-size:1.02rem}
+.enonce p{margin:.2rem 0}
+.fioles{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:12px 0 4px}
+.fioles button{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;background:var(--surface);color:var(--text);border-color:var(--border);min-height:118px;padding:.4rem}
+.fioles button svg{display:block}
+.fioles button.good{border-color:var(--ok);background:var(--ok-soft)}
+.fioles button.bad{border-color:var(--ko);background:var(--ko-soft)}
+.answer{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 4px}
+.answer input{width:12ch;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.score{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.95rem}
+.score strong{color:var(--text)}
+.corr{border:2px solid var(--ok);border-radius:10px;padding:.6rem .8rem;margin-top:10px}
+.corr h3{margin:0 0 .3rem;font-size:1rem;color:var(--ok)}
+.corr p{margin:.2rem 0;font-variant-numeric:tabular-nums}
+details.rappel{margin-top:10px;font-size:.93rem;color:var(--muted)}
+details.rappel summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.small{font-size:.85rem;color:var(--muted)}
+footer{max-width:1040px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:18px 28px}
+.scene:fullscreen canvas{max-height:68vh;width:auto;max-width:100%;margin:0 auto}
+.scene:fullscreen .enonce{font-size:1.25rem}
+@media (max-width:760px){
+  .layout{grid-template-columns:1fr}
+  ol.steps{display:grid;grid-template-columns:1fr 1fr}
+  .scene{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Préparer une solution par dissolution</h1>
+    <a href="../">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Comment fabriquer une solution de concentration en masse connue avec une fiole jaugée ? Regarde le protocole étape par étape,
+    puis entraîne-toi à remettre les étapes dans l'ordre et à faire les calculs.</p>
+  <nav class="toc" aria-label="Parties de la page">
+    <a href="#sc-anim">1. Le protocole pas à pas</a>
+    <a href="#sc-ordre">2. Remettre dans l'ordre</a>
+    <a href="#sc-calc">3. Exercices de calcul</a>
+  </nav>
+
+  <!-- ============ 1. ANIMATION ============ -->
+  <section class="scene" id="sc-anim" aria-labelledby="t-anim">
+    <div class="head">
+      <div>
+        <h2 id="t-anim"><span class="num">1</span> Le protocole pas à pas</h2>
+        <p class="sub">Préparation d'une solution de <strong>sulfate de cuivre</strong> (solide bleu) dans une fiole jaugée.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-anim" type="button">Plein écran</button>
+    </div>
+    <div class="layout">
+      <canvas id="cv" role="img" aria-label="Animation de la préparation d'une solution par dissolution"></canvas>
+      <ol class="steps" id="steps" aria-label="Étapes du protocole"></ol>
+    </div>
+    <div class="btns">
+      <button id="b-prev" class="ghost" type="button">◀ Précédent</button>
+      <button id="b-play" type="button">▶ Lancer l'étape 1</button>
+      <button id="b-next" class="ghost" type="button">Suivant ▶</button>
+      <button id="b-reset" class="ghost" type="button">Recommencer</button>
+    </div>
+    <div class="controls">
+      <label class="check"><input type="checkbox" id="o-auto"> Enchaîner toutes les étapes</label>
+      <label class="check"><input type="checkbox" id="o-noms" checked> Noms du matériel</label>
+      <div class="ctrl"><label for="o-speed">Vitesse</label>
+        <select id="o-speed"><option value="0.6">lente</option><option value="1" selected>normale</option><option value="1.8">rapide</option></select></div>
+      <div class="ctrl"><label for="o-v">Fiole jaugée</label>
+        <select id="o-v"><option>50</option><option selected>100</option><option>200</option><option>250</option><option>500</option></select> <span>mL</span></div>
+      <div class="ctrl"><label for="o-m">Masse pesée</label>
+        <input id="o-m" type="range" min="0.5" max="10" step="0.05" value="2.5"><output id="o-m-out" for="o-m"></output></div>
+    </div>
+    <div class="explain" id="explain" aria-live="polite"></div>
+    <p class="relation" id="relation"></p>
+  </section>
+
+  <!-- ============ 2. ORDRE ============ -->
+  <section class="scene" id="sc-ordre" aria-labelledby="t-ordre">
+    <div class="head">
+      <div>
+        <h2 id="t-ordre"><span class="num">2</span> Remets les étapes dans l'ordre</h2>
+        <p class="sub">Fais glisser les étiquettes (poignée ⠿) ou utilise les flèches, puis clique sur « Vérifier ».</p>
+      </div>
+      <button class="ghost fs" data-target="sc-ordre" type="button">Plein écran</button>
+    </div>
+    <ul class="order" id="order" aria-label="Étapes à remettre dans l'ordre"></ul>
+    <div class="btns">
+      <button id="o-check" type="button">Vérifier</button>
+      <button id="o-shuffle" class="ghost" type="button">Mélanger à nouveau</button>
+      <button id="o-sol" class="ghost" type="button">Voir la solution</button>
+    </div>
+    <div class="fb" id="o-fb" aria-live="polite"></div>
+  </section>
+
+  <!-- ============ 3. CALCUL ============ -->
+  <section class="scene" id="sc-calc" aria-labelledby="t-calc">
+    <div class="head">
+      <div>
+        <h2 id="t-calc"><span class="num">3</span> Exercices de calcul</h2>
+        <p class="sub">Fais le calcul sur ta feuille (expression littérale, application numérique, résultat), puis donne ta réponse.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-calc" type="button">Plein écran</button>
+    </div>
+    <div class="modes" id="modes" role="group" aria-label="Type d'exercice">
+      <button type="button" data-mode="fiole" aria-pressed="true">Quelle fiole jaugée ?</button>
+      <button type="button" data-mode="masse" aria-pressed="false">Quelle masse peser ?</button>
+      <button type="button" data-mode="conc" aria-pressed="false">Quelle concentration ?</button>
+    </div>
+    <div class="enonce" id="enonce"></div>
+    <div id="rep"></div>
+    <div class="fb" id="c-fb" aria-live="polite"></div>
+    <div id="c-corr"></div>
+    <div class="btns">
+      <button id="c-sol" class="ghost" type="button">Voir la correction</button>
+      <button id="c-new" type="button">Nouvel exercice</button>
+      <span class="score" id="score" style="align-self:center"></span>
+    </div>
+    <details class="rappel">
+      <summary>Rappel</summary>
+      <p>Concentration en masse : <strong>C<sub>m</sub> = m / V</strong>, avec m en g, V en L et C<sub>m</sub> en g·L<sup>−1</sup>.
+        Donc m = C<sub>m</sub> × V et V = m / C<sub>m</sub>. Attention : 1 mL = 10<sup>−3</sup> L et 1 mg = 10<sup>−3</sup> g.
+        Le résultat a autant de chiffres significatifs que la donnée qui en a le moins (ici 3).</p>
+    </details>
+  </section>
+</div>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Animation libre d'utilisation en classe</span>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const eseg = (t, a, b) => ease(seg(t, a, b));
+const rot = (x, y, a) => ({ x: x * Math.cos(a) - y * Math.sin(a), y: x * Math.sin(a) + y * Math.cos(a) });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ---------- nombres (virgule, chiffres significatifs, écriture scientifique) ---------- */
+const fr = s => s.replace('.', ',').replace('-', '−');
+const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+const sup = n => String(n).split('').map(c => SUP[c]).join('');
+const expo = x => Math.floor(Math.log10(Math.abs(Number(x.toPrecision(3)))));
+function sfStr(x, n = 3) {
+  if (!isFinite(x)) return '—';
+  if (x === 0) return '0';
+  const r = Number(x.toPrecision(n)), e = Math.floor(Math.log10(Math.abs(r))), d = n - 1 - e;
+  return d < 0 ? sciStr(x, n) : fr(r.toFixed(d));
+}
+function sciStr(x, n = 3) {
+  let e = Math.floor(Math.log10(Math.abs(x))), ms = (x / 10 ** e).toFixed(n - 1);
+  if (Math.abs(parseFloat(ms)) >= 10) { e++; ms = (x / 10 ** e).toFixed(n - 1); }
+  return fr(ms) + ' × 10' + sup(e);
+}
+// « 25,0 g·L⁻¹ = 2,50 × 10¹ g·L⁻¹ » (écriture scientifique ajoutée si l'exposant n'est pas 0)
+function both(x, n, unit) {
+  const e = expo(x), a = sfStr(x, n), b = sciStr(x, n);
+  if (e === 0 || a === b) return `${b === a ? b : a} ${unit}`;
+  return `${a} ${unit} = ${b} ${unit}`;
+}
+const fix = (x, d) => fr(x.toFixed(d));
+
+/* ---------- étapes ---------- */
+const STEPS = [
+  { titre: 'Tarer la balance', dur: 4,
+    action: 'On pose la coupelle propre et sèche sur le plateau de la balance, puis on appuie sur « Tare » : l\'affichage revient à 0,00 g.',
+    pourquoi: 'La balance n\'indiquera ensuite que la masse du solide ajouté, sans celle de la coupelle.',
+    carte: 'Poser la coupelle sur la balance et appuyer sur « Tare ».' },
+  { titre: 'Peser le solide', dur: 6,
+    action: 'Avec une spatule propre, on dépose le solide dans la coupelle jusqu\'à lire la masse m voulue.',
+    pourquoi: 'La masse m de soluté doit être connue avec précision : elle sert à calculer C<sub>m</sub> = m / V.',
+    carte: 'Prélever le solide avec une spatule jusqu\'à obtenir la masse m voulue.' },
+  { titre: 'Introduire le solide dans la fiole', dur: 5,
+    action: 'On place un entonnoir sur la fiole jaugée et on y verse le solide contenu dans la coupelle.',
+    pourquoi: 'Le col de la fiole est très étroit : l\'entonnoir évite de perdre du solide à côté.',
+    carte: 'Verser le solide dans la fiole jaugée à l\'aide d\'un entonnoir.' },
+  { titre: 'Rincer la coupelle et l\'entonnoir', dur: 6,
+    action: 'Avec la pissette d\'eau distillée, on rince la coupelle puis l\'entonnoir, au-dessus de la fiole.',
+    pourquoi: 'Des grains restent collés à la coupelle et à l\'entonnoir : l\'eau de rinçage les entraîne dans la fiole, pour que toute la masse m s\'y trouve.',
+    carte: 'Rincer la coupelle et l\'entonnoir à l\'eau distillée, au-dessus de la fiole.' },
+  { titre: 'Remplir aux deux tiers', dur: 5,
+    action: 'On ajoute de l\'eau distillée jusqu\'aux deux tiers environ de la fiole, puis on retire l\'entonnoir.',
+    pourquoi: 'Il reste assez de place pour agiter efficacement, sans risquer de dépasser le trait de jauge.',
+    carte: 'Remplir la fiole aux deux tiers environ avec de l\'eau distillée.' },
+  { titre: 'Agiter pour dissoudre', dur: 5.5,
+    action: 'On bouche la fiole et on agite jusqu\'à ce que tout le solide soit dissous.',
+    pourquoi: 'Le solide doit être entièrement dissous avant d\'ajuster le volume : on agite bien plus facilement une fiole qui n\'est pas pleine.',
+    carte: 'Boucher et agiter jusqu\'à dissolution complète du solide.' },
+  { titre: 'Compléter jusqu\'au trait de jauge', dur: 7,
+    action: 'On ajoute de l\'eau distillée à la pissette, puis goutte à goutte au compte-gouttes, jusqu\'à ce que le bas du ménisque soit sur le trait de jauge (œil à la hauteur du trait).',
+    pourquoi: 'La fiole jaugée contient exactement le volume V indiqué seulement quand le liquide arrive au trait de jauge.',
+    carte: 'Compléter avec de l\'eau distillée jusqu\'au trait de jauge.' },
+  { titre: 'Homogénéiser', dur: 6,
+    action: 'On bouche la fiole et on la retourne plusieurs fois.',
+    pourquoi: 'L\'eau ajoutée en dernier reste au-dessus (incolore) : en retournant la fiole, on obtient la même concentration partout dans la solution.',
+    carte: 'Boucher et retourner plusieurs fois la fiole pour homogénéiser.' }
+];
+const NS = STEPS.length;
+
+/* =====================================================================
+   1. ANIMATION
+   ===================================================================== */
+const W = 900, H = 540;
+const cv = $('cv'), ctx = cv.getContext('2d');
+let K = 1;
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5), r = cv.getBoundingClientRect();
+  const w = Math.max(300, r.width || W);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr * H / W); K = cv.width / W;
+}
+const base = () => ctx.setTransform(K, 0, 0, K, 0, 0);
+
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = {};
+  ['canvas', 'glass', 'glass-fill', 'glass-hi', 'text', 'muted', 'bench', 'bench-edge', 'water', 'cu', 'metal', 'device', 'lcd', 'lcd-ink',
+   'plug', 'rubber', 'bottle', 'accent', 'step', 'ok'].forEach(n => C[n.replace(/-(.)/g, (_, c) => c.toUpperCase())] = g('--' + n));
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+
+// --- géométrie de la fiole jaugée (coordonnées locales : origine au centre du fond, h vers le haut) ---
+const FX = 610, FY = 478;                  // position du fond de la fiole sur la paillasse
+const R = 78, HC = 70, NR = 13, NECK_TOP = 340, MARK = 292;
+const H_NECK = HC + Math.sqrt(R * R - NR * NR);
+const hw = h => h <= H_NECK ? Math.sqrt(Math.max(0, R * R - (h - HC) ** 2)) : NR;
+const CUM = [0];
+for (let h = 1; h <= NECK_TOP; h++) CUM[h] = CUM[h - 1] + hw(h - .5) ** 2;
+const VTOT = CUM[MARK];
+function levelOf(f) { // fraction du volume (1 = trait de jauge) -> hauteur
+  const target = f * VTOT;
+  for (let h = 1; h <= NECK_TOP; h++) if (CUM[h] >= target) return h - 1 + (target - CUM[h - 1]) / (CUM[h] - CUM[h - 1]);
+  return NECK_TOP;
+}
+const H23 = levelOf(2 / 3);
+function fiolePath(c, inset = 0) {
+  c.beginPath();
+  c.moveTo(-hw(0) + inset, -inset);
+  for (let h = 0; h <= NECK_TOP; h += 2) c.lineTo(-hw(h) + inset, -h);
+  c.lineTo(hw(NECK_TOP) - inset, -NECK_TOP);
+  for (let h = NECK_TOP; h >= 0; h -= 2) c.lineTo(hw(h) - inset, -h);
+  c.closePath();
+}
+
+// --- positions fixes ---
+const P = {
+  plate: { x: 190, y: 410 }, coupRest: { x: 425, y: 478 }, pot: { x: 330, y: 478 },
+  funRest: { x: 500, y: 478, a: Math.PI }, funOn: { x: FX, y: FY - NECK_TOP - 30, a: 0 },
+  coupPour: { x: FX - 58, y: 80, a: .95 }, plugRest: { x: 708, y: 478 },
+  pissRest: { x: 862, y: 478, a: 0 }, dropRest: { x: 830, y: 470, a: -Math.PI / 2 }, dropOn: { x: FX, y: FY - NECK_TOP - 14, a: 0 }
+};
+const TARE_M = 1.52;
+const PISS_TIP = { x: -58, y: -142 };
+function pissAt(tx, ty, a) { const r = rot(PISS_TIP.x, PISS_TIP.y, a); return { x: tx - r.x, y: ty - r.y, a }; }
+const AIM = {
+  coup: { piss: pissAt(FX + 32, 34, -.55), target: { x: FX - 52, y: 66 } },
+  fun:  { piss: pissAt(FX + 78, 72, -.5), target: { x: FX + 20, y: FY - NECK_TOP - 14 } },
+  fill: { piss: pissAt(FX + 70, 58, -.5), target: { x: FX, y: FY - NECK_TOP - 18 } },
+  neck: { piss: pissAt(FX + 52, 104, -.45), target: { x: FX + 3, y: FY - NECK_TOP + 8 } }
+};
+
+// --- paramètres ---
+const prm = { V: 100, m: 2.5 };
+
+// --- grains de solide (déterministes) ---
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let XS = [];
+function makeCrystals() {
+  const N = clamp(Math.round(16 + prm.m * 9), 20, 105), r = rng(7);
+  XS = [];
+  for (let i = 0; i < N; i++) {
+    const q = r(), hy = r();
+    XS.push({
+      trip: i % 3, route: q < .84 ? 'A' : q < .93 ? 'B' : 'C',
+      coup: { x: (r() * 2 - 1) * (25 - hy * 12), y: -2 - hy * 9 },
+      blade: { x: (r() * 2 - 1) * 6, y: -2 - r() * 4 },
+      fun: (() => { const y = 10 + r() * 22, s = r() < .5 ? -1 : 1; return { x: s * (34 - y * .78), y }; })(),
+      bot: { x: (r() * 2 - 1) * 26, y: 2.5 + r() * 7 + (1 - Math.abs(r() * 2 - 1)) * 4 },
+      size: 2.3 + r() * 1.5, ang: r() * TAU, d: r(), order: r()
+    });
+  }
+  // rangs pour les chutes successives
+  const rank = (list) => list.sort((a, b) => a.order - b.order).forEach((c, k, arr) => c.rk = k / Math.max(1, arr.length - 1));
+  rank(XS.filter(c => c.route !== 'B'));
+  const bs = XS.filter(c => c.route === 'B'); bs.forEach((c, k) => c.rkB = k / Math.max(1, bs.length - 1));
+  const cs = XS.filter(c => c.route === 'C'); cs.forEach((c, k) => c.rkC = k / Math.max(1, cs.length - 1));
+  const ts = [[], [], []]; XS.forEach(c => ts[c.trip].push(c)); ts.forEach(l => l.forEach((c, k) => c.rkT = k / Math.max(1, l.length - 1)));
+}
+
+/* --- trajectoires --- */
+function poly(pts, p) {
+  let L = 0; const ls = [];
+  for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); ls.push(l); L += l; }
+  let d = p * L;
+  for (let i = 0; i < ls.length; i++) { if (d <= ls[i] || i === ls.length - 1) { const k = ls[i] ? clamp(d / ls[i], 0, 1) : 1; return { x: lerp(pts[i].x, pts[i + 1].x, k), y: lerp(pts[i].y, pts[i + 1].y, k) }; } d -= ls[i]; }
+  return pts[pts.length - 1];
+}
+function arcMove(a, b, u, lift = 60) {
+  return { x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u) - Math.sin(Math.PI * u) * lift, a: lerp(a.a || 0, b.a || 0, u) };
+}
+const toWorld = (o, lx, ly) => { const r = rot(lx, ly, o.a || 0); return { x: o.x + r.x, y: o.y + r.y }; };
+const LIP = { x: 35, y: -11 };
+const THROAT = { x: FX, y: FY - NECK_TOP + 40 }, NECKB = { x: FX, y: FY - H_NECK };
+
+/* --- état de la scène à l'étape s, avancement t ∈ [0,1] --- */
+function compose(s, t) {
+  const S = {
+    coup: { x: P.coupRest.x, y: P.coupRest.y, a: 0 }, fun: { ...P.funRest }, piss: { ...P.pissRest }, drop: { ...P.dropRest },
+    plug: { on: false, x: P.plugRest.x, y: P.plugRest.y }, spat: null, stream: null, drops: [],
+    disp: '0,00 g', tare: false, vol: 0, diss: 0, mix: 0, layered: false,
+    fiole: { x: FX, y: FY, a: 0, ph: 0 }, inset: 0, show23: false, done: false
+  };
+  const tt = k => k < s ? 1 : k === s ? t : 0;
+  // 0. tarer
+  let u = tt(0);
+  if (u > 0) {
+    const v = eseg(u, .05, .45);
+    Object.assign(S.coup, arcMove({ ...P.coupRest, a: 0 }, { x: P.plate.x, y: P.plate.y, a: 0 }, v, 70));
+    S.disp = v < 1 ? '0,00 g' : u < .62 ? fix(TARE_M, 2) + ' g' : '0,00 g';
+    S.tare = u > .56 && u < .66;
+  }
+  // 1. peser
+  u = tt(1);
+  if (s === 1 && u < 1) {
+    const k = Math.min(2, Math.floor(u * 3)), w = u * 3 - k;
+    const pot = { x: P.pot.x, y: P.pot.y - 64 }, dip = { x: P.pot.x, y: P.pot.y - 40 }, over = { x: P.plate.x + 6, y: P.plate.y - 34 };
+    let pos, a = 0;
+    if (w < .25) pos = arcMove(k === 0 ? { x: P.pot.x + 40, y: P.pot.y - 120 } : over, pot, ease(w / .25), 20);
+    else if (w < .42) { const z = Math.sin(Math.PI * (w - .25) / .17); pos = { x: lerp(pot.x, dip.x, z), y: lerp(pot.y, dip.y, z) }; }
+    else if (w < .72) pos = arcMove(pot, over, ease((w - .42) / .3), 40);
+    else { pos = over; a = .55 * Math.sin(Math.PI * clamp((w - .72) / .22, 0, 1)); }
+    S.spat = { x: pos.x, y: pos.y, a, trip: k, w };
+  }
+  if (u > 0) {
+    let landed = 0;
+    XS.forEach(c => { if (crystalLanded1(c, s, t)) landed += 1; });
+    const mass = s > 1 || u >= 1 ? prm.m : prm.m * smoothLanded(s, t);
+    S.disp = fix(mass, 2) + ' g';
+  }
+  // 2. transvaser
+  u = tt(2);
+  if (u > 0) {
+    Object.assign(S.fun, arcMove(P.funRest, P.funOn, eseg(u, 0, .22), 80));
+    const v = eseg(u, .26, .46);
+    const p = arcMove({ x: P.plate.x, y: P.plate.y, a: 0 }, { x: P.coupPour.x, y: P.coupPour.y, a: 0 }, v, 60);
+    S.coup = { x: p.x, y: p.y, a: P.coupPour.a * eseg(u, .44, .54) };
+    if (v > 0) S.disp = '−' + fix(TARE_M, 2) + ' g';
+  }
+  // 3. rincer
+  u = tt(3);
+  if (u > 0) {
+    if (u < .2) Object.assign(S.piss, arcMove(P.pissRest, AIM.coup.piss, ease(u / .2), 30));
+    else if (u < .55) { Object.assign(S.piss, AIM.coup.piss); S.stream = { from: AIM.coup.piss, to: AIM.coup.target }; }
+    else if (u < .62) Object.assign(S.piss, arcMove(AIM.coup.piss, AIM.fun.piss, ease((u - .55) / .07), 10));
+    else if (u < .84) { Object.assign(S.piss, AIM.fun.piss); S.stream = { from: AIM.fun.piss, to: AIM.fun.target }; }
+    else Object.assign(S.piss, arcMove(AIM.fun.piss, P.pissRest, ease((u - .84) / .16), 30));
+    const v = eseg(u, .84, 1);
+    S.coup = arcMove({ ...P.coupPour }, { ...P.coupRest, a: 0 }, v, 30);
+    S.vol = .05 * seg(u, .22, .55) + .04 * seg(u, .62, .84);
+  }
+  // 4. remplir aux 2/3
+  u = tt(4);
+  if (u > 0) {
+    if (u < .12) Object.assign(S.piss, arcMove(P.pissRest, AIM.fill.piss, ease(u / .12), 30));
+    else if (u < .78) { Object.assign(S.piss, AIM.fill.piss); S.stream = { from: AIM.fill.piss, to: AIM.fill.target }; }
+    else Object.assign(S.piss, arcMove(AIM.fill.piss, P.pissRest, eseg(u, .78, .9), 30));
+    S.vol = lerp(.09, 2 / 3, seg(u, .14, .78));
+    Object.assign(S.fun, arcMove(P.funOn, P.funRest, eseg(u, .84, 1), 80));
+    S.show23 = s === 4;
+  }
+  // 5. agiter
+  u = tt(5);
+  if (u > 0) {
+    const v = eseg(u, 0, .18);
+    if (v < 1) { const p = arcMove({ x: P.plugRest.x, y: P.plugRest.y }, { x: FX, y: FY - NECK_TOP }, v, 70); S.plug = { on: false, x: p.x, y: p.y }; }
+    else S.plug = { on: true };
+    const w = seg(u, .22, .92), env = Math.sin(Math.PI * w);
+    S.fiole = { x: FX, y: FY - 14 * env, a: .2 * Math.sin(TAU * 4 * w) * env, ph: 0 };
+    S.diss = eseg(u, .26, .9);
+  }
+  // 6. compléter au trait de jauge
+  u = tt(6);
+  if (u > 0) {
+    S.layered = true;
+    const v = eseg(u, 0, .12);
+    if (v > 0) { const p = arcMove({ x: FX, y: FY - NECK_TOP }, { x: P.plugRest.x, y: P.plugRest.y }, v, 70); S.plug = { on: false, x: p.x, y: p.y }; }
+    if (u > .12 && u < .22) Object.assign(S.piss, arcMove(P.pissRest, AIM.neck.piss, ease((u - .12) / .1), 30));
+    else if (u >= .22 && u < .55) { Object.assign(S.piss, AIM.neck.piss); S.stream = { from: AIM.neck.piss, to: AIM.neck.target }; }
+    else if (u >= .55 && u < .66) Object.assign(S.piss, arcMove(AIM.neck.piss, P.pissRest, ease((u - .55) / .11), 30));
+    let vol = lerp(2 / 3, .996, seg(u, .24, .55));
+    Object.assign(S.drop, arcMove(P.dropRest, P.dropOn, eseg(u, .58, .68), 50));
+    if (u > .92) Object.assign(S.drop, arcMove(P.dropOn, P.dropRest, eseg(u, .92, 1), 50));
+    const ND = 5;
+    for (let k = 0; k < ND; k++) {
+      const t0 = .7 + k * .042, p = (u - t0) / .025;
+      if (p >= 1) vol += .004 / ND;
+      else if (p > 0) S.drops.push(p);
+    }
+    S.vol = Math.min(1, vol);
+    S.inset = s === 6 ? seg(u, .5, .58) : 1;
+  }
+  // 7. homogénéiser
+  u = tt(7);
+  if (u > 0) {
+    const v = eseg(u, 0, .12);
+    if (v < 1) { const p = arcMove({ x: P.plugRest.x, y: P.plugRest.y }, { x: FX, y: FY - NECK_TOP }, v, 70); S.plug = { on: false, x: p.x, y: p.y }; }
+    else S.plug = { on: true };
+    const lift = 80 * eseg(u, .13, .22) * (1 - eseg(u, .9, 1));
+    const w = seg(u, .24, .88);
+    S.fiole = { x: FX, y: FY - lift, a: Math.PI * (1 - Math.cos(TAU * 3 * w)) / 2, ph: 170 };
+    S.mix = clamp(w * 1.25, 0, 1);
+    S.inset = 1 - seg(u, 0, .1);
+    S.done = u >= 1;
+  }
+  return S;
+}
+// pesée : masse affichée qui suit les grains déposés
+function smoothLanded(s, t) {
+  if (s !== 1) return s > 1 ? 1 : 0;
+  let sum = 0;
+  XS.forEach(c => { sum += dropProgress1(c, t); });
+  return sum / XS.length;
+}
+function dropProgress1(c, t) { // 0 -> 1 quand le grain arrive dans la coupelle
+  const k = c.trip, w = t * 3 - k;
+  if (w < .72) return 0;
+  return clamp((w - .74 - c.rkT * .12) / .08, 0, 1);
+}
+const crystalLanded1 = (c, s, t) => s > 1 || (s === 1 && dropProgress1(c, t) >= 1);
+
+/* --- position de chaque grain --- */
+function crystalState(c, s, t, S) {
+  // retourne { where: 'coup'|'blade'|'world'|'fun'|'bot'|'none', x, y, k (taille) }
+  if (s < 1 || (s === 1 && t === 0)) return null;
+  if (s === 1) {
+    const k = c.trip, w = t * 3 - k;
+    if (w < .42 && t < 1) return null;
+    const p = dropProgress1(c, t);
+    if (p <= 0) return S.spat ? { where: 'blade' } : null;
+    if (p >= 1) return { where: 'coup' };
+    const a = toWorld(S.spat, c.blade.x - 4, c.blade.y), b = toWorld(S.coup, c.coup.x, c.coup.y);
+    return { where: 'world', x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p * p) };
+  }
+  if (s === 2) {
+    if (c.route === 'B') return { where: 'coup' };
+    const t0 = .54 + c.rk * .26, p = (t - t0) / .1;
+    if (p <= 0) return { where: 'coup' };
+    const start = toWorld(S.coup, c.coup.x, c.coup.y), lip = toWorld(S.coup, LIP.x, LIP.y);
+    if (c.route === 'C') {
+      const f = toWorld(P.funOn, c.fun.x, c.fun.y);
+      return p >= 1 ? { where: 'fun' } : { where: 'world', ...poly([start, lip, f], p * p) };
+    }
+    return p >= 1 ? { where: 'bot' } : { where: 'world', ...poly([start, lip, THROAT, NECKB, { x: FX + c.bot.x, y: FY - c.bot.y }], p * p) };
+  }
+  if (s === 3) {
+    if (c.route === 'A') return { where: 'bot' };
+    if (c.route === 'B') {
+      const t0 = .26 + c.rkB * .24, p = (t - t0) / .1;
+      if (p <= 0) return { where: 'coup' };
+      const pour = { ...P.coupPour };
+      return p >= 1 ? { where: 'bot' } : { where: 'world', ...poly([toWorld(pour, c.coup.x, c.coup.y), toWorld(pour, LIP.x, LIP.y), THROAT, NECKB, { x: FX + c.bot.x, y: FY - c.bot.y }], p * p) };
+    }
+    const t0 = .64 + c.rkC * .16, p = (t - t0) / .08;
+    if (p <= 0) return { where: 'fun' };
+    return p >= 1 ? { where: 'bot' } : { where: 'world', ...poly([toWorld(P.funOn, c.fun.x, c.fun.y), THROAT, NECKB, { x: FX + c.bot.x, y: FY - c.bot.y }], p * p) };
+  }
+  // s >= 4 : au fond, se dissout pendant l'étape 5
+  if (s < 5) return { where: 'bot', k: 1 };
+  if (s > 5) return null;
+  const k = 1 - clamp((S.diss - c.d * .45) / .55, 0, 1);
+  return k <= 0 ? null : { where: 'bot', k };
+}
+
+/* --- dessin --- */
+function crystal(c, x, y, size, ang) {
+  c.save(); c.translate(x, y); c.rotate(ang);
+  c.fillStyle = `rgb(${C.cu})`; c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = .7;
+  c.beginPath(); c.moveTo(-size, -size * .5); c.lineTo(0, -size); c.lineTo(size, -size * .3); c.lineTo(size * .7, size * .8); c.lineTo(-size * .6, size * .7); c.closePath();
+  c.fill(); c.stroke(); c.restore();
+}
+function label(text, x, y, align = 'center', color = C.muted, size = 13) {
+  ctx.font = `600 ${size}px system-ui,-apple-system,Segoe UI,Roboto,sans-serif`;
+  ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4; ctx.strokeStyle = C.canvas; ctx.strokeText(text, x, y);
+  ctx.fillStyle = color; ctx.fillText(text, x, y);
+}
+const alphaFor = c => .88 * (1 - Math.exp(-c / 32));
+
+function drawBench() {
+  ctx.fillStyle = C.bench; ctx.fillRect(0, FY, W, H - FY);
+  ctx.fillStyle = C.benchEdge; ctx.fillRect(0, FY, W, 3);
+}
+function drawBalance(S) {
+  const c = ctx;
+  c.fillStyle = C.device;
+  c.beginPath(); c.roundRect(98, 428, 184, 50, 8); c.fill();
+  c.fillStyle = C.metal; c.fillRect(184, 418, 12, 12);
+  c.beginPath(); c.roundRect(132, 410, 116, 9, 3); c.fill();
+  c.fillStyle = C.lcd; c.beginPath(); c.roundRect(130, 439, 104, 28, 4); c.fill();
+  c.fillStyle = C.lcdInk; c.font = '700 19px ui-monospace,Menlo,Consolas,monospace'; c.textAlign = 'right'; c.textBaseline = 'middle';
+  c.fillText(S.disp, 228, 454);
+  c.fillStyle = S.tare ? C.step : C.metal; c.beginPath(); c.arc(258, 453, 10, 0, TAU); c.fill();
+  c.fillStyle = S.tare ? '#fff' : C.device; c.font = '700 11px system-ui,sans-serif'; c.textAlign = 'center'; c.fillText('T', 258, 453.5);
+  if (S.tare) label('Tare', 258, 428 - 12, 'center', C.step, 12);
+}
+function drawPot() {
+  const c = ctx, x = P.pot.x, y = P.pot.y;
+  c.fillStyle = `rgba(${C.cu},.85)`;
+  c.beginPath(); c.roundRect(x - 24, y - 36, 48, 34, 4); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.35)';
+  for (let i = 0; i < 18; i++) { c.fillRect(x - 21 + (i * 37 % 42), y - 33 + (i * 13 % 28), 2, 2); }
+  c.strokeStyle = C.glass; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(x - 26, y - 56); c.lineTo(x - 26, y - 4); c.quadraticCurveTo(x - 26, y, x - 22, y); c.lineTo(x + 22, y); c.quadraticCurveTo(x + 26, y, x + 26, y - 4); c.lineTo(x + 26, y - 56); c.stroke();
+  c.fillStyle = C.glassFill; c.fillRect(x - 26, y - 56, 52, 56);
+}
+function drawCoupelle(S) {
+  const c = ctx, o = S.coup;
+  c.save(); c.translate(o.x, o.y); c.rotate(o.a);
+  XS.forEach(x => { if (x.cs && x.cs.where === 'coup') crystal(c, x.coup.x, x.coup.y, x.size, x.ang); });
+  c.beginPath(); c.moveTo(-37, -14); c.quadraticCurveTo(-31, 0, -14, 0); c.lineTo(14, 0); c.quadraticCurveTo(31, 0, 37, -14);
+  c.fillStyle = C.glassFill; c.fill(); c.strokeStyle = C.glass; c.lineWidth = 2.2; c.stroke();
+  c.restore();
+}
+function drawFunnel(S) {
+  const c = ctx, o = S.fun;
+  c.save(); c.translate(o.x, o.y); c.rotate(o.a);
+  c.beginPath(); c.moveTo(-38, 0); c.lineTo(-5, 38); c.lineTo(-3.5, 88); c.lineTo(3.5, 88); c.lineTo(5, 38); c.lineTo(38, 0);
+  c.fillStyle = C.glassFill; c.fill(); c.strokeStyle = C.glass; c.lineWidth = 2; c.stroke();
+  c.strokeStyle = C.glassHi; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-30, 4); c.lineTo(-8, 30); c.stroke();
+  XS.forEach(x => { if (x.cs && x.cs.where === 'fun') crystal(c, x.fun.x, x.fun.y, x.size * .9, x.ang); });
+  c.restore();
+}
+function fioleWorldY(F, h) { const p = rot(0, -h + F.ph, F.a); return F.y - F.ph + p.y; }
+function drawFiole(S) {
+  const c = ctx, F = S.fiole;
+  c.save(); base();
+  c.translate(F.x, F.y - F.ph); c.rotate(F.a); c.translate(0, F.ph);
+  const M = c.getTransform();
+  // intérieur
+  fiolePath(c, 2.5); c.fillStyle = C.glassFill; c.fill();
+  c.save(); fiolePath(c, 2.5); c.clip();
+  // grains au fond
+  XS.forEach(x => { if (x.cs && x.cs.where === 'bot') crystal(c, x.bot.x, -x.bot.y, x.size * (x.cs.k == null ? 1 : Math.max(.15, x.cs.k)), x.ang); });
+  // liquide
+  if (S.vol > 0) {
+    const Vl = prm.V / 1000;
+    const cU = prm.m / (Vl * Math.max(S.vol, .01)) * S.diss;               // si tout est mélangé
+    const cB = prm.m / (Vl * (2 / 3)) * S.diss;                             // partie basse avant homogénéisation
+    const aU = alphaFor(cU), aB = S.layered ? lerp(alphaFor(cB), aU, S.mix) : aU, aT = S.layered ? lerp(0, aU, S.mix) : aU;
+    const big = Math.abs(Math.sin(F.a)) > .45 || Math.cos(F.a) < 0;
+    base();
+    if (!big) {
+      const yL = fioleWorldY(F, levelOf(S.vol)), yB = fioleWorldY(F, H23);
+      c.fillStyle = `rgba(${C.water},.2)`; c.fillRect(F.x - 200, yL, 400, 500);
+      if (S.layered && S.mix < 1 && S.vol > 2 / 3 + .001) {
+        const g = c.createLinearGradient(0, yB - 10, 0, yB + 10);
+        g.addColorStop(0, `rgba(${C.cu},${aT})`); g.addColorStop(1, `rgba(${C.cu},${aB})`);
+        c.fillStyle = `rgba(${C.cu},${aT})`; c.fillRect(F.x - 200, yL, 400, yB - 10 - yL);
+        c.fillStyle = g; c.fillRect(F.x - 200, yB - 10, 400, 20);
+        c.fillStyle = `rgba(${C.cu},${aB})`; c.fillRect(F.x - 200, yB + 10, 400, 500);
+      } else { c.fillStyle = `rgba(${C.cu},${aU})`; c.fillRect(F.x - 200, yL, 400, 500); }
+      // surface
+      c.strokeStyle = `rgba(${C.water},.9)`; c.lineWidth = 1.5; c.beginPath(); c.moveTo(F.x - 90, yL); c.lineTo(F.x + 90, yL); c.stroke();
+    } else {
+      // fiole retournée : presque pleine, une bulle d'air monte au point le plus haut
+      c.fillStyle = `rgba(${C.water},.2)`; c.fillRect(F.x - 400, 0, 800, H);
+      const a = lerp(aB, aU, .5 + .5 * S.mix);
+      c.fillStyle = `rgba(${C.cu},${a})`; c.fillRect(F.x - 400, 0, 800, H);
+      let best = null;
+      for (let h = 10; h <= NECK_TOP - 16; h += 4) for (const sg of [-1, 0, 1]) {
+        const lx = sg * Math.max(0, hw(h) - 9), p = M.transformPoint(new DOMPoint(lx * K / K, -h));
+        const wy = p.y / K; if (!best || wy < best.wy) best = { wy, wx: p.x / K };
+      }
+      if (best) { c.fillStyle = C.canvas; c.strokeStyle = `rgba(${C.water},.9)`; c.lineWidth = 1.2; c.beginPath(); c.ellipse(best.wx, best.wy + 6, 9, 6, 0, 0, TAU); c.fill(); c.stroke(); }
+    }
+  }
+  c.restore(); // fin clip
+  c.setTransform(M);
+  // verre
+  fiolePath(c); c.strokeStyle = C.glass; c.lineWidth = 2.4; c.stroke();
+  c.strokeStyle = C.glassHi; c.lineWidth = 3; c.beginPath(); c.arc(0, -HC, R - 12, Math.PI * 1.08, Math.PI * 1.38); c.stroke();
+  // trait de jauge
+  c.strokeStyle = C.text; c.lineWidth = 1.6; c.beginPath(); c.moveTo(-NR - 4, -MARK); c.lineTo(NR + 4, -MARK); c.stroke();
+  // inscription
+  c.fillStyle = C.muted; c.font = '700 15px system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(prm.V + ' mL', 0, -HC + 22);
+  c.font = '600 10px system-ui,sans-serif'; c.fillText('20 °C', 0, -HC + 38);
+  if (S.plug.on) drawPlug(c, 0, -NECK_TOP);
+  c.restore();
+}
+function drawPlug(c, x, y) {
+  c.save(); c.translate(x, y);
+  c.fillStyle = C.plug;
+  c.beginPath(); c.moveTo(-11, 14); c.lineTo(11, 14); c.lineTo(13, 0); c.lineTo(-13, 0); c.closePath(); c.fill();
+  c.beginPath(); c.roundRect(-17, -11, 34, 12, 3); c.fill();
+  c.restore();
+}
+function drawPiss(S) {
+  const c = ctx, o = S.piss;
+  c.save(); c.translate(o.x, o.y); c.rotate(o.a);
+  c.beginPath(); c.roundRect(-28, -108, 56, 108, 12);
+  c.fillStyle = C.bottle; c.fill();
+  c.save(); c.clip(); c.fillStyle = `rgba(${C.water},.35)`; c.fillRect(-40, -62, 80, 70); c.restore();
+  c.strokeStyle = C.glass; c.lineWidth = 2; c.stroke();
+  c.fillStyle = C.rubber; c.beginPath(); c.roundRect(-11, -119, 22, 12, 3); c.fill();
+  c.strokeStyle = C.glass; c.lineWidth = 4.5; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(0, -119); c.lineTo(0, -138); c.quadraticCurveTo(0, -152, -18, -152); c.lineTo(-44, -150); c.quadraticCurveTo(-54, -149, PISS_TIP.x, PISS_TIP.y); c.stroke();
+  c.lineCap = 'butt';
+  c.restore();
+}
+function drawStream(S) {
+  if (!S.stream) return;
+  const o = S.stream.from, tip = toWorld(o, PISS_TIP.x, PISS_TIP.y), T = S.stream.to;
+  const d = rot(-1, .6, o.a);
+  const ctl = { x: tip.x + d.x * 40, y: tip.y + d.y * 40 - 6 };
+  ctx.strokeStyle = `rgba(${C.water},.85)`; ctx.lineWidth = 3.2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.quadraticCurveTo(ctl.x, ctl.y, T.x, T.y); ctx.stroke(); ctx.lineCap = 'butt';
+}
+function drawDropper(S) {
+  const c = ctx, o = S.drop;
+  c.save(); c.translate(o.x, o.y); c.rotate(o.a);
+  c.beginPath(); c.moveTo(-1.6, 0); c.lineTo(-4.5, -16); c.lineTo(-4.5, -66); c.lineTo(4.5, -66); c.lineTo(4.5, -16); c.lineTo(1.6, 0); c.closePath();
+  c.fillStyle = C.glassFill; c.fill(); c.strokeStyle = C.glass; c.lineWidth = 1.6; c.stroke();
+  c.fillStyle = `rgba(${C.water},.45)`; c.fillRect(-3.5, -30, 7, 24);
+  c.fillStyle = C.rubber; c.beginPath(); c.ellipse(0, -80, 8, 15, 0, 0, TAU); c.fill();
+  c.restore();
+  S.drops.forEach(p => {
+    const y0 = o.y + 4, y1 = fioleWorldY(S.fiole, levelOf(S.vol));
+    ctx.fillStyle = `rgba(${C.water},.95)`; ctx.beginPath(); ctx.ellipse(o.x, lerp(y0, y1, p * p), 2.6, 3.4, 0, 0, TAU); ctx.fill();
+  });
+}
+function drawSpat(S) {
+  if (!S.spat) return;
+  const c = ctx, o = S.spat;
+  c.save(); c.translate(o.x, o.y); c.rotate(o.a);
+  XS.forEach(x => { if (x.cs && x.cs.where === 'blade') crystal(c, x.blade.x - 4, x.blade.y, x.size * .8, x.ang); });
+  c.strokeStyle = C.metal; c.lineWidth = 4; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(6, 0); c.lineTo(100, -62); c.stroke(); c.lineCap = 'butt';
+  c.fillStyle = C.metal; c.beginPath(); c.ellipse(-3, 0, 12, 3.5, 0, 0, TAU); c.fill();
+  c.restore();
+}
+function drawInset(S) {
+  if (S.inset <= 0) return;
+  const c = ctx, cx = 175, cy = 165, r = 108, Z = 4;
+  c.save(); c.globalAlpha = S.inset;
+  // trait de rappel vers le col
+  c.strokeStyle = C.muted; c.setLineDash([4, 4]); c.lineWidth = 1;
+  c.beginPath(); c.moveTo(cx + r, cy); c.lineTo(FX - NR - 8, FY - MARK); c.stroke(); c.setLineDash([]);
+  c.beginPath(); c.arc(FX, FY - MARK, 20, 0, TAU); c.stroke();
+  c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.fillStyle = C.canvas; c.fill(); c.strokeStyle = C.muted; c.lineWidth = 2; c.stroke();
+  c.save(); c.beginPath(); c.arc(cx, cy, r - 1, 0, TAU); c.clip();
+  const hL = levelOf(S.vol), yL = cy - (hL - MARK) * Z, wx = NR * Z;
+  // liquide + ménisque (concave : remonte le long du verre)
+  c.beginPath(); c.moveTo(cx - wx, yL - 12);
+  c.quadraticCurveTo(cx - wx + 10, yL, cx, yL); c.quadraticCurveTo(cx + wx - 10, yL, cx + wx, yL - 12);
+  c.lineTo(cx + wx, cy + r); c.lineTo(cx - wx, cy + r); c.closePath();
+  c.fillStyle = `rgba(${C.water},.3)`; c.fill(); c.strokeStyle = `rgba(${C.water},1)`; c.lineWidth = 2; c.stroke();
+  // verre
+  c.fillStyle = C.glassFill; c.fillRect(cx - wx - 8, cy - r, 8, 2 * r); c.fillRect(cx + wx, cy - r, 8, 2 * r);
+  c.strokeStyle = C.glass; c.lineWidth = 2.5;
+  [cx - wx, cx + wx].forEach(x => { c.beginPath(); c.moveTo(x, cy - r); c.lineTo(x, cy + r); c.stroke(); });
+  // trait de jauge
+  c.strokeStyle = C.text; c.lineWidth = 2.5; c.beginPath(); c.moveTo(cx - wx - 8, cy); c.lineTo(cx + wx + 8, cy); c.stroke();
+  // œil et ligne de visée
+  const ex = cx - 84;
+  c.strokeStyle = C.step; c.setLineDash([5, 4]); c.lineWidth = 1.5; c.beginPath(); c.moveTo(ex + 12, cy); c.lineTo(cx + r, cy); c.stroke(); c.setLineDash([]);
+  c.fillStyle = C.canvas; c.strokeStyle = C.text; c.lineWidth = 1.8;
+  c.beginPath(); c.moveTo(ex - 13, cy); c.quadraticCurveTo(ex, cy - 11, ex + 13, cy); c.quadraticCurveTo(ex, cy + 11, ex - 13, cy); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = C.text; c.beginPath(); c.arc(ex + 2, cy, 4, 0, TAU); c.fill();
+  c.restore();
+  label('trait de jauge', cx + wx + 12, cy - 14, 'left', C.text, 12);
+  label(Math.abs(hL - MARK) < .4 ? 'bas du ménisque sur le trait : c\'est bon !' : 'œil à la hauteur du trait de jauge', cx, cy + r + 16, 'center', Math.abs(hL - MARK) < .4 ? C.ok : C.step, 13);
+  c.restore();
+}
+function drawLabels(S) {
+  if (!$('o-noms').checked) return;
+  label('balance', 190, 498);
+  label('sulfate de cuivre', P.pot.x, 498);
+  label('coupelle', S.coup.x, S.coup.y + (S.coup.y > 470 ? 20 : -28));
+  if (S.fun.a > 3) label('entonnoir', S.fun.x, 498); else label('entonnoir', S.fun.x - 54, S.fun.y + 14, 'right');
+  label('fiole jaugée', FX, 516);
+  if (!S.plug.on) label('bouchon', S.plug.x, S.plug.y + (S.plug.y > 470 ? 20 : -26));
+  if (S.piss.x > 800) label('pissette', S.piss.x, 498), label('d\'eau distillée', 896, 514, 'right');
+  if (S.drop.a < -1) label('compte-gouttes', S.drop.x - 46, 530); else label('compte-gouttes', S.drop.x + 40, S.drop.y - 60, 'left');
+  if (S.spat) label('spatule', S.spat.x + 70, S.spat.y - 66);
+}
+function drawAnnot(S) {
+  if (S.show23) {
+    const y = FY - H23;
+    ctx.strokeStyle = C.step; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(FX + hw(H23) + 4, y); ctx.lineTo(FX + 120, y); ctx.stroke(); ctx.setLineDash([]);
+    label('≈ 2/3', FX + 126, y, 'left', C.step, 14);
+  }
+  if (S.done) {
+    const c = ctx, x = 24, y = 24;
+    c.fillStyle = C.canvas; c.strokeStyle = C.ok; c.lineWidth = 2;
+    c.beginPath(); c.roundRect(x, y, 330, 92, 10); c.fill(); c.stroke();
+    label('Solution prête !', x + 14, y + 20, 'left', C.ok, 16);
+    label(`m = ${fix(prm.m, 2)} g   V = ${fix(prm.V, 1)} mL`, x + 14, y + 46, 'left', C.text, 14);
+    label(`Cm = m / V = ${both(prm.m / (prm.V / 1000), 3, 'g/L')}`, x + 14, y + 70, 'left', C.text, 14);
+  }
+}
+
+const anim = { s: 0, t: 0, playing: false, wait: 0 };
+function draw() {
+  base();
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = C.canvas; ctx.fillRect(0, 0, W, H);
+  const S = compose(anim.s, anim.t);
+  XS.forEach(x => { x.cs = crystalState(x, anim.s, anim.t, S); });
+  drawBench(); drawPot(); drawBalance(S);
+  drawFiole(S);
+  base();
+  if (!S.plug.on) drawPlug(ctx, S.plug.x, S.plug.y - 14);
+  drawFunnel(S); drawCoupelle(S); drawSpat(S);
+  XS.forEach(x => { if (x.cs && x.cs.where === 'world') crystal(ctx, x.cs.x, x.cs.y, x.size, x.ang); });
+  drawDropper(S); drawPiss(S); drawStream(S);
+  drawLabels(S); drawAnnot(S); drawInset(S);
+}
+
+/* --- interface de l'animation --- */
+const stepsEl = $('steps');
+stepsEl.innerHTML = STEPS.map((s, i) => `<li><button type="button" data-i="${i}"><span class="k">${i + 1}</span><span>${esc(s.titre)}</span></button></li>`).join('');
+stepsEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { anim.s = +b.dataset.i; anim.t = 0; anim.playing = true; ui(); }));
+let lastKey = '';
+function ui() {
+  const { s, t, playing } = anim;
+  stepsEl.querySelectorAll('button').forEach((b, i) => {
+    b.classList.toggle('cur', i === s && !(s === 0 && t === 0 && !playing));
+    b.classList.toggle('done', i < s || (i === s && t >= 1));
+  });
+  const end = s === NS - 1 && t >= 1;
+  $('b-play').textContent = playing ? '❚❚ Pause' : end ? '↺ Revoir depuis le début' : t >= 1 ? `▶ Lancer l'étape ${s + 2}` : t > 0 ? '▶ Reprendre' : `▶ Lancer l'étape ${s + 1}`;
+  $('b-prev').disabled = s === 0 && t === 0;
+  $('b-next').disabled = end;
+  const key = `${s}|${t > 0}|${end}|${prm.m}|${prm.V}`;
+  if (key !== lastKey) {
+    lastKey = key;
+    const st = STEPS[s];
+    if (s === 0 && t === 0) {
+      $('explain').innerHTML = `<h3>Matériel</h3><p>Balance, coupelle, spatule, entonnoir, fiole jaugée de ${prm.V} mL et son bouchon, pissette d'eau distillée, compte-gouttes.</p>
+        <p class="why">Objectif : dissoudre une masse m = ${fix(prm.m, 2)} g de sulfate de cuivre pour obtenir V = ${fix(prm.V, 1)} mL de solution.</p>`;
+    } else if (end) {
+      $('explain').innerHTML = `<h3>La solution est prête</h3><p>Elle contient la masse m = ${fix(prm.m, 2)} g de soluté, répartie de façon homogène dans le volume V = ${fix(prm.V, 1)} mL.</p>
+        <p class="why">Remarque : pendant l'agitation (étape 6) la solution était plus foncée, car le soluté était dans un volume plus petit.</p>`;
+    } else {
+      $('explain').innerHTML = `<h3>Étape ${s + 1} / ${NS} : ${esc(st.titre)}</h3><p>${st.action}</p><p class="why"><strong>Pourquoi ?</strong> ${st.pourquoi}</p>`;
+    }
+  }
+  const Vl = prm.V / 1000;
+  $('relation').innerHTML = `C<sub>m</sub> = m / V = ${fix(prm.m, 2)} g / ${fr(Vl.toFixed(4))} L = <strong>${both(prm.m / Vl, 3, 'g·L<sup>−1</sup>')}</strong>`;
+  $('o-m-out').textContent = fix(prm.m, 2) + ' g';
+}
+$('b-play').addEventListener('click', () => {
+  if (anim.playing) anim.playing = false;
+  else {
+    if (anim.s === NS - 1 && anim.t >= 1) { anim.s = 0; anim.t = 0; }
+    else if (anim.t >= 1) { anim.s++; anim.t = 0; }
+    anim.playing = true;
+  }
+  ui();
+});
+$('b-next').addEventListener('click', () => {
+  if (anim.t < 1) { anim.t = 1; anim.playing = false; }
+  else if (anim.s < NS - 1) { anim.s++; anim.t = 0; anim.playing = true; }
+  ui();
+});
+$('b-prev').addEventListener('click', () => {
+  anim.playing = false;
+  if (anim.t > 0) anim.t = 0; else if (anim.s > 0) anim.s--;
+  ui();
+});
+$('b-reset').addEventListener('click', () => { anim.s = 0; anim.t = 0; anim.playing = false; ui(); });
+$('o-v').addEventListener('change', e => { prm.V = +e.target.value; ui(); });
+$('o-m').addEventListener('input', e => { prm.m = +e.target.value; makeCrystals(); ui(); });
+
+/* =====================================================================
+   2. REMETTRE DANS L'ORDRE
+   ===================================================================== */
+const orderEl = $('order');
+let checked = false;
+function shuffleOrder() {
+  let idx;
+  do { idx = [...Array(NS).keys()].sort(() => Math.random() - .5); } while (idx.filter((v, i) => v === i).length > 2);
+  renderOrder(idx);
+}
+function renderOrder(idx) {
+  orderEl.innerHTML = idx.map(i => `<li data-i="${i}"><span class="pos"></span><span class="handle" aria-hidden="true">⠿</span>
+    <span class="txt">${esc(STEPS[i].carte)}</span>
+    <span class="mv"><button type="button" class="up" aria-label="Monter">▲</button><button type="button" class="dn" aria-label="Descendre">▼</button></span></li>`).join('');
+  numberOrder(); $('o-fb').className = 'fb'; $('o-fb').innerHTML = '';
+}
+function numberOrder() {
+  [...orderEl.children].forEach((li, k) => { li.querySelector('.pos').textContent = k + 1; li.querySelector('.up').disabled = k === 0; li.querySelector('.dn').disabled = k === NS - 1; });
+}
+function clearMarks() { if (!checked) return; checked = false; [...orderEl.children].forEach(li => li.classList.remove('good', 'bad')); $('o-fb').className = 'fb'; $('o-fb').innerHTML = ''; }
+orderEl.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const li = b.closest('li');
+  if (b.classList.contains('up') && li.previousElementSibling) orderEl.insertBefore(li, li.previousElementSibling);
+  if (b.classList.contains('dn') && li.nextElementSibling) orderEl.insertBefore(li.nextElementSibling, li);
+  clearMarks(); numberOrder(); b.focus();
+});
+// glisser-déposer (souris, doigt, stylet)
+let dragLi = null;
+orderEl.addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  const onHandle = e.target.closest('.handle');
+  if (!onHandle && e.pointerType !== 'mouse') return; // au doigt : uniquement par la poignée (pour garder le défilement)
+  const li = e.target.closest('li'); if (!li) return;
+  dragLi = li; li.classList.add('drag'); li.setPointerCapture(e.pointerId); e.preventDefault(); clearMarks();
+});
+orderEl.addEventListener('pointermove', e => {
+  if (!dragLi) return;
+  const prev = dragLi.previousElementSibling, next = dragLi.nextElementSibling;
+  if (prev) { const r = prev.getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { orderEl.insertBefore(dragLi, prev); numberOrder(); return; } }
+  if (next) { const r = next.getBoundingClientRect(); if (e.clientY > r.top + r.height / 2) { orderEl.insertBefore(next, dragLi); numberOrder(); } }
+});
+const endDrag = () => { if (dragLi) { dragLi.classList.remove('drag'); dragLi = null; } };
+orderEl.addEventListener('pointerup', endDrag); orderEl.addEventListener('pointercancel', endDrag);
+
+$('o-check').addEventListener('click', () => {
+  const lis = [...orderEl.children]; let good = 0, firstBad = -1;
+  lis.forEach((li, k) => { const ok = +li.dataset.i === k; li.classList.toggle('good', ok); li.classList.toggle('bad', !ok); if (ok) good++; else if (firstBad < 0) firstBad = k; });
+  checked = true;
+  const fb = $('o-fb');
+  if (good === NS) {
+    fb.className = 'fb ok';
+    fb.innerHTML = `<p><strong>Bravo, le protocole est dans le bon ordre !</strong></p><p class="small">Tu peux revoir chaque étape dans l'animation ci-dessus.</p>`;
+  } else {
+    fb.className = 'fb ko';
+    fb.innerHTML = `<p><strong>${good} étape${good > 1 ? 's' : ''} sur ${NS} ${good > 1 ? 'sont' : 'est'} à la bonne place.</strong> Les étiquettes rouges sont mal placées : corrige-les et vérifie à nouveau.</p>
+      <p class="small">Indice pour la position ${firstBad + 1} : ${STEPS[firstBad].pourquoi}</p>`;
+  }
+});
+$('o-shuffle').addEventListener('click', () => { checked = false; shuffleOrder(); });
+$('o-sol').addEventListener('click', () => { renderOrder([...Array(NS).keys()]); $('o-check').click(); });
+
+/* =====================================================================
+   3. EXERCICES DE CALCUL
+   ===================================================================== */
+const SOLUTES = [
+  { nom: 'glucose', de: 'de glucose', min: 10, max: 100 },
+  { nom: 'chlorure de sodium', de: 'de chlorure de sodium', min: 5, max: 60 },
+  { nom: 'sulfate de cuivre', de: 'de sulfate de cuivre', min: 10, max: 80 },
+  { nom: 'saccharose', de: 'de saccharose', min: 20, max: 150 },
+  { nom: 'permanganate de potassium', de: 'de permanganate de potassium', min: .5, max: 5 },
+  { nom: 'acide citrique', de: 'd\'acide citrique', min: 5, max: 50 },
+  { nom: 'sulfate de fer', de: 'de sulfate de fer', min: 5, max: 40 }
+];
+const OPENERS = ['Au laboratoire, on souhaite préparer', 'Pour une séance de travaux pratiques, il faut préparer', 'Un technicien de laboratoire doit préparer', 'Une élève veut préparer'];
+const MANT = [1, 1.2, 1.25, 1.5, 1.6, 2, 2.4, 2.5, 3, 3.2, 4, 4.5, 5, 6, 6.4, 7.5, 8];
+const FIOLES = [50, 100, 200, 250, 500, 1000];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const mStr = m => m < .1 ? `${sfStr(m * 1000)} mg` : `${sfStr(m)} g`;
+const vStr = V => `${fr(V.toFixed(1))} mL`;
+const CU = 'g·L<sup>−1</sup>';
+
+let mode = 'fiole', ex = null, tries = 0, solved = false, shown = false;
+const score = { ok: 0, n: 0 };
+function gen() {
+  for (let guard = 0; guard < 500; guard++) {
+    const so = pick(SOLUTES), V = mode === 'fiole' ? pick(FIOLES) : pick(FIOLES.slice(0, 5));
+    const ks = [-1, 0, 1, 2].filter(k => { const lo = MANT[0] * 10 ** k, hi = MANT[MANT.length - 1] * 10 ** k; return hi >= so.min && lo <= so.max; });
+    const k = pick(ks), Cm = Number((pick(MANT) * 10 ** k).toPrecision(3));
+    if (Cm < so.min || Cm > so.max) continue;
+    const mRaw = Cm * V / 1000, m = Number(mRaw.toPrecision(3));
+    if (m < .02 || m > 60) continue;
+    return { so, V, Cm, m, op: pick(OPENERS) };
+  }
+}
+function newEx() {
+  ex = gen(); tries = 0; solved = false; shown = false;
+  $('c-fb').className = 'fb'; $('c-fb').innerHTML = ''; $('c-corr').innerHTML = '';
+  const { so, V, Cm, m, op } = ex;
+  let html = '';
+  if (mode === 'fiole') {
+    html = `<p>${op} une solution aqueuse ${so.de} de concentration en masse <strong>C<sub>m</sub> = ${sfStr(Cm)} ${CU}</strong>.</p>
+      <p>On dissout entièrement une masse <strong>m = ${mStr(m)}</strong> ${so.de} dans une fiole jaugée, puis on complète jusqu'au trait de jauge.</p>
+      <p><strong>Calcule le volume de la fiole jaugée à utiliser, puis choisis-la.</strong></p>`;
+    $('rep').innerHTML = `<div class="fioles" id="fioles">${FIOLES.map(v => `<button type="button" data-v="${v}" aria-label="Fiole jaugée de ${v} mL">${fioleSVG(v)}<span>${v === 1000 ? '1 L' : v + ' mL'}</span></button>`).join('')}</div>`;
+    $('fioles').querySelectorAll('button').forEach(b => b.addEventListener('click', () => answerFiole(+b.dataset.v, b)));
+  } else if (mode === 'masse') {
+    html = `<p>${op} <strong>V = ${vStr(V)}</strong> d'une solution aqueuse ${so.de} de concentration en masse <strong>C<sub>m</sub> = ${sfStr(Cm)} ${CU}</strong>.</p>
+      <p><strong>Calcule la masse m ${so.de} à peser.</strong></p>`;
+    numInput('m =', 'g');
+  } else {
+    html = `<p>On dissout une masse <strong>m = ${mStr(m)}</strong> ${so.de} dans une fiole jaugée de <strong>${vStr(V)}</strong>, puis on complète jusqu'au trait de jauge et on homogénéise.</p>
+      <p><strong>Calcule la concentration en masse C<sub>m</sub> de la solution obtenue.</strong></p>`;
+    numInput('C<sub>m</sub> =', CU);
+  }
+  $('enonce').innerHTML = html;
+  scoreUI();
+}
+function numInput(lbl, unit) {
+  $('rep').innerHTML = `<form class="answer" id="ans-f"><label for="ans">${lbl}</label><input id="ans" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 1,25×10^-2">
+    <span>${unit}</span><button type="submit">Vérifier</button></form>
+    <p class="small">Tu peux écrire 0,0125 ou 1,25×10^-2 (ou 1,25e-2).</p>`;
+  $('ans-f').addEventListener('submit', e => { e.preventDefault(); answerNum($('ans').value); });
+}
+function fioleSVG(v) {
+  const s = .62 + .38 * (Math.log(v / 50) / Math.log(20));
+  const w = 44 * s, h = 80 * s;
+  return `<svg width="${w.toFixed(0)}" height="${h.toFixed(0)}" viewBox="0 0 44 80" aria-hidden="true">
+    <path d="M18 3h8v38c9 3 15 10 15 20 0 10-8 16-19 16S3 71 3 61c0-10 6-17 15-20z" fill="rgba(var(--water),.18)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <line x1="15" y1="17" x2="29" y2="17" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function scoreUI() {
+  $('score').innerHTML = score.n ? `Réussis du premier coup : <strong>${score.ok} / ${score.n}</strong>` : '';
+}
+function answerFiole(v, btn) {
+  if (solved) return;
+  tries++;
+  const { V, Cm, m } = ex, ok = v === V;
+  btn.classList.add(ok ? 'good' : 'bad');
+  const fb = $('c-fb');
+  if (ok) {
+    fb.className = 'fb ok'; fb.innerHTML = `<p><strong>Bravo !</strong> C'est bien la fiole jaugée de ${V === 1000 ? '1 L' : V + ' mL'}.</p>`;
+    if (tries === 1) { score.n++; score.ok++; } solved = true; scoreUI(); showCorr();
+  } else {
+    if (tries === 1) { score.n++; scoreUI(); }
+    const c = m / (v / 1000);
+    fb.className = 'fb ko';
+    fb.innerHTML = `<p><strong>Pas tout à fait.</strong> Avec la fiole de ${v === 1000 ? '1 L' : v + ' mL'}, on obtiendrait C<sub>m</sub> = m / V = ${both(c, 3, CU)}, et non ${sfStr(Cm)} ${CU}.</p>
+      <p class="small">${c > Cm ? 'La solution serait trop concentrée : il faut un volume plus grand.' : 'La solution serait trop diluée : il faut un volume plus petit.'} Vérifie ton calcul et réessaie.</p>`;
+  }
+}
+function parseAns(raw) {
+  let s = raw.trim().replace(/\s/g, '').replace(/,/g, '.').replace(/[−–]/g, '-');
+  s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, ch => ({ '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-' }[ch]));
+  s = s.replace(/(?:[×x*·]|\.)?10\^?\(?([+-]?\d+)\)?$/i, (all, e) => /^[\d.]+$/.test(s.slice(0, s.length - all.length)) ? 'e' + e : all);
+  s = s.replace(/E/g, 'e');
+  if (!/^-?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/.test(s)) return null;
+  const mant = s.split('e')[0].replace('-', '');
+  let digits = mant.replace('.', '').replace(/^0+/, '');
+  if (!mant.includes('.')) digits = digits.replace(/0+$/, '') || digits; // 100 -> 1 chiffre significatif (ambigu)
+  return { v: Number(s), sf: Math.max(1, digits.length) };
+}
+function answerNum(raw) {
+  if (solved) return;
+  const fb = $('c-fb'), a = parseAns(raw);
+  if (!a || !isFinite(a.v) || a.v <= 0) { fb.className = 'fb ko'; fb.innerHTML = '<p>Écris un nombre, par exemple 6,25 ou 6,25×10^-1.</p>'; return; }
+  tries++;
+  const { V, Cm, m } = ex, mShown = Number(m.toPrecision(3));
+  const exp = mode === 'masse' ? Cm * V / 1000 : mShown / (V / 1000);
+  const rel = Math.abs(a.v - exp) / exp;
+  let ok = false, msg = '';
+  if (rel <= .006) {
+    if (a.sf === 3) { ok = true; msg = `<p><strong>Bravo !</strong> ${mode === 'masse' ? 'm' : 'C<sub>m</sub>'} = ${both(exp, 3, mode === 'masse' ? 'g' : CU)}.</p>`; }
+    else msg = `<p><strong>La valeur est juste</strong>, mais ton résultat a ${a.sf} chiffre${a.sf > 1 ? 's' : ''} significatif${a.sf > 1 ? 's' : ''} : il en faut <strong>3</strong>, comme les données. Corrige l'écriture du résultat.</p>`;
+  } else {
+    const r = a.v / exp;
+    let hint = 'Reprends l\'expression littérale, puis l\'application numérique.';
+    if (Math.abs(Math.log10(r) - 3) < .02 || Math.abs(Math.log10(r) + 3) < .02) hint = 'Attention aux unités : le volume doit être en litres (1 mL = 10<sup>−3</sup> L)' + (m < .1 && mode === 'conc' ? ', et la masse en grammes (1 mg = 10<sup>−3</sup> g)' : '') + '.';
+    else if (mode === 'conc' && Math.abs(a.v - (V / 1000) / mShown) / ((V / 1000) / mShown) < .01) hint = 'Tu as inversé : C<sub>m</sub> = m / V, et non V / m.';
+    else if (mode === 'masse' && Math.abs(a.v - Cm / (V / 1000)) / (Cm / (V / 1000)) < .01) hint = 'Ce n\'est pas une division : m = C<sub>m</sub> × V.';
+    msg = `<p><strong>Ce n'est pas le bon résultat.</strong> ${hint}</p>`;
+  }
+  if (tries === 1) { score.n++; if (ok) score.ok++; }
+  if (ok) { solved = true; showCorr(); }
+  fb.className = 'fb ' + (ok ? 'ok' : 'ko'); fb.innerHTML = msg; scoreUI();
+}
+function showCorr() {
+  const { V, Cm, m } = ex, Vl = V / 1000;
+  const mLine = m < .1 ? `<p>Conversion : m = ${mStr(m)} = ${sciStr(m)} g.</p>` : '';
+  const vLine = `<p>Conversion : V = ${V === 1000 && mode === 'fiole' ? '1 L' : vStr(V)} = ${fr(Vl.toFixed(4))} L.</p>`;
+  const mG = (m < .1 ? sciStr(m) : sfStr(m)) + ' g';
+  let body = '';
+  if (mode === 'fiole') {
+    const Vc = m / Cm;
+    body = `<p>Expression littérale : C<sub>m</sub> = m / V, donc <strong>V = m / C<sub>m</sub></strong>.</p>${mLine}
+      <p>Application numérique : V = ${mG} / ${sfStr(Cm)} ${CU}</p>
+      <p>Résultat : <strong>V = ${both(Vc, 3, 'L')}</strong> ${Vc < .999 ? ` = ${sfStr(Vc * 1000)} mL` : ''}, donc on utilise la <strong>fiole jaugée de ${V === 1000 ? '1 L' : V + ' mL'}</strong>.</p>`;
+  } else if (mode === 'masse') {
+    const r = Cm * Vl;
+    body = `<p>Expression littérale : C<sub>m</sub> = m / V, donc <strong>m = C<sub>m</sub> × V</strong>.</p>${vLine}
+      <p>Application numérique : m = ${sfStr(Cm)} ${CU} × ${fr(Vl.toFixed(4))} L</p>
+      <p>Résultat : <strong>m = ${both(r, 3, 'g')}</strong>${r < 1 ? ` (soit ${sfStr(r * 1000)} mg)` : ''}.</p>
+      <p class="small">3 chiffres significatifs, comme C<sub>m</sub> (V en a 4).</p>`;
+  } else {
+    const r = Number(m.toPrecision(3)) / Vl;
+    body = `<p>Expression littérale : <strong>C<sub>m</sub> = m / V</strong>.</p>${mLine}${vLine}
+      <p>Application numérique : C<sub>m</sub> = ${mG} / ${fr(Vl.toFixed(4))} L</p>
+      <p>Résultat : <strong>C<sub>m</sub> = ${both(r, 3, CU)}</strong>.</p>
+      <p class="small">3 chiffres significatifs, comme m (V en a 4).</p>`;
+  }
+  $('c-corr').innerHTML = `<div class="corr"><h3>Correction</h3>${body}</div>`;
+}
+$('c-sol').addEventListener('click', () => {
+  if (!solved && !shown && tries === 0) { score.n++; scoreUI(); }
+  shown = true; solved = true; showCorr();
+});
+$('c-new').addEventListener('click', newEx);
+$('modes').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode;
+  $('modes').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  newEx();
+}));
+
+/* ---------- plein écran ---------- */
+document.querySelectorAll('button.fs').forEach(btn => {
+  const el = $(btn.dataset.target);
+  if (!el.requestFullscreen) { btn.hidden = true; return; }
+  btn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen());
+});
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('button.fs').forEach(b => b.textContent = document.fullscreenElement === $(b.dataset.target) ? 'Quitter le plein écran' : 'Plein écran');
+  setTimeout(resize, 50);
+});
+
+/* ---------- démarrage et boucle ---------- */
+makeCrystals(); resize(); ui(); shuffleOrder(); newEx();
+window.addEventListener('resize', resize);
+let last = performance.now();
+function frame(now) {
+  const dt = clamp((now - last) / 1000, 0, .05); last = now;
+  if (anim.playing) {
+    const sp = +$('o-speed').value;
+    if (anim.t < 1) anim.t = Math.min(1, anim.t + dt * sp / STEPS[anim.s].dur);
+    else if ($('o-auto').checked && anim.s < NS - 1) {
+      anim.wait += dt;
+      if (anim.wait > .8) { anim.wait = 0; anim.s++; anim.t = 0; }
+    } else { anim.playing = false; anim.wait = 0; }
+    ui();
+  }
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__sim = { anim, draw, ui, prm, ex: () => ex }; // pour les tests
+})();
+</script>
+</body>
+</html>
