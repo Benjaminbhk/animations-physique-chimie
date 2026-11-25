@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Réfraction et réflexion totale</title>
+<meta name="description" content="Simulation interactive des lois de Snell-Descartes : réflexion, réfraction, angle limite, réflexion totale et dispersion, avec mesures, graphique et exercices corrigés (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#b85a12; --accent-soft:#fdf0e4; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --grid:rgba(40,50,70,.10); --normal:rgba(40,50,70,.55);
+  --ok:#1f8a4c; --ok-soft:#e5f5ec; --bad:#c0392b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#f0a35e; --accent-soft:#33251a; --accent-ink:#1b120a;
+    --canvas:#12151d; --grid:rgba(220,230,250,.10); --normal:rgba(220,230,250,.55);
+    --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#f0a35e; --accent-soft:#33251a; --accent-ink:#1b120a;
+  --canvas:#12151d; --grid:rgba(220,230,250,.10); --normal:rgba(220,230,250,.55);
+  --ok:#5ccf8c; --ok-soft:#163223; --bad:#ff7a6b;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{font-size:1.2rem;margin:0 0 .6rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas#cv{display:block;width:100%;height:auto;aspect-ratio:820/600;border-radius:10px;background:var(--canvas);
+  border:1px solid var(--border);touch-action:none;cursor:grab}
+canvas#cv:active{cursor:grabbing}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .35rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.sm{min-height:34px;padding:.25rem .6rem;font-size:.88rem}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row label{font-weight:600;font-size:.92rem}
+.med{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;align-items:center}
+.med .full{grid-column:1/-1;padding-left:2px}
+.med label{font-weight:600;font-size:.92rem}
+select{font:inherit;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);width:100%}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:6ch}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem}
+.vals{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-variant-numeric:tabular-nums;font-size:.95rem;
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem}
+.vals dt{color:var(--muted)}
+.vals dd{margin:0;font-weight:700;text-align:right}
+.badge{display:inline-block;background:var(--bad);color:#fff;border-radius:999px;padding:.05rem .6rem;font-size:.85rem;font-weight:700}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+.mes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.93rem}
+th,td{border-bottom:1px solid var(--border);padding:.3rem .4rem;text-align:right}
+th{color:var(--muted);font-weight:600}
+td:first-child,th:first-child{text-align:left}
+td button{min-height:26px;padding:0 .45rem;font-size:.8rem}
+.tbl{max-height:330px;overflow:auto;border:1px solid var(--border);border-radius:10px;margin-top:8px}
+canvas#gr{display:block;width:100%;height:auto;aspect-ratio:460/340;border-radius:10px;background:var(--canvas);border:1px solid var(--border)}
+.result{margin-top:8px;font-size:.95rem}
+/* ---------- exercices : fond et couleurs dans ../commun/exercices.css ---------- */
+.exercices > p{margin:0 0 12px;color:var(--muted)}
+.exos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.exo{background:var(--ex-card);border:1px solid var(--ex-line);border-radius:12px;padding:.8rem 1rem}
+.exo h3{margin:0 0 .35rem;font-size:1rem;color:var(--ex-ink)}
+.exo .enonce{margin:0 0 .5rem}
+.exo .rep{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:.3rem 0}
+.exo input[type=text]{font:inherit;width:8.5em;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--ex-line);
+  background:var(--ex-card);color:var(--text)}
+.exo .fb{font-weight:600;min-height:1.4em;margin:.2rem 0}
+.exo .fb.ok{color:var(--ex-ok)} .exo .fb.ko{color:var(--ex-ko)}
+.corr{border:2px solid var(--ex-ok);background:var(--ex-ok-soft);border-radius:10px;padding:.5rem .75rem;margin-top:.5rem}
+.corr strong.t{color:var(--ex-ok);display:block;margin-bottom:.15rem}
+.corr p{margin:.15rem 0}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+.scene:fullscreen .layout{grid-template-columns:auto 360px;justify-content:center}
+.scene:fullscreen canvas#cv{height:calc(100vh - 120px);width:auto;max-width:calc(100vw - 420px)}
+.scene:fullscreen .memo,.scene:fullscreen .small{display:none}
+@media (max-width:900px){
+  .layout,.mes,.exos{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr 1fr}
+  .scene{padding:12px}
+}
+@media (max-width:560px){ .memo{grid-template-columns:1fr} }
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Réfraction et réflexion totale</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Un rayon de lumière arrive sur la surface qui sépare deux milieux transparents. Une partie est <strong>réfléchie</strong>,
+    une partie est <strong>réfractée</strong> (elle change de direction en changeant de milieu). Fais tourner le laser à la souris ou au doigt,
+    change les milieux, cherche l'<strong>angle limite</strong> et la <strong>réflexion totale</strong>, puis mesure pour vérifier la loi de Snell-Descartes.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de la réfraction">
+    <div class="layout">
+      <div>
+        <canvas id="cv" tabindex="0" role="img" aria-label="Rayon laser arrivant sur la surface entre deux milieux, avec rayons réfléchi et réfracté. Flèches gauche et droite pour changer l'angle."></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div>
+          <h3>1. Les deux milieux</h3>
+          <div class="med">
+            <label for="m1">Milieu 1 (haut)</label><select id="m1"></select>
+            <div class="row full" id="p1row" hidden><input id="p1" type="range" min="1" max="2.5" step="0.01" value="1.2" aria-label="Indice du milieu 1"><output id="p1o"></output></div>
+            <label for="m2">Milieu 2 (bas)</label><select id="m2"></select>
+            <div class="row full" id="p2row" hidden><input id="p2" type="range" min="1" max="2.5" step="0.01" value="1.6" aria-label="Indice du milieu 2"><output id="p2o"></output></div>
+          </div>
+          <div class="row" style="margin-top:8px"><button id="swap" class="ghost sm" type="button">⇅ Inverser les milieux</button></div>
+        </div>
+        <div>
+          <h3>2. L'angle d'incidence</h3>
+          <div class="row">
+            <label for="ang">i₁</label>
+            <input id="ang" type="range" min="0" max="89.9" step="0.1" value="40">
+            <output id="ango" for="ang"></output>
+          </div>
+          <div class="row" style="margin-top:6px"><button id="lim" class="ghost sm" type="button">Se placer à l'angle limite</button></div>
+        </div>
+        <dl class="vals" id="vals"></dl>
+        <div>
+          <h3>3. Affichage</h3>
+          <label class="check"><input type="checkbox" id="showAng" checked> Valeurs des angles sur le schéma</label>
+          <label class="check"><input type="checkbox" id="showRap"> Rapporteur</label>
+          <label class="check"><input type="checkbox" id="white"> Lumière blanche (dispersion)</label>
+          <label class="check" id="exaRow" hidden style="margin-left:22px"><input type="checkbox" id="exa" checked> Exagérer l'écart entre les couleurs (× 5)</label>
+          <div class="row" style="margin-top:8px"><button id="fs" class="ghost sm" type="button">Plein écran</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Réflexion</h3>Le rayon réfléchi est symétrique du rayon incident par rapport à la normale : <strong>r = i₁</strong>.</div>
+      <div><h3>Réfraction</h3>Loi de Snell-Descartes : <strong>n₁ × sin i₁ = n₂ × sin i₂</strong>. Les angles se mesurent par rapport à la <em>normale</em>, pas par rapport à la surface.</div>
+      <div><h3>Réflexion totale</h3>Possible seulement si n₁ &gt; n₂. Au-delà de l'angle limite (sin i<sub>lim</sub> = n₂ / n₁), il n'y a plus de rayon réfracté.</div>
+      <div><h3>Dispersion</h3>L'indice dépend un peu de la couleur : le violet est plus dévié que le rouge. C'est ainsi qu'un prisme décompose la lumière blanche.</div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Indices pour une lumière jaune (λ = 589 nm), valeurs usuelles. L'épaisseur des rayons réfléchi et réfracté indique la part de lumière qu'ils emportent (lois de Fresnel, lumière non polarisée).</p>
+  </section>
+
+  <section class="scene" aria-labelledby="mes-t">
+    <h2 id="mes-t">Mesures : vérifier la loi de Snell-Descartes</h2>
+    <div class="mes">
+      <div>
+        <p style="margin:0 0 8px">Règle un angle i₁, lis i₂ (au rapporteur si tu caches les valeurs), puis enregistre. Fais au moins 5 mesures entre 0° et 80°.</p>
+        <div class="row">
+          <button id="rec" type="button">Enregistrer la mesure</button>
+          <button id="clr" class="ghost" type="button">Tout effacer</button>
+        </div>
+        <label class="check" style="margin-top:8px"><input type="checkbox" id="round" checked> Arrondir au degré près, comme une lecture au rapporteur</label>
+        <div class="tbl"><table>
+          <thead><tr><th>n°</th><th>i₁ (°)</th><th>i₂ (°)</th><th>sin i₁</th><th>sin i₂</th><th></th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table></div>
+      </div>
+      <div>
+        <canvas id="gr" role="img" aria-label="Graphique de sin i₁ en fonction de sin i₂"></canvas>
+        <div class="result" id="res"></div>
+        <div class="row" style="margin-top:6px"><button id="reveal" class="ghost sm" type="button" hidden>Révéler l'indice du milieu mystère</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene exercices" aria-labelledby="exo-t">
+    <h2 id="exo-t"><span class="ex-badge">✎ Exercices</span> S'entraîner sur la réfraction</h2>
+    <p>Calcule, puis vérifie ta réponse. Chaque bouton « Nouvelles valeurs » donne un nouvel énoncé. Donne tes résultats avec le bon nombre de chiffres significatifs.</p>
+    <div class="exos" id="exos"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Lois de Snell-Descartes, classe de Seconde.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2, D2R = Math.PI / 180, R2D = 180 / Math.PI;
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const fmt = (x, d = 2) => x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+// nombre avec n chiffres significatifs, écriture décimale
+function sig(x, n = 3) {
+  if (x === 0) return fmt(0, n - 1);
+  const e = Math.floor(Math.log10(Math.abs(x))), d = Math.max(0, n - 1 - e);
+  return fmt(+x.toFixed(d), d);
+}
+// écriture scientifique a,bc × 10^p
+const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+function sci(x, n = 3) {
+  let e = Math.floor(Math.log10(Math.abs(x))), m = x / 10 ** e;
+  if (+m.toFixed(n - 1) >= 10) { m /= 10; e++; }
+  return fmt(m, n - 1) + ' × 10' + String(e).split('').map(c => SUP[c]).join('');
+}
+const deg = x => fmt(x, 1) + '°';
+
+/* ---------- milieux ---------- */
+// n : indice pour λ = 589 nm ; B : coefficient de Cauchy (µm²), n(λ) = n + B (1/λ² − 1/0,589²)
+const MED = [
+  { id: 'air',    nom: 'Air',            n: 1.00, B: 0,      rgb: [190, 215, 245], a: .10 },
+  { id: 'eau',    nom: 'Eau',            n: 1.33, B: 0.0031, rgb: [50, 135, 230],  a: .24 },
+  { id: 'huile',  nom: 'Huile',          n: 1.47, B: 0.0045, rgb: [225, 185, 30],  a: .24 },
+  { id: 'plexi',  nom: 'Plexiglas',      n: 1.49, B: 0.0047, rgb: [120, 190, 205], a: .22 },
+  { id: 'verre',  nom: 'Verre',          n: 1.50, B: 0.0042, rgb: [60, 180, 150],  a: .24 },
+  { id: 'diam',   nom: 'Diamant',        n: 2.42, B: 0.0130, rgb: [150, 175, 240], a: .30 },
+  { id: 'perso',  nom: 'Indice réglable', n: 1.20, B: 0.0040, rgb: [150, 150, 170], a: .22 },
+  { id: 'myst',   nom: 'Milieu mystère', n: 1.62, B: 0.0050, rgb: [170, 110, 200], a: .22 }
+];
+const byId = Object.fromEntries(MED.map(m => [m.id, m]));
+const newMystery = () => { byId.myst.n = Math.round((1.30 + Math.random() * 0.55) * 100) / 100; };
+newMystery();
+
+const S = {
+  m1: 'air', m2: 'eau', p1: 1.20, p2: 1.60,
+  i1: 40, white: false, exa: true, showAng: true, showRap: false,
+  rows: [], revealed: false
+};
+const medium = k => byId[S['m' + k]];
+const nOf = k => { const m = medium(k); return m.id === 'perso' ? S['p' + k] : m.n; };
+const hidden = k => medium(k).id === 'myst' && !S.revealed;
+const nTxt = k => hidden(k) ? '?' : sig(nOf(k), 3);
+function nLambda(k, lam) {
+  const m = medium(k), B = m.id === 'perso' ? 0.004 * (S['p' + k] - 1) / 0.5 : m.B;
+  return nOf(k) + B * (S.exa ? 5 : 1) * (1 / (lam * lam) - 1 / (0.589 * 0.589));
+}
+// Réfraction : renvoie l'angle de réfraction (degrés) ou null si réflexion totale
+function refr(n1, n2, i) {
+  const s = n1 * Math.sin(i * D2R) / n2;
+  return s > 1 ? null : Math.asin(s) * R2D;
+}
+function fresnelR(n1, n2, i) {
+  const t = refr(n1, n2, i); if (t === null) return 1;
+  const ci = Math.cos(i * D2R), ct = Math.cos(t * D2R);
+  const rs = (n1 * ci - n2 * ct) / (n1 * ci + n2 * ct), rp = (n2 * ci - n1 * ct) / (n2 * ci + n1 * ct);
+  return (rs * rs + rp * rp) / 2;
+}
+const limAngle = () => nOf(1) > nOf(2) ? Math.asin(nOf(2) / nOf(1)) * R2D : null;
+
+const SPEC = [
+  { lam: 0.400, c: [150, 70, 255] }, { lam: 0.450, c: [70, 100, 255] }, { lam: 0.490, c: [40, 200, 235] },
+  { lam: 0.530, c: [60, 210, 80] }, { lam: 0.580, c: [245, 220, 40] }, { lam: 0.610, c: [255, 150, 30] },
+  { lam: 0.680, c: [240, 40, 40] }
+];
+const LASER = [235, 35, 45];
+
+/* ---------- thème ---------- */
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = { canvas: g('--canvas'), text: g('--text'), muted: g('--muted'), accent: g('--accent'), grid: g('--grid'),
+        normal: g('--normal'), bad: g('--bad'), dark: matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark' };
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readTheme(); drawAll(); });
+const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+
+/* ---------- canvas principal ---------- */
+const W = 820, H = 600, IX = 410, IY = 300, L = 280;
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr); draw();
+}
+
+function arrowOn(c, x0, y0, x1, y1, col, t = .55) {
+  const x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t, a = Math.atan2(y1 - y0, x1 - x0), s = 11;
+  c.fillStyle = col; c.beginPath();
+  c.moveTo(x + Math.cos(a) * s, y + Math.sin(a) * s);
+  c.lineTo(x + Math.cos(a + 2.5) * s, y + Math.sin(a + 2.5) * s);
+  c.lineTo(x + Math.cos(a - 2.5) * s, y + Math.sin(a - 2.5) * s);
+  c.closePath(); c.fill();
+}
+function ray(c, x0, y0, x1, y1, col, w, alpha = 1, arrow = true) {
+  if (w < .15) return;
+  c.save(); c.lineCap = 'round';
+  c.globalCompositeOperation = C.dark ? 'lighter' : 'source-over';
+  c.strokeStyle = rgba(col, .18 * alpha); c.lineWidth = w * 4 + 4; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+  c.strokeStyle = rgba(col, alpha); c.lineWidth = w; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+  c.restore();
+  if (arrow && alpha > .25) arrowOn(c, x0, y0, x1, y1, rgba(col, Math.min(1, alpha + .2)));
+}
+function spec(c, x1, y1, col, alpha) {
+  c.save(); c.lineCap = 'round';
+  c.strokeStyle = rgba(col, .25 * alpha); c.lineWidth = 5; c.beginPath(); c.moveTo(IX, IY); c.lineTo(x1, y1); c.stroke();
+  c.strokeStyle = rgba(col, alpha); c.lineWidth = 1.8; c.beginPath(); c.moveTo(IX, IY); c.lineTo(x1, y1); c.stroke();
+  c.restore();
+}
+// angle (degrés depuis la normale) → point. side : +1 vers la droite ; up : true pour le milieu 1
+const pt = (a, up, r = L) => [IX + r * Math.sin(a * D2R), IY + (up ? -1 : 1) * r * Math.cos(a * D2R)];
+
+function arcLabel(c, a0, a1, up, r, txt, col) {
+  // a0, a1 : angles depuis la verticale (radians de canvas)
+  const base = up ? -Math.PI / 2 : Math.PI / 2;
+  const s0 = up ? base + a0 * D2R : base - a0 * D2R, s1 = up ? base + a1 * D2R : base - a1 * D2R;
+  c.strokeStyle = col; c.lineWidth = 1.6; c.beginPath();
+  c.arc(IX, IY, r, Math.min(s0, s1), Math.max(s0, s1)); c.stroke();
+  if (!txt) return;
+  const m = (s0 + s1) / 2, lr = r + 14;
+  let x = IX + Math.cos(m) * lr, y = IY + Math.sin(m) * lr;
+  c.font = '700 15px system-ui, sans-serif'; c.textBaseline = 'middle';
+  c.textAlign = Math.cos(m) > .2 ? 'left' : Math.cos(m) < -.2 ? 'right' : 'center';
+  const w = c.measureText(txt).width;
+  const bx = c.textAlign === 'left' ? x - 3 : c.textAlign === 'right' ? x - w - 3 : x - w / 2 - 3;
+  c.fillStyle = C.dark ? 'rgba(18,21,29,.78)' : 'rgba(255,255,255,.82)'; c.fillRect(bx, y - 10, w + 6, 20);
+  c.fillStyle = col; c.fillText(txt, x, y);
+}
+
+function drawProtractor(c) {
+  const R = 250;
+  c.save(); c.strokeStyle = C.muted; c.fillStyle = C.muted; c.globalAlpha = .9;
+  c.lineWidth = 1; c.beginPath(); c.arc(IX, IY, R, 0, TAU); c.stroke();
+  for (let d = 0; d < 360; d++) {
+    const a = d * D2R, len = d % 10 === 0 ? 14 : d % 5 === 0 ? 9 : 5;
+    c.lineWidth = d % 10 === 0 ? 1.4 : .8;
+    c.beginPath(); c.moveTo(IX + Math.sin(a) * R, IY - Math.cos(a) * R);
+    c.lineTo(IX + Math.sin(a) * (R - len), IY - Math.cos(a) * (R - len)); c.stroke();
+    if (d % 10 === 0) {
+      const v = [d, 180 - d, d - 180, 360 - d].map(Math.abs).reduce((p, q) => Math.min(p, q)); // angle à la normale
+      const rr = R - 26; c.font = '600 11px system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(v, IX + Math.sin(a) * rr, IY - Math.cos(a) * rr);
+    }
+  }
+  c.restore();
+}
+
+function draw() {
+  const c = ctx;
+  c.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = C.canvas; c.fillRect(0, 0, W, H);
+  const m1 = medium(1), m2 = medium(2);
+  c.fillStyle = rgba(m1.rgb, m1.a); c.fillRect(0, 0, W, IY);
+  c.fillStyle = rgba(m2.rgb, m2.a); c.fillRect(0, IY, W, H - IY);
+  // dioptre
+  c.strokeStyle = C.text; c.globalAlpha = .55; c.lineWidth = 2; c.beginPath(); c.moveTo(0, IY); c.lineTo(W, IY); c.stroke(); c.globalAlpha = 1;
+  // noms des milieux
+  c.font = '700 16px system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'top'; c.fillStyle = C.text;
+  c.fillText(`Milieu 1 : ${m1.nom.toLowerCase()}`, 14, 12);
+  c.fillText(`Milieu 2 : ${m2.nom.toLowerCase()}`, 14, H - 50);
+  c.font = '600 15px system-ui, sans-serif'; c.fillStyle = C.muted;
+  c.fillText(`n₁ = ${nTxt(1)}`, 14, 34); c.fillText(`n₂ = ${nTxt(2)}`, 14, H - 28);
+
+  if (S.showRap) drawProtractor(c);
+  // normale
+  c.save(); c.setLineDash([8, 6]); c.strokeStyle = C.normal; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(IX, IY - 285); c.lineTo(IX, IY + 285); c.stroke(); c.restore();
+  c.font = 'italic 600 13px system-ui, sans-serif'; c.fillStyle = C.muted; c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillText('normale', IX + 6, 10);
+
+  const i = S.i1, n1 = nOf(1), n2 = nOf(2);
+  // le laser arrive depuis la gauche : angle signé −i côté source
+  const [sx, sy] = pt(-i, true), [rx, ry] = pt(i, true);
+  const colIn = S.white ? [255, 255, 255] : LASER;
+  const colInDraw = S.white ? (C.dark ? [245, 245, 245] : [120, 120, 130]) : LASER;
+  let Rtot;
+  if (!S.white) {
+    const t = refr(n1, n2, i), R = fresnelR(n1, n2, i); Rtot = R;
+    ray(c, sx, sy, IX, IY, colInDraw, 3.4);
+    ray(c, IX, IY, rx, ry, colInDraw, 0.6 + 2.8 * Math.sqrt(R), .35 + .65 * Math.sqrt(R));
+    if (t !== null) { const [tx, ty] = pt(t, false); ray(c, IX, IY, tx, ty, colInDraw, 0.6 + 2.8 * Math.sqrt(1 - R), .35 + .65 * Math.sqrt(1 - R)); }
+  } else {
+    ray(c, sx, sy, IX, IY, colInDraw, 3.4);
+    let Rm = 0;
+    for (const s of SPEC) {
+      const a = nLambda(1, s.lam), b = nLambda(2, s.lam), t = refr(a, b, i), R = fresnelR(a, b, i); Rm += R / SPEC.length;
+      if (t !== null) { const [tx, ty] = pt(t, false); spec(c, tx, ty, s.c, .35 + .65 * Math.sqrt(1 - R)); }
+    }
+    Rtot = Rm;
+    ray(c, IX, IY, rx, ry, colInDraw, 0.6 + 2.8 * Math.sqrt(Rm), .35 + .65 * Math.sqrt(Rm));
+  }
+  // laser
+  c.save(); c.translate(sx, sy); c.rotate(Math.atan2(IY - sy, IX - sx));
+  c.fillStyle = C.dark ? '#3a4152' : '#3b4252'; c.strokeStyle = C.dark ? '#7d879c' : '#1c2333'; c.lineWidth = 1.2;
+  c.beginPath(); c.roundRect(-58, -11, 58, 22, 5); c.fill(); c.stroke();
+  c.fillStyle = rgba(S.white ? [255, 255, 255] : LASER, 1); c.fillRect(-4, -4, 4, 8);
+  c.restore();
+
+  // angles
+  const t = S.white ? refr(nLambda(1, .58), nLambda(2, .58), i) : refr(n1, n2, i);
+  if (i > 0.4) {
+    arcLabel(c, -i, 0, true, 62, S.showAng ? `i₁ = ${deg(i)}` : 'i₁', C.accent);
+    arcLabel(c, 0, i, true, 82, S.showAng ? `r = ${deg(i)}` : 'r', C.muted);
+    if (t !== null && !S.white) arcLabel(c, 0, t, false, 72, S.showAng ? `i₂ = ${deg(t)}` : 'i₂', C.accent);
+  }
+  // point d'incidence
+  c.fillStyle = C.text; c.beginPath(); c.arc(IX, IY, 3.5, 0, TAU); c.fill();
+  c.font = '700 14px system-ui, sans-serif'; c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText('I', IX - 6, IY + 4);
+
+  if (!S.white && refr(n1, n2, i) === null) {
+    c.font = '800 20px system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = C.bad; c.fillText('Réflexion totale : pas de rayon réfracté', IX + 150, IY + 140);
+  }
+  if (S.white) {
+    c.font = '600 13px system-ui, sans-serif'; c.textAlign = 'right'; c.textBaseline = 'top'; c.fillStyle = C.muted;
+    c.fillText(S.exa ? 'écart entre couleurs exagéré × 5' : 'écart réel entre couleurs', W - 12, IY + 8);
+  }
+}
+
+/* ---------- valeurs et messages ---------- */
+function readouts() {
+  const i = S.i1, n1 = nOf(1), n2 = nOf(2), t = refr(n1, n2, i), lim = limAngle(), R = fresnelR(n1, n2, i);
+  const rows = [['i₁', deg(i)], ['r', deg(i)]];
+  if (S.white) {
+    const tv = refr(nLambda(1, .40), nLambda(2, .40), i), tr = refr(nLambda(1, .68), nLambda(2, .68), i);
+    rows.push(['i₂ violet', tv === null ? 'réfléchi' : deg(tv)], ['i₂ rouge', tr === null ? 'réfléchi' : deg(tr)]);
+  } else {
+    rows.push(['i₂', t === null ? '<span class="badge">aucun</span>' : deg(t)]);
+    rows.push(['n₁ × sin i₁', hidden(1) ? '?' : sig(n1 * Math.sin(i * D2R), 3)]);
+    rows.push(['n₂ × sin i₂', t === null ? '—' : hidden(2) ? '?' : sig(n2 * Math.sin(t * D2R), 3)]);
+  }
+  rows.push(['Angle limite', lim === null ? 'aucun (n₁ ≤ n₂)' : (hidden(1) || hidden(2)) ? '?' : deg(lim)]);
+  rows.push(['Lumière réfléchie', R >= .9999 ? '100 %' : (R * 100 < 10 ? fmt(R * 100, 1) : fmt(R * 100, 0)) + ' %']);
+  $('vals').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
+  $('ango').textContent = deg(i);
+  $('lim').disabled = lim === null;
+  $('rec').disabled = S.white || t === null || S.rows.length >= 15;
+
+  let m;
+  const same = Math.abs(n1 - n2) < 1e-9;
+  if (S.white) m = 'La lumière blanche contient toutes les couleurs. L\'indice du milieu dépend un peu de la couleur : <strong>le violet est plus dévié que le rouge</strong>, les couleurs se séparent. C\'est la <strong>dispersion</strong>.';
+  else if (same) m = 'Les deux milieux ont le même indice : la lumière continue tout droit, sans être déviée.';
+  else if (i < 0.05) m = 'Incidence normale (i₁ = 0°) : le rayon traverse la surface sans être dévié, quel que soit le milieu.';
+  else if (t === null) m = `<strong>Réflexion totale</strong> : i₁ = ${deg(i)} dépasse l'angle limite${hidden(1) || hidden(2) ? '' : ' (' + deg(lim) + ')'}. n₁ × sin i₁ serait plus grand que n₂ : aucun angle i₂ ne vérifie la loi, toute la lumière est réfléchie.`;
+  else if (n1 < n2) m = `La lumière entre dans un milieu plus réfringent (n₂ &gt; n₁) : le rayon réfracté <strong>se rapproche de la normale</strong> (i₂ &lt; i₁). Il y a toujours un rayon réfracté.`;
+  else if (lim - i < 3) m = `On est tout près de l'angle limite : le rayon réfracté rase la surface (i₂ proche de 90°) et presque toute la lumière est réfléchie.`;
+  else m = `La lumière passe dans un milieu moins réfringent (n₂ &lt; n₁) : le rayon réfracté <strong>s'écarte de la normale</strong> (i₂ &gt; i₁). Augmente i₁ pour trouver l'angle limite.`;
+  $('msg').innerHTML = m;
+}
+
+/* ---------- interface ---------- */
+function fillSelect(sel, val) {
+  sel.innerHTML = MED.map(m => `<option value="${m.id}">${m.nom}${m.id === 'perso' || m.id === 'myst' ? '' : ' (n = ' + sig(m.n, 3) + ')'}</option>`).join('');
+  sel.value = val;
+}
+fillSelect($('m1'), S.m1); fillSelect($('m2'), S.m2);
+function syncMediaUI() {
+  $('m1').value = S.m1; $('m2').value = S.m2;
+  $('p1row').hidden = S.m1 !== 'perso'; $('p2row').hidden = S.m2 !== 'perso';
+  $('p1').value = S.p1; $('p2').value = S.p2;
+  $('p1o').textContent = 'n₁ = ' + sig(S.p1, 3); $('p2o').textContent = 'n₂ = ' + sig(S.p2, 3);
+}
+function mediaChanged() {
+  if (S.rows.length) { S.rows = []; renderTable(); }
+  S.revealed = false;
+  syncMediaUI(); drawAll();
+}
+$('m1').addEventListener('change', e => { S.m1 = e.target.value; if (S.m1 === 'myst' && S.m2 !== 'myst') newMystery(); mediaChanged(); });
+$('m2').addEventListener('change', e => { S.m2 = e.target.value; if (S.m2 === 'myst' && S.m1 !== 'myst') newMystery(); mediaChanged(); });
+$('p1').addEventListener('input', e => { S.p1 = +e.target.value; mediaChanged(); });
+$('p2').addEventListener('input', e => { S.p2 = +e.target.value; mediaChanged(); });
+$('swap').addEventListener('click', () => { [S.m1, S.m2] = [S.m2, S.m1]; [S.p1, S.p2] = [S.p2, S.p1]; mediaChanged(); });
+$('ang').addEventListener('input', e => { S.i1 = +e.target.value; drawAll(); });
+$('lim').addEventListener('click', () => { const l = limAngle(); if (l !== null) { S.i1 = Math.floor(l * 10) / 10; $('ang').value = S.i1; drawAll(); } });
+$('showAng').addEventListener('change', e => { S.showAng = e.target.checked; drawAll(); });
+$('showRap').addEventListener('change', e => { S.showRap = e.target.checked; drawAll(); });
+$('white').addEventListener('change', e => { S.white = e.target.checked; $('exaRow').hidden = !S.white; drawAll(); });
+$('exa').addEventListener('change', e => { S.exa = e.target.checked; drawAll(); });
+const fsBtn = $('fs'), scene = $('sc');
+if (!scene.requestFullscreen) fsBtn.hidden = true;
+fsBtn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : scene.requestFullscreen());
+document.addEventListener('fullscreenchange', () => { fsBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'; setTimeout(resize, 50); });
+
+// glisser le laser
+let drag = false;
+function fromPointer(e) {
+  const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
+  if (y >= IY - 2) return;
+  let a = Math.abs(Math.atan2(x - IX, IY - y) * R2D);
+  S.i1 = clamp(Math.round(a * 2) / 2, 0, 89.5); $('ang').value = S.i1; drawAll();
+}
+cv.addEventListener('pointerdown', e => { drag = true; cv.setPointerCapture(e.pointerId); fromPointer(e); });
+cv.addEventListener('pointermove', e => { if (drag) fromPointer(e); });
+cv.addEventListener('pointerup', () => { drag = false; });
+cv.addEventListener('pointercancel', () => { drag = false; });
+cv.addEventListener('keydown', e => {
+  const st = e.shiftKey ? 0.1 : 1;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowUp') S.i1 = clamp(+(S.i1 + st).toFixed(1), 0, 89.9);
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') S.i1 = clamp(+(S.i1 - st).toFixed(1), 0, 89.9);
+  else return;
+  e.preventDefault(); $('ang').value = S.i1; drawAll();
+});
+
+/* ---------- mesures ---------- */
+const gr = $('gr'), gctx = gr.getContext('2d'), GW = 460, GH = 340;
+let gscale = 1, gdpr = 1;
+function gresize() {
+  const w = gr.clientWidth || GW; gdpr = Math.min(2.5, window.devicePixelRatio || 1);
+  gscale = w / GW; gr.width = Math.round(w * gdpr); gr.height = Math.round(w * GH / GW * gdpr); drawGraph();
+}
+$('rec').addEventListener('click', () => {
+  const t = refr(nOf(1), nOf(2), S.i1); if (t === null || S.white) return;
+  const rd = $('round').checked;
+  const a = rd ? Math.round(S.i1) : S.i1, b = rd ? Math.round(t) : +t.toFixed(1);
+  S.rows.push({ a, b, rd }); renderTable();
+});
+$('clr').addEventListener('click', () => { S.rows = []; renderTable(); });
+$('reveal').addEventListener('click', () => { S.revealed = true; drawAll(); });
+function renderTable() {
+  $('tb').innerHTML = S.rows.map((r, k) => {
+    const d = r.rd ? 0 : 1;
+    return `<tr><td>${k + 1}</td><td>${fmt(r.a, d)}</td><td>${fmt(r.b, d)}</td><td>${sig(Math.sin(r.a * D2R), 3)}</td><td>${sig(Math.sin(r.b * D2R), 3)}</td>` +
+      `<td><button class="ghost" type="button" data-k="${k}" aria-label="Supprimer la mesure ${k + 1}">×</button></td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--muted)">Aucune mesure pour l'instant.</td></tr>`;
+  $('tb').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.rows.splice(+b.dataset.k, 1); renderTable(); }));
+  drawGraph(); readouts();
+}
+function fit() {
+  const pts = S.rows.map(r => [Math.sin(r.b * D2R), Math.sin(r.a * D2R)]).filter(p => p[0] > 0);
+  if (pts.length < 2) return null;
+  const k = pts.reduce((s, p) => s + p[0] * p[1], 0) / pts.reduce((s, p) => s + p[0] * p[0], 0);
+  return { k, pts };
+}
+function drawGraph() {
+  const c = gctx; c.setTransform(gdpr * gscale, 0, 0, gdpr * gscale, 0, 0);
+  c.clearRect(0, 0, GW, GH); c.fillStyle = C.canvas; c.fillRect(0, 0, GW, GH);
+  const x0 = 58, y0 = GH - 46, w = GW - 80, h = GH - 76;
+  const f = fit();
+  const pts = S.rows.map(r => [Math.sin(r.b * D2R), Math.sin(r.a * D2R)]);
+  let xm = 1, ym = 1;
+  const X = v => x0 + v / xm * w, Y = v => y0 - v / ym * h;
+  // grille
+  c.strokeStyle = C.grid; c.lineWidth = 1; c.font = '12px system-ui, sans-serif'; c.fillStyle = C.muted;
+  for (let k = 0; k <= 10; k++) {
+    const v = k / 10;
+    c.beginPath(); c.moveTo(X(v), y0); c.lineTo(X(v), y0 - h); c.stroke();
+    c.beginPath(); c.moveTo(x0, Y(v)); c.lineTo(x0 + w, Y(v)); c.stroke();
+    if (k % 2 === 0) {
+      c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(fmt(v, 1), X(v), y0 + 5);
+      c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, 1), x0 - 6, Y(v));
+    }
+  }
+  c.strokeStyle = C.text; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x0, y0 - h - 6); c.lineTo(x0, y0); c.lineTo(x0 + w + 6, y0); c.stroke();
+  c.fillStyle = C.text; c.font = '600 13px system-ui, sans-serif';
+  c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText('sin i₂', x0 + w, y0 + 24);
+  c.textAlign = 'left'; c.textBaseline = 'bottom'; c.fillText('sin i₁', x0 - 50, y0 - h - 10);
+  // droite
+  if (f) {
+    const xe = Math.min(xm, ym / f.k);
+    c.save(); c.strokeStyle = C.accent; c.lineWidth = 2; c.setLineDash([7, 5]);
+    c.beginPath(); c.moveTo(X(0), Y(0)); c.lineTo(X(xe), Y(f.k * xe)); c.stroke(); c.restore();
+  }
+  // points
+  c.strokeStyle = C.accent; c.lineWidth = 2;
+  for (const [a, b] of pts) {
+    const px = X(a), py = Y(b);
+    c.beginPath(); c.moveTo(px - 5, py - 5); c.lineTo(px + 5, py + 5); c.moveTo(px + 5, py - 5); c.lineTo(px - 5, py + 5); c.stroke();
+  }
+  if (!pts.length) {
+    c.fillStyle = C.muted; c.font = '600 14px system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('Les points apparaîtront ici', x0 + w / 2, y0 - h / 2);
+  }
+  // résultat
+  const res = $('res');
+  const myst1 = medium(1).id === 'myst', myst2 = medium(2).id === 'myst';
+  $('reveal').hidden = !(myst1 || myst2) || S.revealed || !f;
+  if (!f) { res.innerHTML = 'Il faut au moins 2 mesures (avec i₁ ≠ 0) pour tracer la droite.'; return; }
+  const k = f.k, n1 = nOf(1), n2 = nOf(2);
+  let t = `Les points sont alignés sur une droite qui passe par l'origine : sin i₁ et sin i₂ sont <strong>proportionnels</strong>.<br>
+    Coefficient directeur : <strong>k = ${sig(k, 3)}</strong>. Comme n₁ × sin i₁ = n₂ × sin i₂, on a sin i₁ = (n₂ / n₁) × sin i₂, donc k = n₂ / n₁.<br>`;
+  if (myst2 && !myst1) t += `On en déduit n₂ = k × n₁ = ${sig(k, 3)} × ${sig(n1, 3)} = <strong>${sig(k * n1, 3)}</strong>.`;
+  else if (myst1 && !myst2) t += `On en déduit n₁ = n₂ / k = ${sig(n2, 3)} / ${sig(k, 3)} = <strong>${sig(n2 / k, 3)}</strong>.`;
+  else t += `Valeur attendue : n₂ / n₁ = ${sig(n2 / n1, 3)}, soit un écart relatif de ${sig(Math.abs(k - n2 / n1) / (n2 / n1) * 100, 2)} %.`;
+  if ((myst1 || myst2) && S.revealed) {
+    const est = myst2 ? k * n1 : n2 / k, tr = myst2 ? n2 : n1;
+    t += `<br>Valeur réelle : n = ${sig(tr, 3)}. Écart relatif : ${sig(Math.abs(est - tr) / tr * 100, 2)} %.`;
+  }
+  res.innerHTML = t;
+}
+
+function drawAll() { draw(); readouts(); drawGraph(); }
+
+/* ---------- exercices ---------- */
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const parse = s => { const v = parseFloat(String(s).replace(/\s/g, '').replace(',', '.').replace(/×10\^?/, 'e')); return isNaN(v) ? null : v; };
+const N = { air: 1.00, eau: 1.33, verre: 1.50, plexiglas: 1.49, diamant: 2.42, huile: 1.47 };
+const EXOS = [
+  {
+    titre: 'Exercice 1 : calculer un angle de réfraction',
+    gen() {
+      const m = pick(['eau', 'verre', 'plexiglas', 'diamant']), i = rint(2, 16) * 5, n2 = N[m];
+      const i2 = Math.asin(Math.sin(i * D2R) / n2) * R2D;
+      return {
+        enonce: `Un rayon laser passe de l'air (n₁ = 1,00) dans ${m === 'eau' ? "l'eau" : 'le ' + m} (n₂ = ${sig(n2, 3)}) avec un angle d'incidence i₁ = ${fmt(i, 1)}°. Calculer l'angle de réfraction i₂.`,
+        unite: '°', rep: i2, tol: 0.15,
+        corr: `<p><strong>Expression littérale :</strong> n₁ × sin i₁ = n₂ × sin i₂, donc sin i₂ = n₁ × sin i₁ / n₂.</p>
+          <p><strong>Application numérique :</strong> sin i₂ = 1,00 × sin(${fmt(i, 1)}°) / ${sig(n2, 3)} = ${sig(Math.sin(i2 * D2R), 3)}</p>
+          <p><strong>Résultat :</strong> i₂ = arcsin(${sig(Math.sin(i2 * D2R), 3)}) = <strong>${deg(i2)}</strong>. On a bien i₂ &lt; i₁ : le rayon se rapproche de la normale.</p>`
+      };
+    }
+  },
+  {
+    titre: "Exercice 2 : déterminer l'indice d'un milieu",
+    gen() {
+      const n = Math.round((1.35 + Math.random() * 0.4) * 100) / 100, i = rint(6, 14) * 5;
+      const i2 = Math.round(Math.asin(Math.sin(i * D2R) / n) * R2D * 10) / 10, nn = Math.sin(i * D2R) / Math.sin(i2 * D2R);
+      return {
+        enonce: `Au laboratoire, un rayon passe de l'air (n₁ = 1,00) dans un plastique inconnu. On mesure i₁ = ${fmt(i, 1)}° et i₂ = ${fmt(i2, 1)}°. Calculer l'indice de réfraction n₂ du plastique.`,
+        unite: '', rep: nn, tol: 0.006,
+        corr: `<p><strong>Expression littérale :</strong> n₁ × sin i₁ = n₂ × sin i₂, donc n₂ = n₁ × sin i₁ / sin i₂.</p>
+          <p><strong>Application numérique :</strong> n₂ = 1,00 × sin(${fmt(i, 1)}°) / sin(${fmt(i2, 1)}°) = ${sig(Math.sin(i * D2R), 3)} / ${sig(Math.sin(i2 * D2R), 3)}</p>
+          <p><strong>Résultat :</strong> n₂ = <strong>${sig(nn, 3)}</strong> (sans unité, 3 chiffres significatifs comme les données).</p>`
+      };
+    }
+  },
+  {
+    titre: "Exercice 3 : angle limite et réflexion totale",
+    gen() {
+      const m = pick(['eau', 'verre', 'diamant', 'plexiglas']), n1 = N[m], lim = Math.asin(1 / n1) * R2D;
+      const i = Math.round(lim + pick([-1, 1]) * rint(4, 12));
+      const tot = i > lim;
+      return {
+        enonce: `Un rayon se propage dans ${m === 'eau' ? "l'eau" : 'le ' + m} (n₁ = ${sig(n1, 3)}) et arrive sur la surface de séparation avec l'air (n₂ = 1,00).<br>a) Calculer l'angle limite i<sub>lim</sub>.<br>b) Pour i₁ = ${fmt(i, 1)}°, y a-t-il réflexion totale ?`,
+        unite: '°', rep: lim, tol: 0.15, label: 'a) i<sub>lim</sub> =',
+        corr: `<p><strong>a) Expression littérale :</strong> à l'angle limite, i₂ = 90° donc n₁ × sin i<sub>lim</sub> = n₂ × sin 90° = n₂, soit sin i<sub>lim</sub> = n₂ / n₁.</p>
+          <p><strong>Application numérique :</strong> sin i<sub>lim</sub> = 1,00 / ${sig(n1, 3)} = ${sig(1 / n1, 3)}</p>
+          <p><strong>Résultat :</strong> i<sub>lim</sub> = <strong>${deg(lim)}</strong>.</p>
+          <p><strong>b)</strong> i₁ = ${fmt(i, 1)}° ${tot ? '&gt;' : '&lt;'} i<sub>lim</sub> : ${tot ? "<strong>il y a réflexion totale</strong>, pas de rayon réfracté." : "<strong>pas de réflexion totale</strong> : il existe un rayon réfracté (et un rayon réfléchi plus faible)."}</p>`
+      };
+    }
+  },
+  {
+    titre: 'Exercice 4 : vitesse de la lumière dans un milieu',
+    gen() {
+      const m = pick(['eau', 'verre', 'diamant', 'huile', 'plexiglas']), n = N[m], v = 3.00e8 / n;
+      return {
+        enonce: `L'indice de réfraction d'un milieu est n = c / v, où v est la vitesse de la lumière dans ce milieu et c = 3,00 × 10⁸ m/s sa vitesse dans le vide. Calculer la vitesse de la lumière dans ${m === 'eau' || m === 'huile' ? "l'" + m : 'le ' + m} (n = ${sig(n, 3)}). Réponse en m/s, en écriture scientifique (par exemple 1,23e8).`,
+        unite: 'm/s', rep: v, tol: v * 0.004,
+        corr: `<p><strong>Expression littérale :</strong> n = c / v, donc v = c / n.</p>
+          <p><strong>Application numérique :</strong> v = 3,00 × 10⁸ / ${sig(n, 3)}</p>
+          <p><strong>Résultat :</strong> v = <strong>${sci(v, 3)} m/s</strong>. La lumière va moins vite dans ce milieu que dans le vide : n &gt; 1.</p>`
+      };
+    }
+  }
+];
+const box = $('exos');
+EXOS.forEach((ex, k) => {
+  const el = document.createElement('div'); el.className = 'exo';
+  box.appendChild(el);
+  function render() {
+    const q = ex.gen();
+    el.innerHTML = `<h3>${ex.titre}</h3><p class="enonce">${q.enonce}</p>
+      <div class="rep"><label for="ex${k}">${q.label || 'Réponse :'}</label><input type="text" id="ex${k}" inputmode="decimal" autocomplete="off">
+      <span>${q.unite}</span><button type="button" class="sm" data-a="chk">Vérifier</button></div>
+      <p class="fb" aria-live="polite"></p>
+      <div class="row"><button type="button" class="ghost sm" data-a="cor">Voir la correction</button>
+      <button type="button" class="ghost sm" data-a="new">Nouvelles valeurs</button></div>
+      <div class="corr" hidden><strong class="t">Correction</strong>${q.corr}</div>`;
+    const inp = el.querySelector('input'), fb = el.querySelector('.fb'), corr = el.querySelector('.corr');
+    const check = () => {
+      const v = parse(inp.value);
+      if (v === null) { fb.className = 'fb ko'; fb.textContent = 'Écris un nombre.'; return; }
+      const ok = Math.abs(v - q.rep) <= q.tol;
+      fb.className = 'fb ' + (ok ? 'ok' : 'ko');
+      fb.textContent = ok ? 'Bravo, c\'est juste !' : 'Pas tout à fait. Vérifie ta calculatrice (mode degrés) et ta formule.';
+      if (ok) corr.hidden = false;
+    };
+    el.querySelector('[data-a=chk]').addEventListener('click', check);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+    el.querySelector('[data-a=cor]').addEventListener('click', () => { corr.hidden = !corr.hidden; });
+    el.querySelector('[data-a=new]').addEventListener('click', render);
+  }
+  render();
+});
+
+new ResizeObserver(resize).observe(cv);
+new ResizeObserver(gresize).observe(gr);
+syncMediaUI(); resize(); gresize(); renderTable(); drawAll();
+window.__S = S; // pour les tests
+})();
+</script>
+</body>
+</html>
