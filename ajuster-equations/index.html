@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ajuster une équation de réaction</title>
+<meta name="description" content="Animation interactive pour ajuster les équations de réaction : conservation des éléments et des charges, avec modèles moléculaires et exercices corrigés (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
+  --ok:#2f8f6b; --ko:#c8423a; --ok-soft:#e3f4ec; --ko-soft:#fbe7e5; --warn:#b7791f; --warn-soft:#fdf3e1;
+  --model-bg:#fbfcff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+    --ok:#4cc597; --ko:#ef7a70; --ok-soft:#173327; --ko-soft:#3a1d1b; --warn:#f0b35a; --warn-soft:#3a2c14;
+    --model-bg:#141821;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+  --ok:#4cc597; --ko:#ef7a70; --ok-soft:#173327; --ko-soft:#3a1d1b; --warn:#f0b35a; --warn-soft:#3a2c14;
+  --model-bg:#141821;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:72ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene h2{margin:0;font-size:1.35rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;
+  padding:.15rem .5rem;border-radius:999px;color:#fff;background:var(--accent)}
+.scene .sub{color:var(--muted);margin:.25rem 0 .8rem}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:0 0 10px}
+.ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl label{font-weight:600;font-size:.95rem}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);max-width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+button{font:inherit;font-weight:600;padding:.55rem .9rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.small{font-size:.85rem;color:var(--muted)}
+sub,sup{font-size:.68em;line-height:0}
+.chk{display:flex;align-items:center;gap:6px;font-size:.95rem;cursor:pointer}
+.chk input{accent-color:var(--accent);width:1.1em;height:1.1em}
+
+/* ---------- équation écrite ---------- */
+.written{font-size:clamp(1.2rem,3.4vw,1.7rem);font-weight:600;text-align:center;margin:4px 0 12px;letter-spacing:.01em}
+.written .co{color:var(--accent);font-weight:800}
+.written .op{color:var(--muted);margin:0 .3em}
+
+/* ---------- espèces + modèles ---------- */
+.eqrow{display:flex;align-items:stretch;gap:10px;justify-content:center;flex-wrap:wrap}
+.side{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;justify-content:center;flex:1 1 300px;
+  border:1px dashed var(--border);border-radius:12px;padding:10px 8px;background:var(--model-bg);position:relative}
+.side > .lbl{position:absolute;top:-.7em;left:12px;background:var(--surface);padding:0 .4em;font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.bigop{align-self:center;font-size:1.8rem;color:var(--muted);font-weight:700}
+.side .plus{align-self:center;font-size:1.4rem;color:var(--muted);font-weight:700}
+.sp{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:96px;max-width:240px}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{min-height:38px;min-width:38px;padding:0;font-size:1.25rem;line-height:1;border-radius:9px}
+.stepper output{min-width:2ch;text-align:center;font-size:1.5rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.formula{font-size:1.25rem;font-weight:600}
+.models{display:flex;flex-wrap:wrap;gap:4px 6px;justify-content:center;align-items:center;min-height:40px}
+.models svg{display:block;overflow:visible}
+.models svg.pop{animation:pop .28s ease-out}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion: reduce){.models svg.pop{animation:none}}
+.atom{transition:opacity .2s}
+.dimmed .atom:not(.hl){opacity:.15}
+.no-models .models{display:none}
+.no-models .sp{min-width:70px}
+
+/* ---------- bilan ---------- */
+.status{margin:12px 0 0;border-radius:10px;padding:.6rem .85rem;font-weight:600;border-left:4px solid var(--warn);background:var(--warn-soft)}
+.status.ok{border-left-color:var(--ok);background:var(--ok-soft)}
+.cards{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:10px}
+.card{border:1px solid var(--border);border-radius:10px;padding:.6rem .8rem;background:var(--bg)}
+.card h3{margin:0 0 .35rem;font-size:.95rem}
+table.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:.95rem}
+table.st th,table.st td{border-bottom:1px solid var(--border);padding:.3rem .4rem;text-align:center;vertical-align:middle}
+table.st th:first-child,table.st td:first-child{text-align:left}
+table.st thead th{color:var(--muted);font-weight:600;font-size:.85rem}
+table.st tbody tr{cursor:pointer}
+table.st tbody tr:hover,table.st tbody tr.sel{background:var(--accent-soft)}
+.dots{display:inline-flex;flex-wrap:wrap;gap:2px;max-width:150px;justify-content:center;vertical-align:middle;margin-left:4px}
+.dots i{width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.n{font-weight:700;min-width:2ch;display:inline-block}
+.yes{color:var(--ok);font-weight:800}
+.no{color:var(--ko);font-weight:800}
+.hint{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.5rem .75rem;border-radius:0 10px 10px 0;margin:.5rem 0 0;min-height:2.6em}
+
+/* ---------- exercices : fond bleu ciel commun (../commun/exercices.css) ---------- */
+.scene.exercices .tag{background:var(--ex-chip);color:var(--ex-chip-ink)}
+.exo{background:var(--ex-card);border:1px solid var(--ex-edge);border-radius:12px;padding:.8rem .9rem;margin:12px 0 0}
+.exo h3{margin:0 0 .3rem;font-size:1.05rem}
+.ex-eq{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 8px;font-size:clamp(1.15rem,3.2vw,1.5rem);font-weight:600;margin:10px 0}
+.ex-eq .op{color:var(--muted)}
+.ex-eq > span > .op{margin:0 .3em}
+.ex-eq input{font:inherit;font-weight:800;color:var(--accent);width:2.4ch;text-align:center;padding:.1rem .1rem;border-radius:8px;
+  border:1.5px solid var(--ex-edge);background:var(--surface)}
+.ex-eq input.bad{border-color:var(--ko);background:var(--ko-soft)}
+.ex-eq input.good{border-color:var(--ok);background:var(--ok-soft)}
+.ex-eq .co{color:var(--accent);font-weight:800}
+.feedback{border-radius:10px;padding:.55rem .85rem;margin-top:10px;line-height:1.65}
+.feedback.ok{background:var(--ok-soft);border-left:4px solid var(--ok)}
+.feedback.ko{background:var(--ko-soft);border-left:4px solid var(--ko)}
+.feedback.mid{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.correction{border:2px solid var(--ok);border-radius:10px;padding:.55rem .9rem;margin-top:10px;line-height:1.7;background:var(--surface)}
+.correction h4{margin:0 0 .3rem;color:var(--ok);font-size:1rem}
+.score{color:var(--muted);font-size:.92rem;margin:.5rem 0 0}
+.lvl{display:flex;flex-wrap:wrap;gap:6px}
+.lvl button{min-height:36px;padding:.3rem .7rem;font-size:.92rem;background:transparent;color:var(--ex-ink);border-color:var(--ex-edge)}
+.lvl button[aria-pressed="true"]{background:var(--ex-chip);color:var(--ex-chip-ink);border-color:var(--ex-chip)}
+.yn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+.retenir{border:1px solid var(--border);border-radius:10px;padding:.2rem 1rem .6rem;background:var(--bg)}
+.retenir li{margin:.3rem 0}
+footer{max-width:1080px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:18px 28px}
+@media (max-width:760px){
+  .cards{grid-template-columns:1fr}
+  .scene{padding:12px}
+  .bigop{flex-basis:100%;text-align:center;transform:rotate(90deg);line-height:1}
+}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Ajuster une équation de réaction</h1>
+    <a href="../seconde/">← Toutes les animations</a>
+  </header>
+  <p class="lead">Au cours d'une transformation chimique, les atomes ne disparaissent pas et n'apparaissent pas : ils se réorganisent.
+    Ajuster l'équation, c'est choisir les <strong>nombres stœchiométriques</strong> pour qu'il y ait autant d'atomes de chaque élément,
+    et la même charge électrique totale, de part et d'autre de la flèche.</p>
+
+  <!-- ============ MODELISATION ============ -->
+  <section class="scene" id="sc-sim" aria-labelledby="t-sim">
+    <div class="head">
+      <div>
+        <h2 id="t-sim"><span class="tag">1</span> Ajuster avec les modèles moléculaires</h2>
+        <p class="sub">Avec les boutons − et +, change le nombre devant chaque espèce. On ne touche jamais aux formules : on change seulement le nombre d'entités.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-sim" type="button">Plein écran</button>
+    </div>
+    <div class="controls">
+      <div class="ctrl">
+        <label for="m-rx">Équation</label>
+        <select id="m-rx"></select>
+      </div>
+      <button id="m-rand" class="ghost" type="button">Au hasard</button>
+      <label class="chk"><input type="checkbox" id="m-models" checked> Modèles moléculaires</label>
+    </div>
+    <div class="written" id="m-written" aria-live="polite"></div>
+    <div class="eqrow" id="m-row"></div>
+    <p class="status" id="m-status" aria-live="polite"></p>
+    <div class="cards">
+      <div class="card">
+        <h3>Bilan des atomes et des charges</h3>
+        <table class="st">
+          <thead><tr><th>Élément</th><th>Réactifs</th><th>Produits</th><th>Conservé ?</th></tr></thead>
+          <tbody id="m-tab"></tbody>
+        </table>
+        <p class="small" style="margin:.4rem 0 0">Clique sur une ligne pour repérer les atomes de cet élément dans les modèles.</p>
+      </div>
+      <div class="card">
+        <h3>Méthode</h3>
+        <ol style="margin:.2rem 0 .3rem;padding-left:1.2rem">
+          <li>Compter les atomes de chaque élément de chaque côté.</li>
+          <li>Commencer par un élément présent dans une seule espèce de chaque côté (garder O et H pour la fin).</li>
+          <li>Recompter après chaque changement, puis vérifier les charges.</li>
+          <li>Garder les plus petits nombres entiers possibles.</li>
+        </ol>
+        <div class="btns">
+          <button id="m-hint" class="ghost" type="button">Un indice</button>
+          <button id="m-sol" class="ghost" type="button">Solution</button>
+          <button id="m-reset" class="ghost" type="button">Tout remettre à 1</button>
+        </div>
+        <p class="hint" id="m-hinttext" aria-live="polite">Clique sur « Un indice » si tu bloques.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXERCICES ============ -->
+  <section class="scene exercices" id="sc-ex" aria-labelledby="t-ex">
+    <div class="head">
+      <div>
+        <h2 id="t-ex"><span class="tag">2</span> À toi de t'entraîner <span class="ex-badge">✎ Exercices</span></h2>
+        <p class="sub">Des équations tirées au hasard, de plus en plus difficiles. La correction est immédiate.</p>
+      </div>
+      <button class="ghost fs" data-target="sc-ex" type="button">Plein écran</button>
+    </div>
+
+    <div class="exo" id="exA">
+      <h3>Exercice A · Ajuste l'équation</h3>
+      <p class="small" style="margin:0 0 .5rem">Écris un nombre dans chaque case. Une case vide compte pour 1 (on n'écrit pas le 1 dans une équation).</p>
+      <div class="lvl" role="group" aria-label="Niveau" id="a-lvl">
+        <button type="button" data-l="1">Niveau 1 · simple</button>
+        <button type="button" data-l="2">Niveau 2 · combustions, oxydes</button>
+        <button type="button" data-l="3">Niveau 3 · avec des ions</button>
+        <button type="button" data-l="4">Niveau 4 · défi</button>
+      </div>
+      <div class="ex-eq" id="a-eq"></div>
+      <div class="btns">
+        <button id="a-check" type="button">Vérifier</button>
+        <button id="a-hint" class="ghost" type="button">Un indice</button>
+        <button id="a-sol" class="ghost" type="button">Voir la correction</button>
+        <button id="a-model" class="ghost" type="button">Voir avec les modèles</button>
+        <button id="a-new" class="ghost" type="button">Nouvelle équation</button>
+      </div>
+      <div id="a-fb" aria-live="polite"></div>
+      <div id="a-corr"></div>
+      <p class="score" id="a-score"></p>
+    </div>
+
+    <div class="exo" id="exB">
+      <h3>Exercice B · Cette équation est-elle ajustée ?</h3>
+      <p class="small" style="margin:0 0 .3rem">Vérifie les éléments <em>et</em> les charges. Réponds vite, puis passe à la suivante.</p>
+      <div class="ex-eq" id="b-eq"></div>
+      <div class="yn">
+        <button id="b-yes" type="button">Oui, elle est ajustée</button>
+        <button id="b-no" type="button">Non</button>
+        <button id="b-new" class="ghost" type="button">Suivante</button>
+      </div>
+      <div id="b-fb" aria-live="polite"></div>
+      <p class="score" id="b-score"></p>
+    </div>
+  </section>
+
+  <!-- ============ A RETENIR ============ -->
+  <section class="scene" aria-labelledby="t-ret">
+    <h2 id="t-ret"><span class="tag">3</span> À retenir</h2>
+    <div class="retenir">
+      <ul>
+        <li>Lors d'une transformation chimique, il y a <strong>conservation des éléments chimiques</strong> : autant d'atomes de chaque élément dans les réactifs et dans les produits.</li>
+        <li>Il y a aussi <strong>conservation de la charge électrique</strong> : la somme des charges des réactifs est égale à celle des produits.</li>
+        <li>Pour ajuster, on modifie uniquement les <strong>nombres stœchiométriques</strong> placés devant les formules, jamais les indices dans les formules (H<sub>2</sub>O reste H<sub>2</sub>O).</li>
+        <li>On choisit les plus petits nombres entiers possibles, et on n'écrit pas le nombre 1.</li>
+        <li>Exemple : CH<sub>4</sub> + 2 O<sub>2</sub> → CO<sub>2</sub> + 2 H<sub>2</sub>O : 1 C, 4 H et 4 O de chaque côté.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Animation libre d'utilisation en classe</span>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a; };
+
+/* ---------- éléments : couleurs des modèles moléculaires ---------- */
+const EL = {
+  H:  ['#f4f4f4', 'hydrogène', .72], C:  ['#3b3b3b', 'carbone', 1], O:  ['#e0322c', 'oxygène', 1],
+  N:  ['#3b5fd9', 'azote', 1], Cl: ['#3cb043', 'chlore', 1.08], S:  ['#e8c62a', 'soufre', 1.08],
+  Fe: ['#c8641e', 'fer', 1.12], Cu: ['#c27b4c', 'cuivre', 1.1], Ag: ['#b7bdc7', 'argent', 1.12],
+  Zn: ['#7f86a6', 'zinc', 1.1], Al: ['#d39aa4', 'aluminium', 1.12], Na: ['#8b5cd6', 'sodium', 1.15],
+  Mg: ['#83c43f', 'magnésium', 1.12], Ca: ['#3f9c8c', 'calcium', 1.15], Pb: ['#5b6170', 'plomb', 1.15],
+  I:  ['#8a2d9e', 'iode', 1.15], P:  ['#f08a24', 'phosphore', 1.08], K:  ['#a052c8', 'potassium', 1.18],
+  Ba: ['#2aa198', 'baryum', 1.18]
+};
+const lum = hex => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; };
+
+/* ---------- formules ---------- */
+// "Fe(OH)3" ; charge après ^ : "Cu^2+", "HO^-", "SO4^2-"
+function parse(str) {
+  const [f, ch = ''] = str.split('^');
+  let charge = 0;
+  if (ch) { const m = ch.match(/^(\d*)([+-])$/); charge = (m[1] ? +m[1] : 1) * (m[2] === '+' ? 1 : -1); }
+  const stack = [{}], order = [];
+  let i = 0;
+  const num = () => { let s = ''; while (i < f.length && /\d/.test(f[i])) s += f[i++]; return s ? +s : 1; };
+  while (i < f.length) {
+    const c = f[i];
+    if (c === '(') { stack.push({}); i++; }
+    else if (c === ')') {
+      i++; const k = num(), g = stack.pop(), top = stack[stack.length - 1];
+      for (const e in g) top[e] = (top[e] || 0) + g[e] * k;
+    } else {
+      let e = f[i++]; if (i < f.length && /[a-z]/.test(f[i])) e += f[i++];
+      const k = num(), top = stack[stack.length - 1];
+      top[e] = (top[e] || 0) + k; if (!order.includes(e)) order.push(e);
+    }
+  }
+  return { counts: stack[0], charge, order, f, str };
+}
+function fhtml(str) {
+  const [f, ch] = str.split('^');
+  let h = f.replace(/(\d+)/g, '<sub>$1</sub>');
+  if (ch) h += '<sup>' + ch.replace('-', '−') + '</sup>';
+  return h;
+}
+const chStr = q => q === 0 ? '0' : (q > 0 ? '+' + q : '−' + (-q));
+
+/* ---------- banque d'équations ---------- */
+// [réactifs, produits, niveau, nom (pour la modélisation, ou null)]
+const BANK = [
+  [['H2', 'O2'], ['H2O'], 1, "Synthèse de l'eau"],
+  [['N2', 'H2'], ['NH3'], 1, "Synthèse de l'ammoniac"],
+  [['C', 'O2'], ['CO'], 1, 'Combustion incomplète du carbone'],
+  [['CO', 'O2'], ['CO2'], 1, null],
+  [['Na', 'Cl2'], ['NaCl'], 1, 'Sodium dans le dichlore'],
+  [['H2', 'Cl2'], ['HCl'], 1, null],
+  [['Mg', 'O2'], ['MgO'], 1, 'Combustion du magnésium'],
+  [['Cu', 'O2'], ['CuO'], 1, null],
+  [['H2O2'], ['H2O', 'O2'], 1, "Décomposition de l'eau oxygénée"],
+  [['N2', 'O2'], ['NO2'], 1, null],
+  [['SO2', 'O2'], ['SO3'], 1, null],
+  [['Fe', 'S'], ['FeS'], 1, null],
+  [['CH4', 'O2'], ['CO2', 'H2O'], 2, 'Combustion du méthane'],
+  [['C3H8', 'O2'], ['CO2', 'H2O'], 2, 'Combustion du propane'],
+  [['C2H6O', 'O2'], ['CO2', 'H2O'], 2, "Combustion de l'éthanol"],
+  [['CH4O', 'O2'], ['CO2', 'H2O'], 2, null],
+  [['Al', 'O2'], ['Al2O3'], 2, "Combustion de l'aluminium"],
+  [['Fe', 'O2'], ['Fe3O4'], 2, 'Combustion du fer'],
+  [['Al', 'Cl2'], ['AlCl3'], 2, null],
+  [['Fe', 'Cl2'], ['FeCl3'], 2, null],
+  [['CuO', 'C'], ['Cu', 'CO2'], 2, "Réduction de l'oxyde de cuivre"],
+  [['Na', 'H2O'], ['NaOH', 'H2'], 2, "Sodium dans l'eau"],
+  [['CaCO3', 'HCl'], ['CaCl2', 'CO2', 'H2O'], 2, null],
+  [['Cu', 'Ag^+'], ['Cu^2+', 'Ag'], 3, "Cuivre dans le nitrate d'argent"],
+  [['Zn', 'H^+'], ['Zn^2+', 'H2'], 3, 'Zinc dans un acide'],
+  [['Fe', 'H^+'], ['Fe^2+', 'H2'], 3, null],
+  [['Mg', 'H^+'], ['Mg^2+', 'H2'], 3, null],
+  [['Al', 'H^+'], ['Al^3+', 'H2'], 3, 'Aluminium dans un acide'],
+  [['Fe^3+', 'HO^-'], ['Fe(OH)3'], 3, "Précipitation de l'hydroxyde de fer III"],
+  [['Cu^2+', 'HO^-'], ['Cu(OH)2'], 3, "Précipitation de l'hydroxyde de cuivre II"],
+  [['Fe^2+', 'HO^-'], ['Fe(OH)2'], 3, null],
+  [['Al^3+', 'HO^-'], ['Al(OH)3'], 3, null],
+  [['Pb^2+', 'I^-'], ['PbI2'], 3, 'Précipitation de l\'iodure de plomb'],
+  [['Ag^+', 'PO4^3-'], ['Ag3PO4'], 3, null],
+  [['Fe', 'Ag^+'], ['Fe^2+', 'Ag'], 3, null],
+  [['Zn', 'Cu^2+'], ['Zn^2+', 'Cu'], 3, null],
+  [['Fe^3+', 'Zn'], ['Fe^2+', 'Zn^2+'], 3, 'Ions fer III et zinc (piège des charges)'],
+  [['Al', 'Cu^2+'], ['Al^3+', 'Cu'], 4, 'Aluminium dans le sulfate de cuivre'],
+  [['C2H6', 'O2'], ['CO2', 'H2O'], 4, "Combustion de l'éthane"],
+  [['C4H10', 'O2'], ['CO2', 'H2O'], 4, null],
+  [['NH3', 'O2'], ['NO', 'H2O'], 4, "Oxydation de l'ammoniac"],
+  [['Fe2O3', 'C'], ['Fe', 'CO2'], 4, "Réduction de l'oxyde de fer III"],
+  [['C6H12O6', 'O2'], ['CO2', 'H2O'], 4, null],
+  [['CaCO3', 'H^+'], ['Ca^2+', 'CO2', 'H2O'], 4, null],
+  [['Cl2', 'Fe^2+'], ['Cl^-', 'Fe^3+'], 4, null],
+  [['Fe^3+', 'Cu'], ['Fe^2+', 'Cu^2+'], 4, null],
+  [['Al', 'Fe2O3'], ['Al2O3', 'Fe'], 4, 'Aluminothermie'],
+  [['C2H4', 'O2'], ['CO2', 'H2O'], 4, null],
+  [['C5H12', 'O2'], ['CO2', 'H2O'], 4, null],
+  [['C3H8O', 'O2'], ['CO2', 'H2O'], 4, null]
+];
+
+function makeEq(L, R, level, name) {
+  const sp = [...L, ...R].map(parse);
+  const nL = L.length, els = [];
+  sp.forEach(s => s.order.forEach(e => { if (!els.includes(e)) els.push(e); }));
+  const charged = sp.some(s => s.charge !== 0);
+  const eq = { L, R, nL, sp, els, charged, level, name };
+  eq.sol = solve(eq);
+  return eq;
+}
+// noyau de la matrice (éléments + charge) × espèces, en fractions exactes
+function solve(eq) {
+  const rows = eq.els.map(e => eq.sp.map((s, j) => (s.counts[e] || 0) * (j < eq.nL ? 1 : -1)));
+  if (eq.charged) rows.push(eq.sp.map((s, j) => s.charge * (j < eq.nL ? 1 : -1)));
+  const n = eq.sp.length;
+  // fractions [num, den]
+  const F = (a, b = 1) => { if (b < 0) { a = -a; b = -b; } const g = gcd(a, b) || 1; return [a / g, b / g]; };
+  const sub = (x, y) => F(x[0] * y[1] - y[0] * x[1], x[1] * y[1]);
+  const mul = (x, y) => F(x[0] * y[0], x[1] * y[1]);
+  const div = (x, y) => F(x[0] * y[1], x[1] * y[0]);
+  const M = rows.map(r => r.map(v => F(v)));
+  const piv = []; let r = 0;
+  for (let c = 0; c < n && r < M.length; c++) {
+    let p = -1; for (let i = r; i < M.length; i++) if (M[i][c][0] !== 0) { p = i; break; }
+    if (p < 0) continue;
+    [M[r], M[p]] = [M[p], M[r]];
+    const pv = M[r][c]; M[r] = M[r].map(v => div(v, pv));
+    for (let i = 0; i < M.length; i++) if (i !== r && M[i][c][0] !== 0) {
+      const k = M[i][c]; M[i] = M[i].map((v, j) => sub(v, mul(k, M[r][j])));
+    }
+    piv.push(c); r++;
+  }
+  const free = []; for (let c = 0; c < n; c++) if (!piv.includes(c)) free.push(c);
+  if (free.length !== 1) return null;
+  const x = new Array(n).fill(null); x[free[0]] = F(1);
+  piv.forEach((c, i) => { x[c] = F(-M[i][free[0]][0], M[i][free[0]][1]); });
+  let l = 1; x.forEach(v => { l = l * v[1] / gcd(l, v[1]); });
+  let v = x.map(f => f[0] * l / f[1]);
+  if (v[0] < 0) v = v.map(a => -a);
+  if (v.some(a => a <= 0)) return null;
+  const g = v.reduce((a, b) => gcd(a, b)); return v.map(a => a / g);
+}
+const EQS = BANK.map(b => makeEq(...b)).filter(e => e.sol);
+
+function tally(eq, co) {
+  const res = eq.els.map(e => {
+    let l = 0, r = 0;
+    eq.sp.forEach((s, j) => { const k = (s.counts[e] || 0) * co[j]; if (j < eq.nL) l += k; else r += k; });
+    return { e, l, r };
+  });
+  let ql = 0, qr = 0;
+  eq.sp.forEach((s, j) => { if (j < eq.nL) ql += s.charge * co[j]; else qr += s.charge * co[j]; });
+  const elOk = res.every(t => t.l === t.r), qOk = ql === qr;
+  const g = co.reduce((a, b) => gcd(a, b));
+  return { res, ql, qr, elOk, qOk, bal: elOk && qOk, minimal: g === 1, g };
+}
+function writtenHTML(eq, co, cls = 'co') {
+  const part = (i0, i1) => {
+    const out = [];
+    for (let j = i0; j < i1; j++) out.push((co[j] !== 1 ? `<span class="${cls}">${co[j]}</span>&nbsp;` : '') + fhtml(eq.sp[j].str));
+    return out.join('<span class="op">+</span>');
+  };
+  return part(0, eq.nL) + '<span class="op">→</span>' + part(eq.nL, eq.sp.length);
+}
+
+/* ---------- dessin d'un modèle moléculaire (modèle compact) ---------- */
+const R0 = 13, STEP = 20;
+const HEX = [];
+(function () { // positions d'un réseau hexagonal triées par distance au centre
+  for (let q = -4; q <= 4; q++) for (let r = -4; r <= 4; r++) {
+    const x = (q + r / 2) * STEP, y = r * STEP * Math.sqrt(3) / 2;
+    HEX.push({ x, y, d: Math.hypot(x, y), a: Math.atan2(y, x) });
+  }
+  // premier anneau : gauche, droite, puis haut/bas en alternance
+  const ringOrder = a => { const t = [Math.PI, 0, -Math.PI / 3 * 2, Math.PI / 3, -Math.PI / 3, Math.PI / 3 * 2];
+    let best = 0, bd = 9; t.forEach((v, i) => { const dd = Math.abs(Math.atan2(Math.sin(a - v), Math.cos(a - v))); if (dd < bd) { bd = dd; best = i; } }); return best; };
+  HEX.sort((A, B) => (A.d - B.d) || (ringOrder(A.a) - ringOrder(B.a)));
+})();
+const BENT = { 'H2O': 1, 'H2S': 1, 'SO2': 1, 'NO2': 1, 'O3': 1 };
+function atomList(s) {
+  // atome central : élément non H le moins nombreux (en premier dans l'ordre d'écriture si égalité)
+  const els = s.order.slice();
+  const heavy = els.filter(e => e !== 'H').sort((a, b) => s.counts[a] - s.counts[b] || els.indexOf(a) - els.indexOf(b));
+  const list = [];
+  heavy.forEach(e => { for (let k = 0; k < s.counts[e]; k++) list.push(e); });
+  for (let k = 0; k < (s.counts.H || 0); k++) list.push('H');
+  return list;
+}
+function moleculeSVG(s) {
+  const atoms = atomList(s);
+  let pos;
+  if (BENT[s.f]) { const a = 52 * Math.PI / 180; pos = [{ x: 0, y: -5 }, { x: -STEP * Math.sin(a), y: STEP * Math.cos(a) - 5 }, { x: STEP * Math.sin(a), y: STEP * Math.cos(a) - 5 }]; }
+  else pos = atoms.map((_, i) => HEX[i]);
+  const items = atoms.map((e, i) => ({ e, x: pos[i].x, y: pos[i].y, r: R0 * (EL[e] ? EL[e][2] : 1) }));
+  // dessiner d'abord les plus éloignés du spectateur (H derrière)
+  items.sort((a, b) => (a.e === 'H') - (b.e === 'H') ? -1 : 0);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  items.forEach(t => { x0 = Math.min(x0, t.x - t.r); y0 = Math.min(y0, t.y - t.r); x1 = Math.max(x1, t.x + t.r); y1 = Math.max(y1, t.y + t.r); });
+  const pad = 2, extra = s.charge ? 14 : 0;
+  const W = x1 - x0 + 2 * pad + extra, H = y1 - y0 + 2 * pad + (s.charge ? 4 : 0);
+  const ox = -x0 + pad, oy = -y0 + pad + (s.charge ? 4 : 0);
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', W.toFixed(1)); svg.setAttribute('height', H.toFixed(1));
+  svg.setAttribute('viewBox', `0 0 ${W.toFixed(1)} ${H.toFixed(1)}`);
+  svg.setAttribute('aria-hidden', 'true');
+  let html = '';
+  const ordered = items.filter(t => t.e === 'H').concat(items.filter(t => t.e !== 'H'));
+  ordered.forEach(t => {
+    const c = EL[t.e] ? EL[t.e][0] : '#999', light = lum(c) > .6;
+    const cx = (t.x + ox).toFixed(1), cy = (t.y + oy).toFixed(1);
+    html += `<g class="atom" data-e="${t.e}"><circle cx="${cx}" cy="${cy}" r="${t.r.toFixed(1)}" fill="${c}" stroke="${light ? '#8a8f9a' : 'rgba(0,0,0,.35)'}" stroke-width="1"/>` +
+      `<circle cx="${(t.x + ox - t.r * .32).toFixed(1)}" cy="${(t.y + oy - t.r * .32).toFixed(1)}" r="${(t.r * .28).toFixed(1)}" fill="#fff" opacity=".35"/>` +
+      `<text x="${cx}" y="${cy}" dy=".35em" text-anchor="middle" font-size="${t.e.length > 1 ? 8.5 : (t.e === 'H' ? 8.5 : 10)}" font-weight="700" fill="${light ? '#333' : '#fff'}" font-family="system-ui,sans-serif">${t.e}</text></g>`;
+  });
+  if (s.charge) {
+    const txt = (Math.abs(s.charge) > 1 ? Math.abs(s.charge) : '') + (s.charge > 0 ? '+' : '−');
+    html += `<g><circle cx="${(W - 8).toFixed(1)}" cy="8" r="8" fill="${s.charge > 0 ? '#d9822b' : '#1f7fbf'}"/>` +
+      `<text x="${(W - 8).toFixed(1)}" y="8" dy=".35em" text-anchor="middle" font-size="9" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">${txt}</text></g>`;
+  }
+  svg.innerHTML = html;
+  return svg;
+}
+
+/* =================== 1. MODELISATION =================== */
+const MAXC = 12;
+const SIM = EQS.filter(e => e.name);
+const M = { eq: null, co: [], sel: null, hintN: 0 };
+const sel = $('m-rx');
+[1, 2, 3, 4].forEach(lv => {
+  const g = document.createElement('optgroup');
+  g.label = ['', 'Pour commencer', 'Combustions et oxydes', 'Avec des ions', 'Plus difficile'][lv];
+  SIM.forEach((e, i) => { if (e.level === lv) { const o = document.createElement('option'); o.value = i; o.textContent = e.name; g.appendChild(o); } });
+  sel.appendChild(g);
+});
+
+function loadSim(eq, co) {
+  M.eq = eq; M.co = co ? co.slice() : eq.sp.map(() => 1); M.sel = null; M.hintN = 0;
+  const row = $('m-row'); row.innerHTML = '';
+  const side = (i0, i1, label) => {
+    const d = document.createElement('div'); d.className = 'side';
+    d.innerHTML = `<span class="lbl">${label}</span>`;
+    for (let j = i0; j < i1; j++) {
+      if (j > i0) { const p = document.createElement('span'); p.className = 'plus'; p.textContent = '+'; d.appendChild(p); }
+      const sp = document.createElement('div'); sp.className = 'sp';
+      sp.innerHTML = `<div class="stepper"><button type="button" class="ghost" data-j="${j}" data-d="-1" aria-label="Diminuer le nombre devant ${eq.sp[j].f}">−</button>` +
+        `<output id="m-c${j}"></output><button type="button" data-j="${j}" data-d="1" aria-label="Augmenter le nombre devant ${eq.sp[j].f}">+</button></div>` +
+        `<div class="formula">${fhtml(eq.sp[j].str)}</div><div class="models" id="m-m${j}"></div>`;
+      d.appendChild(sp);
+    }
+    return d;
+  };
+  row.appendChild(side(0, eq.nL, 'Réactifs'));
+  const ar = document.createElement('span'); ar.className = 'bigop'; ar.textContent = '→'; row.appendChild(ar);
+  row.appendChild(side(eq.nL, eq.sp.length, 'Produits'));
+  $('m-hinttext').textContent = 'Clique sur « Un indice » si tu bloques.';
+  eq.sp.forEach((_, j) => renderModels(j, false));
+  updateSim();
+}
+function renderModels(j, animate) {
+  const box = $('m-m' + j), s = M.eq.sp[j], n = M.co[j];
+  while (box.children.length > n) box.lastChild.remove();
+  while (box.children.length < n) {
+    const svg = moleculeSVG(s);
+    if (animate && !reduce) svg.classList.add('pop');
+    box.appendChild(svg);
+  }
+  applyHL();
+}
+function applyHL() {
+  const row = $('m-row');
+  row.classList.toggle('dimmed', !!M.sel);
+  row.querySelectorAll('.atom').forEach(a => a.classList.toggle('hl', a.dataset.e === M.sel));
+}
+$('m-row').addEventListener('click', ev => {
+  const b = ev.target.closest('button[data-j]'); if (!b) return;
+  const j = +b.dataset.j, nv = Math.max(1, Math.min(MAXC, M.co[j] + +b.dataset.d));
+  if (nv === M.co[j]) return;
+  M.co[j] = nv; renderModels(j, true); updateSim();
+});
+function updateSim() {
+  const eq = M.eq, co = M.co, t = tally(eq, co);
+  $('m-written').innerHTML = writtenHTML(eq, co);
+  eq.sp.forEach((_, j) => {
+    $('m-c' + j).textContent = co[j];
+    const bs = $('m-row').querySelectorAll(`button[data-j="${j}"]`);
+    bs[0].disabled = co[j] <= 1; bs[1].disabled = co[j] >= MAXC;
+  });
+  const tb = $('m-tab'); tb.innerHTML = '';
+  const dots = (n, c) => n > 24 ? '' : `<span class="dots">${('<i style="background:' + c + '"></i>').repeat(n)}</span>`;
+  t.res.forEach(r => {
+    const tr = document.createElement('tr'); tr.dataset.e = r.e; if (M.sel === r.e) tr.className = 'sel';
+    const c = EL[r.e] ? EL[r.e][0] : '#999';
+    tr.innerHTML = `<td><strong>${r.e}</strong> <span class="small">${EL[r.e] ? EL[r.e][1] : ''}</span></td>` +
+      `<td><span class="n">${r.l}</span>${dots(r.l, c)}</td><td><span class="n">${r.r}</span>${dots(r.r, c)}</td>` +
+      `<td>${r.l === r.r ? '<span class="yes">✓ oui</span>' : '<span class="no">✗ non</span>'}</td>`;
+    tb.appendChild(tr);
+  });
+  if (eq.charged) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>Charge</strong> <span class="small">totale</span></td><td><span class="n">${chStr(t.ql)}</span></td><td><span class="n">${chStr(t.qr)}</span></td>` +
+      `<td>${t.qOk ? '<span class="yes">✓ oui</span>' : '<span class="no">✗ non</span>'}</td>`;
+    tb.appendChild(tr);
+  }
+  const st = $('m-status');
+  if (t.bal && t.minimal) { st.className = 'status ok'; st.textContent = '✓ Équation ajustée : chaque élément' + (eq.charged ? ' et la charge sont conservés.' : ' est conservé.'); }
+  else if (t.bal) { st.className = 'status'; st.textContent = `Tout est conservé, mais tous les nombres sont divisibles par ${t.g} : on garde les plus petits entiers.`; }
+  else if (t.elOk) { st.className = 'status'; st.textContent = `Les éléments sont conservés, mais pas la charge (${chStr(t.ql)} à gauche, ${chStr(t.qr)} à droite).`; }
+  else { const k = t.res.filter(r => r.l !== r.r).length; st.className = 'status'; st.textContent = `Pas encore ajustée : ${k} élément${k > 1 ? 's ne sont pas conservés' : ' n\'est pas conservé'}.`; }
+}
+$('m-tab').addEventListener('click', ev => {
+  const tr = ev.target.closest('tr[data-e]'); if (!tr) return;
+  M.sel = M.sel === tr.dataset.e ? null : tr.dataset.e;
+  $('m-tab').querySelectorAll('tr').forEach(r => r.classList.toggle('sel', r.dataset.e === M.sel));
+  applyHL();
+});
+
+// indice générique, utilisé aussi dans l'exercice A
+function hintFor(eq, co) {
+  const t = tally(eq, co);
+  if (t.bal && t.minimal) return 'C\'est ajusté, bravo !';
+  if (t.bal) return `Tous les nombres sont divisibles par ${t.g} : divise-les par ${t.g}.`;
+  if (t.elOk) {
+    return `Les atomes sont conservés mais pas les charges : ${chStr(t.ql)} du côté des réactifs, ${chStr(t.qr)} du côté des produits. ` +
+      'Change le nombre devant un ion, puis rééquilibre les atomes.';
+  }
+  const bad = t.res.filter(r => r.l !== r.r);
+  const nsp = e => eq.sp.filter(s => s.counts[e]).length;
+  bad.sort((a, b) => ((a.e === 'O' || a.e === 'H') - (b.e === 'O' || b.e === 'H')) || (nsp(a.e) - nsp(b.e)));
+  const r = bad[0];
+  const where = eq.sp.map((s, j) => s.counts[r.e] ? j : -1).filter(j => j >= 0);
+  const side = r.l < r.r ? 'réactifs' : 'produits';
+  const cand = where.filter(j => (j < eq.nL) === (side === 'réactifs')).map(j => fhtml(eq.sp[j].str));
+  return `Élément <strong>${r.e}</strong> : ${r.l} atome${r.l > 1 ? 's' : ''} côté réactifs, ${r.r} côté produits. ` +
+    `Il en manque du côté des ${side} : augmente le nombre devant ${cand.join(' ou ')}.`;
+}
+$('m-hint').addEventListener('click', () => { $('m-hinttext').innerHTML = hintFor(M.eq, M.co); });
+$('m-sol').addEventListener('click', () => {
+  M.co = M.eq.sol.slice(); M.eq.sp.forEach((_, j) => renderModels(j, true)); updateSim();
+  $('m-hinttext').innerHTML = 'Voici la solution. Recompte les atomes de chaque élément dans le tableau.';
+});
+$('m-reset').addEventListener('click', () => loadSim(M.eq));
+sel.addEventListener('change', () => loadSim(SIM[+sel.value]));
+$('m-rand').addEventListener('click', () => {
+  let i; do { i = Math.floor(Math.random() * SIM.length); } while (SIM.length > 1 && SIM[i] === M.eq);
+  sel.value = i; loadSim(SIM[i]);
+});
+$('m-models').addEventListener('change', e => $('sc-sim').classList.toggle('no-models', !e.target.checked));
+
+/* =================== 2. EXERCICES =================== */
+// équations générées : combustions des alcanes et des alcools
+function genCombustion() {
+  if (Math.random() < .5) { const n = pick([1, 2, 3, 4, 5, 6]); return makeEq([`C${n > 1 ? n : ''}H${2 * n + 2}`, 'O2'], ['CO2', 'H2O'], n % 2 ? 2 : 4, null); }
+  const n = pick([1, 2, 3, 4]); return makeEq([`C${n > 1 ? n : ''}H${2 * n + 2}O`, 'O2'], ['CO2', 'H2O'], n % 2 ? 4 : 2, null);
+}
+function drawEq(level) {
+  for (let k = 0; k < 20; k++) {
+    let eq;
+    if ((level === 2 || level === 4) && Math.random() < .3) eq = genCombustion();
+    else eq = pick(EQS.filter(e => e.level === level));
+    if (eq && eq.sol && eq.level === level && eq.sol.some(c => c > 1)) return eq;
+  }
+  return pick(EQS.filter(e => e.level === level));
+}
+
+/* ---- A : ajuster ---- */
+const A = { level: 1, eq: null, done: false, ok: 0, tot: 0, streak: 0, counted: false };
+function newA() {
+  let eq; do { eq = drawEq(A.level); } while (A.eq && eq.L.join() === A.eq.L.join() && eq.R.join() === A.eq.R.join());
+  A.eq = eq; A.done = false; A.counted = false;
+  const box = $('a-eq'); box.innerHTML = '';
+  eq.sp.forEach((s, j) => {
+    if (j === eq.nL) box.insertAdjacentHTML('beforeend', '<span class="op">→</span>');
+    else if (j > 0) box.insertAdjacentHTML('beforeend', '<span class="op">+</span>');
+    box.insertAdjacentHTML('beforeend', `<span><input id="a-i${j}" inputmode="numeric" autocomplete="off" maxlength="2" aria-label="Nombre devant ${s.f}"> ${fhtml(s.str)}</span>`);
+  });
+  $('a-fb').innerHTML = ''; $('a-fb').className = ''; $('a-corr').innerHTML = '';
+  document.querySelectorAll('#a-lvl button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.l === A.level)));
+  scoreA();
+}
+function readA() {
+  return A.eq.sp.map((_, j) => {
+    const v = $('a-i' + j).value.trim();
+    if (v === '') return 1;
+    return /^\d+$/.test(v) && +v > 0 ? +v : NaN;
+  });
+}
+function scoreA() {
+  $('a-score').textContent = A.tot ? `Score : ${A.ok} équation${A.ok > 1 ? 's' : ''} ajustée${A.ok > 1 ? 's' : ''} du premier coup sur ${A.tot}.` +
+    (A.streak >= 3 && A.level < 4 ? ` ${A.streak} de suite : essaie le niveau ${A.level + 1} !` : '') : '';
+}
+function corrTable(eq, co) {
+  const t = tally(eq, co);
+  let h = '<table class="st" style="margin-top:.3rem"><thead><tr><th>Élément</th><th>Réactifs</th><th>Produits</th></tr></thead><tbody>';
+  t.res.forEach(r => { h += `<tr><td>${r.e}</td><td>${r.l}</td><td>${r.r}</td></tr>`; });
+  if (eq.charged) h += `<tr><td>Charge</td><td>${chStr(t.ql)}</td><td>${chStr(t.qr)}</td></tr>`;
+  return h + '</tbody></table>';
+}
+$('a-check').addEventListener('click', () => {
+  const co = readA(), fb = $('a-fb');
+  A.eq.sp.forEach((_, j) => $('a-i' + j).classList.remove('bad', 'good'));
+  if (co.some(isNaN)) { fb.className = 'feedback ko'; fb.innerHTML = 'Écris uniquement des nombres entiers (1, 2, 3…) dans les cases.'; return; }
+  const t = tally(A.eq, co);
+  const first = !A.counted;
+  if (first) { A.tot++; A.counted = true; }
+  if (t.bal && t.minimal) {
+    if (first) { A.ok++; A.streak++; }
+    fb.className = 'feedback ok';
+    fb.innerHTML = `<strong>Bravo, c'est ajusté !</strong> ` + t.res.map(r => `${r.l} ${r.e}`).join(', ') + ' de chaque côté' +
+      (A.eq.charged ? `, et une charge totale de ${chStr(t.ql)} de chaque côté.` : '.');
+    A.eq.sp.forEach((_, j) => $('a-i' + j).classList.add('good'));
+    A.done = true;
+  } else {
+    if (first) A.streak = 0;
+    let msg;
+    if (t.bal) { fb.className = 'feedback mid'; msg = `Tout est conservé, mais on peut diviser tous les nombres par ${t.g}. Il faut les plus petits entiers possibles.`; }
+    else {
+      fb.className = 'feedback ko';
+      const bad = t.res.filter(r => r.l !== r.r);
+      msg = '<strong>Pas encore.</strong> ' + (bad.length ? bad.map(r => `${r.e} : ${r.l} à gauche, ${r.r} à droite`).join(' ; ') + '.' : '') +
+        (A.eq.charged && !t.qOk ? ` Charge : ${chStr(t.ql)} à gauche, ${chStr(t.qr)} à droite.` : '');
+      A.eq.sp.forEach((s, j) => { if (bad.some(r => s.counts[r.e]) || (!t.qOk && s.charge)) $('a-i' + j).classList.add('bad'); });
+    }
+    fb.innerHTML = msg;
+  }
+  scoreA();
+});
+$('a-hint').addEventListener('click', () => {
+  const co = readA(); const fb = $('a-fb');
+  if (co.some(isNaN)) { fb.className = 'feedback ko'; fb.textContent = 'Écris uniquement des nombres entiers dans les cases.'; return; }
+  fb.className = 'feedback mid'; fb.innerHTML = '💡 ' + hintFor(A.eq, co);
+});
+$('a-sol').addEventListener('click', () => {
+  if (!A.counted) { A.tot++; A.counted = true; A.streak = 0; scoreA(); }
+  const eq = A.eq;
+  $('a-corr').innerHTML = `<div class="correction"><h4>Correction</h4>` +
+    `<div class="ex-eq" style="margin:.2rem 0"><span>${writtenHTML(eq, eq.sol)}</span></div>` +
+    `Vérification : on compte les atomes de chaque élément${eq.charged ? ' et la charge totale' : ''} de chaque côté.` +
+    corrTable(eq, eq.sol) + '</div>';
+});
+$('a-model').addEventListener('click', () => {
+  let co = readA(); if (co.some(isNaN)) co = A.eq.sp.map(() => 1);
+  co = co.map(c => Math.min(MAXC, c));
+  sel.selectedIndex = -1;
+  loadSim(A.eq, co);
+  $('sc-sim').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+});
+$('a-new').addEventListener('click', newA);
+$('a-lvl').addEventListener('click', e => {
+  const b = e.target.closest('button[data-l]'); if (!b) return;
+  A.level = +b.dataset.l; A.streak = 0; newA();
+});
+$('a-eq').addEventListener('keydown', e => { if (e.key === 'Enter') $('a-check').click(); });
+
+/* ---- B : ajustée ou pas ? ---- */
+const B = { eq: null, co: null, answered: false, ok: 0, tot: 0 };
+function newB() {
+  const lv = pick([1, 2, 2, 3, 3, 4]);
+  const eq = drawEq(lv);
+  let co = eq.sol.slice();
+  const r = Math.random();
+  if (r < .45) { /* juste */ }
+  else if (eq.charged && r < .7 && tally(eq, eq.sp.map(() => 1)).elOk && !tally(eq, eq.sp.map(() => 1)).qOk) co = eq.sp.map(() => 1); // piège des charges
+  else {
+    for (let k = 0; k < 10; k++) {
+      const c = eq.sol.slice(), j = Math.floor(Math.random() * c.length);
+      c[j] = Math.max(1, c[j] + (Math.random() < .5 ? -1 : 1));
+      if (!tally(eq, c).bal) { co = c; break; }
+    }
+  }
+  B.eq = eq; B.co = co; B.answered = false;
+  $('b-eq').innerHTML = '<span>' + writtenHTML(eq, co) + '</span>';
+  $('b-fb').innerHTML = ''; $('b-fb').className = '';
+}
+function answerB(yes) {
+  const t = tally(B.eq, B.co), fb = $('b-fb');
+  const truth = t.bal;
+  if (!B.answered) { B.tot++; if (yes === truth) B.ok++; B.answered = true; }
+  const good = yes === truth;
+  fb.className = 'feedback ' + (good ? 'ok' : 'ko');
+  let why;
+  if (truth) why = 'Elle est ajustée : ' + t.res.map(r => `${r.l} ${r.e}`).join(', ') + ' de chaque côté' + (B.eq.charged ? `, charge ${chStr(t.ql)} de chaque côté.` : '.');
+  else {
+    const bad = t.res.filter(r => r.l !== r.r);
+    why = 'Elle n\'est pas ajustée : ' + (bad.length ? bad.map(r => `${r.e} : ${r.l} à gauche, ${r.r} à droite`).join(' ; ') :
+      `les atomes sont bien conservés, mais pas la charge (${chStr(t.ql)} à gauche, ${chStr(t.qr)} à droite)`) + '. ' +
+      `L'équation ajustée est : ${writtenHTML(B.eq, B.eq.sol)}.`;
+  }
+  fb.innerHTML = `<strong>${good ? 'Exact !' : 'Non…'}</strong> ` + why;
+  $('b-score').textContent = `Score : ${B.ok} bonne${B.ok > 1 ? 's' : ''} réponse${B.ok > 1 ? 's' : ''} sur ${B.tot}.`;
+}
+$('b-yes').addEventListener('click', () => answerB(true));
+$('b-no').addEventListener('click', () => answerB(false));
+$('b-new').addEventListener('click', newB);
+
+/* ---------- plein écran ---------- */
+document.querySelectorAll('button.fs').forEach(btn => {
+  const el = $(btn.dataset.target);
+  if (!el.requestFullscreen) { btn.hidden = true; return; }
+  btn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen());
+});
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('button.fs').forEach(b => b.textContent = document.fullscreenElement === $(b.dataset.target) ? 'Quitter le plein écran' : 'Plein écran');
+});
+
+/* ---------- démarrage ---------- */
+const start = SIM.findIndex(e => e.L[0] === 'CH4');
+sel.value = start; loadSim(SIM[start]);
+newA(); newB();
+window.__eq = { EQS, tally, solve, M };
+})();
+</script>
+</body>
+</html>
