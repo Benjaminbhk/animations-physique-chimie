@@ -160,7 +160,7 @@ footer strong{color:var(--text)}
             <div class="tablewrap"><table class="mes" id="mes1"></table></div>
           </div>
           <div>
-            <label class="check"><input type="checkbox" id="dots" checked> Montrer le sens conventionnel du courant</label>
+            <div class="row"><label for="dots">Montrer</label><select id="dots"><option value="elec" selected>le déplacement des électrons</option><option value="conv">le sens conventionnel du courant</option><option value="">rien</option></select></div>
             <label class="check"><input type="checkbox" id="allui"> Afficher U et I à côté de chaque dipôle</label>
           </div>
         </div>
@@ -591,19 +591,39 @@ function drawItem(c, C, it, sel, t) {
   if (horiz) text(c, s, mx, my + oy * 36, 'center', 'middle', K.muted, 600, 13.5);
   else text(c, s, mx + ox * 30, my, ox > 0 ? 'left' : 'right', 'middle', K.muted, 600, 13.5);
 }
+/* Porteurs de charge animés le long des fils.
+   mode « elec » : électrons, dans le sens inverse du courant (à l'extérieur du générateur, de la borne − vers la borne +).
+   mode « conv » : flèches dans le sens conventionnel du courant (de la borne + vers la borne −, à l'extérieur du générateur). */
+const ELEC = '#2f7fe0';
 function drawDots(c, C, t) {
+  const mode = C.showDots;
   for (const it of C.items.values()) {
     const I = it.I || 0; if (Math.abs(I) < 2e-5) continue;
-    const [xa, ya] = nxy(C, it.a), [xb, yb] = nxy(C, it.b), L = Math.hypot(xb - xa, yb - ya);
+    const fw = (mode === 'elec' ? -1 : 1) * Math.sign(I) > 0;      // true : on avance de a vers b
+    const [xs, ys] = nxy(C, fw ? it.a : it.b), [xe, ye] = nxy(C, fw ? it.b : it.a);
+    const L = Math.hypot(xe - xs, ye - ys), ux = (xe - xs) / L, uy = (ye - ys) / L;
     const v = 8 + 16 * Math.log10(Math.abs(I) / 1e-5), sp = 30;
-    let off = ((t * v) % sp + sp) % sp; if (I < 0) off = sp - off;
-    c.fillStyle = K.accent;
+    const off = (t * v) % sp;
     for (let s = off; s < L; s += sp) {
-      const f = I > 0 ? s / L : 1 - s / L;
-      const x = xa + (xb - xa) * f, y = ya + (yb - ya) * f;
       if (it.type !== 'fil' && Math.abs(s - L / 2) < 26) continue;
-      c.beginPath(); c.arc(x, y, 3.2, 0, 7); c.fill();
+      const x = xs + ux * s, y = ys + uy * s;
+      if (mode === 'elec') {
+        c.fillStyle = ELEC; c.beginPath(); c.arc(x, y, 4.2, 0, 7); c.fill();
+        c.strokeStyle = '#fff'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(x - 2.2, y); c.lineTo(x + 2.2, y); c.stroke();
+      } else {
+        c.fillStyle = K.accent; c.beginPath();
+        c.moveTo(x + ux * 6, y + uy * 6); c.lineTo(x - ux * 4 - uy * 5, y - uy * 4 + ux * 5); c.lineTo(x - ux * 4 + uy * 5, y - uy * 4 - ux * 5); c.fill();
+      }
     }
+  }
+  // légende
+  const lx = 14, ly = C.H - 14;
+  if (mode === 'elec') {
+    c.fillStyle = ELEC; c.beginPath(); c.arc(lx + 5, ly - 5, 4.2, 0, 7); c.fill();
+    text(c, 'électrons : de la borne − vers la borne + du générateur', lx + 16, ly - 5, 'left', 'middle', K.muted, 600, 12.5);
+  } else {
+    c.fillStyle = K.accent; c.beginPath(); c.moveTo(lx + 11, ly - 5); c.lineTo(lx + 1, ly - 10); c.lineTo(lx + 1, ly); c.fill();
+    text(c, 'sens conventionnel du courant : de la borne + vers la borne −', lx + 16, ly - 5, 'left', 'middle', K.muted, 600, 12.5);
   }
 }
 function drawVolt(c, C, v, sel) {
@@ -640,7 +660,7 @@ function drawCircuit(o, C, t, extra) {
 }
 
 /* =================== ONGLET 1 =================== */
-const C1 = makeCircuit({ cols: 7, rows: 5, x0: 70, y0: 66, dx: 113, dy: 117, W: 820, H: 600, gridDots: true, showDots: true });
+const C1 = makeCircuit({ cols: 7, rows: 5, x0: 70, y0: 66, dx: 113, dy: 117, W: 820, H: 600, gridDots: true, showDots: 'elec' });
 const O1 = setupCanvas($('cv1'), 820, 600);
 const TOOLS = [
   ['sel', 'Sélection'], ['fil', 'Fil'], ['gen', 'Générateur'],
@@ -901,7 +921,7 @@ function refresh1() {
     : '<tr><td class="small">Aucun appareil de mesure. Ajoute un ampèremètre ou un voltmètre.</td></tr>';
 }
 document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => preset(b.dataset.preset)));
-$('dots').addEventListener('change', e => { C1.showDots = e.target.checked; });
+$('dots').addEventListener('change', e => { C1.showDots = C2.showDots = e.target.value; });
 $('allui').addEventListener('change', e => { C1.showUI = e.target.checked; });
 
 function extra1() {
@@ -935,7 +955,7 @@ function extra1() {
 }
 
 /* =================== ONGLET 2 =================== */
-const C2 = makeCircuit({ cols: 4, rows: 2, x0: 60, y0: 60, dx: 140, dy: 170, W: 620, H: 300, showDots: true });
+const C2 = makeCircuit({ cols: 4, rows: 2, x0: 60, y0: 60, dx: 140, dy: 170, W: 620, H: 300, showDots: 'elec' });
 C2.labelSide = (it, ox, oy) => it.type === 'gen' ? [1, 0] : [ox, oy];
 const O2 = setupCanvas($('cv2'), 620, 300), OG = setupCanvas($('gr'), 620, 400);
 const n2 = (r, c) => nid(C2, r, c);
