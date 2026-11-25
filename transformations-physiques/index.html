@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transformations physiques</title>
+<meta name="description" content="Simulation interactive des changements d'état : modèle particulaire, courbe de température avec palier (corps pur) ou sans palier (mélange), énergie de changement d'état Q = m × L, et exercices corrigés (physique-chimie, Seconde).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#5b3fd0; --accent-soft:#ece8ff; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --grid:rgba(90,100,130,0.16);
+  --warm:#d6452f; --warm-soft:#fde9e4; --cool:#1f78c8; --cool-soft:#e2effb;
+  --ok:#1e8a4c; --ok-soft:#e3f5ea; --ko:#c0392b; --ko-soft:#fbe7e4;
+  --exo-bg:#e3f2fd; --exo-border:#a9d3f2; --exo-ink:#0b5d93;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --grid:rgba(190,200,230,0.13);
+    --warm:#ff7a5e; --warm-soft:#3a1f1a; --cool:#5fb0ff; --cool-soft:#14263a;
+    --ok:#4fd08a; --ok-soft:#13291d; --ko:#ff7b6b; --ko-soft:#33191a;
+    --exo-bg:#0f2433; --exo-border:#1f4a66; --exo-ink:#8fd0ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#a593ff; --accent-soft:#272042; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --grid:rgba(190,200,230,0.13);
+  --warm:#ff7a5e; --warm-soft:#3a1f1a; --cool:#5fb0ff; --cool-soft:#14263a;
+  --ok:#4fd08a; --ok-soft:#13291d; --ko:#ff7b6b; --ko-soft:#33191a;
+  --exo-bg:#0f2433; --exo-border:#1f4a66; --exo-ink:#8fd0ff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:78ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border)}
+#cv{aspect-ratio:560/460}
+#gr{aspect-ratio:900/330}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:1rem;margin:0 0 .35rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .7rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.item{text-align:left;background:var(--bg);color:var(--text);border:1px solid var(--border);
+  font-size:.88rem;line-height:1.2;padding:.4rem .55rem}
+button.item small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}
+button.item[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+button.heat{background:var(--warm);border-color:var(--warm);color:#fff}
+button.cool{background:var(--cool);border-color:var(--cool);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row label{font-weight:600;font-size:.92rem;min-width:5.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:8ch}
+.read{border:1px solid var(--border);border-radius:10px;padding:.6rem .75rem;background:var(--bg);font-size:.93rem}
+.read .temp{font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.read .eq{font-size:1.15rem;font-weight:700;margin:.25rem 0}
+.read .tag{display:inline-block;font-size:.78rem;font-weight:700;padding:.08rem .5rem;border-radius:999px;margin-left:.3rem;vertical-align:middle}
+.tag.t-endo{background:var(--warm-soft);color:var(--warm)}
+.tag.t-exo{background:var(--cool-soft);color:var(--cool)}
+.bar{height:10px;border-radius:6px;background:var(--border);overflow:hidden;margin:.35rem 0 .1rem}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s linear}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:4.6em}
+.layout2{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start;margin-top:14px}
+.layout2 h3,.memo h3{margin:0 0 .3rem;font-size:.98rem}
+svg.tri{width:100%;height:auto;display:block}
+svg.tri .node rect{fill:var(--bg);stroke:var(--border)}
+svg.tri .node text{fill:var(--text);font-weight:700;font-size:14px}
+svg.tri .arr{cursor:pointer}
+svg.tri .arr line,svg.tri .arr polygon{transition:stroke-width .2s}
+svg.tri .arr text{font-size:11.5px;font-weight:600}
+svg.tri .arr.on line{stroke-width:5}
+svg.tri .arr.on text{font-weight:800;font-size:12.5px}
+svg.tri .arr:focus{outline:none}
+svg.tri .arr:focus-visible text{text-decoration:underline}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.small{font-size:.85rem;color:var(--muted)}
+sub,sup{line-height:0}
+
+/* ---------- exercices (fond bleu ciel) ---------- */
+.exos{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:18px 16px;margin:0 0 22px}
+.exos > h2{margin:0 0 .2rem;color:var(--exo-ink);font-size:1.35rem}
+.exos > p{margin:0 0 14px;color:var(--muted)}
+.exo{background:var(--surface);border:1px solid var(--exo-border);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+.exo h3{margin:0 0 .5rem;font-size:1.05rem;color:var(--exo-ink)}
+.exo .enonce{margin:0 0 .6rem}
+.exo .q{margin:.55rem 0}
+.exo .q > p{margin:.1rem 0 .35rem;font-weight:600}
+.exo select,.exo input[type=text]{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);max-width:100%}
+.exo input[type=text]{width:13ch}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;padding:.4rem .7rem;cursor:pointer;background:var(--bg)}
+.choice:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.choice input{accent-color:var(--accent)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:.7rem}
+.feedback{border-radius:10px;padding:.55rem .85rem;margin-top:10px;line-height:1.6}
+.feedback.ok{background:var(--ok-soft);border-left:4px solid var(--ok)}
+.feedback.ko{background:var(--ko-soft);border-left:4px solid var(--ko)}
+.correction{border:2px solid var(--ok);border-radius:10px;padding:.6rem .9rem;margin-top:10px;line-height:1.75}
+.correction h4{margin:0 0 .3rem;color:var(--ok);font-size:1rem}
+.correction .res{font-weight:700}
+table.data{border-collapse:collapse;font-size:.92rem}
+.tbl{overflow-x:auto;margin:.4rem 0;max-width:100%}
+table.data th,table.data td{border:1px solid var(--border);padding:.2rem .55rem;text-align:center}
+table.data th{background:var(--bg)}
+.mini{max-width:560px;aspect-ratio:560/300}
+
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+.scene:fullscreen{overflow:auto;border-radius:0;padding:14px 20px;width:100vw;height:100vh}
+@media (max-width:900px){
+  .layout,.layout2{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+  svg.tri{max-width:340px;margin:0 auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Transformations physiques</h1>
+    <a href="../seconde/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Chauffe ou refroidis un corps et observe à la fois ses <strong>particules</strong> et sa <strong>courbe de température</strong>.
+    Pendant un changement d'état, la température d'un <strong>corps pur</strong> reste constante (palier), celle d'un <strong>mélange</strong> continue de varier.
+    L'énergie échangée pendant le changement d'état vaut <strong>Q = m × L</strong>.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation des changements d'état">
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Boîte fermée contenant les particules du corps, thermomètre et plaque chauffante"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div>
+          <h2>1. Choisir le corps</h2>
+          <div class="grid2" id="subs"></div>
+        </div>
+        <div>
+          <h2>2. Chauffer ou refroidir</h2>
+          <div class="grid3">
+            <button id="heat" class="heat" type="button">Chauffer</button>
+            <button id="stop" class="ghost" type="button">Arrêter</button>
+            <button id="cool" class="cool" type="button">Refroidir</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <label for="pw">Puissance</label>
+            <input id="pw" type="range" min="-500" max="500" step="50" value="400">
+            <output id="pw-out" for="pw"></output>
+          </div>
+          <div class="row" style="margin-top:4px">
+            <label for="ms">Masse m</label>
+            <input id="ms" type="range" min="50" max="500" step="10" value="200">
+            <output id="ms-out" for="ms"></output>
+          </div>
+        </div>
+        <div>
+          <h2>3. Repartir de l'état <small>efface la courbe</small></h2>
+          <div class="grid3" id="starts">
+            <button class="ghost" type="button" data-start="s">solide</button>
+            <button class="ghost" type="button" data-start="l">liquide</button>
+            <button class="ghost" type="button" data-start="g">gaz</button>
+          </div>
+        </div>
+        <div class="read" aria-live="off">
+          <div class="temp" id="r-temp">θ = 0 °C</div>
+          <div id="r-state" class="small"></div>
+          <div class="eq" id="r-eq"></div>
+          <div id="r-energy"></div>
+          <div class="bar" id="r-bar" hidden><i id="r-bar-i"></i></div>
+          <div class="small" id="r-q"></div>
+        </div>
+        <div class="grid2">
+          <button id="pause" class="ghost" type="button">Pause</button>
+          <button id="fs" class="ghost" type="button">Plein écran</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout2">
+      <div>
+        <h3>Courbe de température θ = f(t)</h3>
+        <canvas id="gr" role="img" aria-label="Courbe de la température en fonction du temps"></canvas>
+        <p class="small" id="speed" style="margin:.3rem 0 0"></p>
+      </div>
+      <div>
+        <h3>Les six changements d'état</h3>
+        <svg class="tri" id="tri" viewBox="0 0 300 250" role="group" aria-label="Schéma des changements d'état, cliquer sur une flèche pour sa définition"></svg>
+        <p class="small" style="margin:.2rem 0 0"><span style="color:var(--warm);font-weight:700">Rouge</span> : endothermique (le système reçoit de l'énergie).
+          <span style="color:var(--cool);font-weight:700">Bleu</span> : exothermique (il en cède). Clique sur une flèche.</p>
+      </div>
+    </div>
+
+    <div class="memo">
+      <div><h3>Modèle particulaire</h3><strong>Solide</strong> : particules ordonnées, au contact, qui vibrent sur place. <strong>Liquide</strong> : au contact mais désordonnées, elles glissent les unes sur les autres. <strong>Gaz</strong> : très éloignées, désordonnées et rapides.</div>
+      <div><h3>Corps pur ou mélange ?</h3>Sous pression constante, un <strong>corps pur</strong> change d'état à <strong>température constante</strong> : palier sur la courbe. Pour un <strong>mélange</strong>, pas de palier : la température varie pendant le changement d'état.</div>
+      <div><h3>Énergie de changement d'état</h3><strong>Q = m × L</strong>, avec Q en joules (J), m en kilogrammes (kg) et L l'énergie massique de changement d'état en J/kg. Fusion, vaporisation, sublimation : <span style="color:var(--warm);font-weight:700">endothermiques</span>. Les trois inverses : <span style="color:var(--cool);font-weight:700">exothermiques</span>.</div>
+    </div>
+    <p class="small" style="margin:.6rem 0 0">Modèle simplifié : boîte fermée à pression atmosphérique, sans pertes thermiques ; on ne représente que quelques dizaines de particules, et le temps est accéléré.
+      Pour l'eau salée, le changement d'état est réparti sur un intervalle de température (la composition du liquide change). Valeurs de L et de θ approximatives.</p>
+  </section>
+
+  <section class="exos" id="exos" aria-labelledby="t-exos">
+    <h2 id="t-exos">S'entraîner</h2>
+    <p>Des petits exercices avec des valeurs tirées au hasard. Réponds, vérifie, puis compare avec la correction. « Nouvel énoncé » en propose un autre.</p>
+    <div id="exo-list"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Animation libre d'utilisation en classe</span></footer>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const rint = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const minus = s => s.replace(/-/g, '−');
+const fr = (x, d) => minus(x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }));
+const num = (x, d = 1) => minus(x.toLocaleString('fr-FR', { maximumFractionDigits: d }));
+const deArt = a => a.replace(/^le /, 'du ').replace(/^l'/, "de l'");
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+/* écriture scientifique avec n chiffres significatifs (HTML) */
+function sci(x, n = 3) {
+  if (x === 0) return '0';
+  const sg = x < 0 ? '−' : ''; x = Math.abs(x);
+  let e = Math.floor(Math.log10(x)), m = +(x / 10 ** e).toFixed(n - 1);
+  if (m >= 10) { m /= 10; e++; }
+  const ms = fr(m, n - 1);
+  return e === 0 ? sg + ms : `${sg}${ms} × 10<sup>${e < 0 ? '−' + (-e) : e}</sup>`;
+}
+const round3 = x => +x.toPrecision(3);
+/* texte brut (canvas) */
+const SUPC = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const sciTxt = (x, n = 3) => sci(x, n).replace(/<sup>(.*?)<\/sup>/, (_, e) => e.replace('−', '⁻').replace(/\d/g, d => SUPC[d]));
+
+/* ---------- changements d'état ---------- */
+const PH = { s: 'solide', l: 'liquide', g: 'gaz' };
+const SYM = { s: 's', l: 'ℓ', g: 'g' };
+const CHG = {
+  'sl': { nom: 'fusion', endo: true,  def: "passage de l'état solide à l'état liquide", ex: 'un glaçon qui fond' },
+  'ls': { nom: 'solidification', endo: false, def: "passage de l'état liquide à l'état solide", ex: "l'eau d'une flaque qui gèle" },
+  'lg': { nom: 'vaporisation', endo: true,  def: "passage de l'état liquide à l'état gazeux", ex: "l'eau qui bout, le linge qui sèche" },
+  'gl': { nom: 'liquéfaction', endo: false, def: "passage de l'état gazeux à l'état liquide", ex: 'la buée sur un miroir, la rosée' },
+  'sg': { nom: 'sublimation', endo: true,  def: "passage direct de l'état solide à l'état gazeux", ex: 'la carboglace (CO₂ solide) qui « fume »' },
+  'gs': { nom: 'condensation', endo: false, def: "passage direct de l'état gazeux à l'état solide", ex: 'le givre qui se forme sur un pare-brise' }
+};
+const CHG_NAMES = ['fusion', 'solidification', 'vaporisation', 'liquéfaction', 'sublimation', 'condensation'];
+const CHG_BY_NAME = Object.fromEntries(Object.entries(CHG).map(([k, v]) => [v.nom, { ...v, a: k[0], b: k[1] }]));
+
+/* ---------- corps (valeurs approximatives, pression atmosphérique) ---------- */
+const SUBS = [
+  { id: 'eau', nom: 'Eau', art: "l'eau", f: 'H₂O', Tmin: -30, Tmax: 130, Tf: 0, Teb: 100, Lf: 3.34e5, Lv: 2.26e6, cs: 2.06e3, cl: 4.18e3, cg: 2.01e3, rgb: [52, 128, 230] },
+  { id: 'sale', nom: 'Eau salée', note: 'mélange', mix: true, art: "l'eau salée", f: 'H₂O', Tmin: -30, Tmax: 130, Tfr: [-21, -2], Tebr: [100.6, 108], Lf: 3.0e5, Lv: 2.26e6, cs: 2.0e3, cl: 3.9e3, cg: 2.01e3, rgb: [52, 128, 230] },
+  { id: 'ethanol', nom: 'Éthanol', art: "l'éthanol", f: 'C₂H₆O', Tmin: -130, Tmax: 100, Tf: -114, Teb: 78, Lf: 1.08e5, Lv: 8.37e5, cs: 1.2e3, cl: 2.44e3, cg: 1.42e3, rgb: [222, 128, 40] },
+  { id: 'cyclo', nom: 'Cyclohexane', art: 'le cyclohexane', f: 'C₆H₁₂', Tmin: -20, Tmax: 110, Tf: 6.5, Teb: 81, Lf: 3.18e4, Lv: 3.58e5, cs: 1.5e3, cl: 1.85e3, cg: 1.25e3, rgb: [150, 96, 214] },
+  { id: 'stea', nom: 'Acide stéarique', art: "l'acide stéarique", f: 'C₁₈H₃₆O₂', Tmin: 20, Tmax: 100, Tf: 69, Teb: null, Lf: 1.99e5, cs: 1.67e3, cl: 2.30e3, rgb: [118, 138, 150] },
+  { id: 'co2', nom: 'Dioxyde de carbone', note: 'carboglace', art: 'le dioxyde de carbone', f: 'CO₂', Tmin: -110, Tmax: -20, Tsub: -78.5, Ls: 5.73e5, cs: 1.2e3, cg: 0.75e3, rgb: [46, 160, 110] }
+];
+/* découpe en tronçons : échauffement (sens) ou changement d'état (chg), enthalpie massique cumulée h en J/kg */
+function buildSegs(s) {
+  const out = [];
+  const sens = (ph, T0, T1, c) => { if (T1 > T0) out.push({ k: 'sens', ph, T0, T1, c }); };
+  const chg = (a, b, T0, T1, L, Ln) => out.push({ k: 'chg', a, b, T0, T1, L, Ln });
+  if (s.Tsub != null) {
+    sens('s', s.Tmin, s.Tsub, s.cs); chg('s', 'g', s.Tsub, s.Tsub, s.Ls, 'sub'); sens('g', s.Tsub, s.Tmax, s.cg);
+  } else {
+    const [f0, f1] = s.Tfr || [s.Tf, s.Tf];
+    sens('s', s.Tmin, f0, s.cs); chg('s', 'l', f0, f1, s.Lf, 'fus');
+    if (s.Teb == null && !s.Tebr) sens('l', f1, s.Tmax, s.cl);
+    else {
+      const [e0, e1] = s.Tebr || [s.Teb, s.Teb];
+      sens('l', f1, e0, s.cl); chg('l', 'g', e0, e1, s.Lv, 'vap'); sens('g', e1, s.Tmax, s.cg);
+    }
+  }
+  let h = 0;
+  for (const g of out) { g.h0 = h; h += g.k === 'sens' ? g.c * (g.T1 - g.T0) : g.L; g.h1 = h; }
+  return out;
+}
+function stateAt(segs, h) {
+  let i = segs.findIndex(g => h <= g.h1 + 1e-9);
+  if (i < 0) i = segs.length - 1;
+  const g = segs[i], fr = { s: 0, l: 0, g: 0 };
+  if (g.k === 'sens') { fr[g.ph] = 1; return { T: g.T0 + (h - g.h0) / g.c, fr, seg: g, i, x: 0 }; }
+  const x = clamp((h - g.h0) / g.L, 0, 1);
+  fr[g.a] = 1 - x; fr[g.b] = x;
+  return { T: lerp(g.T0, g.T1, x), fr, seg: g, i, x };
+}
+
+/* ---------- état de la simulation ---------- */
+const PMAX = 500, MREF = 0.2;
+const S = { sub: SUBS[0], segs: null, h: 0, m: 0.2, P: 400, t: 0, Q: 0, run: true, pts: [], k: 1, key: '', clock: 0, limit: false };
+
+/* ---------- particules ---------- */
+const W = 560, H = 460, BX0 = 16, BY0 = 16, BX1 = 410, BY1 = 414, R = 9;
+const COLS = 10, ROWS = 7, SP = 19.4;
+let sites = [], parts = [];
+function makeSites() {
+  sites = [];
+  const cx = (BX0 + BX1) / 2;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const edge = Math.min(c, COLS - 1 - c);              // 0 = bord
+    sites.push({ x: cx + (c - (COLS - 1) / 2) * SP, y: BY1 - R - 1 - r * SP, rank: (ROWS - 1 - r) * COLS + edge * 2 + (c < COLS / 2 ? 0 : 1), occ: null, salt: false });
+  }
+}
+function newParticle(salt) {
+  return { x: 0, y: 0, vx: 0, vy: 0, st: 'l', site: null, salt, r: salt ? 6.5 : R,
+    p1: rnd(0, TAU), p2: rnd(0, TAU), w1: rnd(22, 34), w2: rnd(22, 34) };
+}
+function placeParticles(fr) {
+  makeSites(); parts = [];
+  const mix = !!S.sub.mix;
+  if (mix) [12, 17, 25, 33, 38, 46, 54, 61].forEach(i => sites[i].salt = true);
+  const wsites = sites.filter(s => !s.salt).sort((a, b) => b.rank - a.rank);
+  const N = wsites.length;
+  let nS = Math.round(fr.s * N), nG = Math.round(fr.g * N); if (nS + nG > N) nG = N - nS;
+  const nL = N - nS - nG;
+  for (let i = 0; i < N; i++) parts.push(newParticle(false));
+  if (mix) for (let i = 0; i < 8; i++) parts.push(newParticle(true));
+  const water = parts.filter(p => !p.salt);
+  let topY = BY1;
+  water.slice(0, nS).forEach((p, i) => { const s = wsites[i]; p.st = 's'; p.site = s; s.occ = p; p.x = s.x; p.y = s.y; topY = Math.min(topY, s.y - R); });
+  // liquide : en rangées au-dessus du solide
+  const liq = water.slice(nS, nS + nL);
+  const salt = parts.filter(p => p.salt);
+  const stack = liq.concat(nL > 0 ? salt : []);
+  const perRow = Math.floor((BX1 - BX0 - 4) / (2 * R + 1));
+  stack.forEach((p, i) => {
+    const row = Math.floor(i / perRow), col = i % perRow;
+    p.st = 'l'; p.x = BX0 + 3 + R + col * (2 * R + 1) + (row % 2) * 5; p.y = topY - R - 1 - row * (2 * R);
+    p.vx = rnd(-30, 30); p.vy = 0;
+  });
+  water.slice(nS + nL).forEach(p => {
+    p.st = 'g'; p.x = rnd(BX0 + R, BX1 - R); p.y = rnd(BY0 + R, Math.max(BY0 + R + 1, topY - 3 * R));
+    const a = rnd(0, TAU); p.vx = Math.cos(a) * 220; p.vy = Math.sin(a) * 220;
+  });
+  if (nL === 0) salt.forEach((p, i) => {
+    if (nS > 0) { const s = sites.filter(x => x.salt)[i]; p.st = 's'; p.site = s; s.occ = p; p.x = s.x; p.y = s.y; }
+    else { p.st = 'r'; p.x = BX0 + 60 + i * 16; p.y = BY1 - p.r; }
+  });
+}
+function syncStates(fr) {
+  const water = parts.filter(p => !p.salt), N = water.length;
+  let tS = Math.round(fr.s * N), tG = Math.round(fr.g * N); if (tS + tG > N) tG = N - tS;
+  const tL = N - tS - tG;
+  const of = st => water.filter(p => p.st === st);
+  const argmin = (a, f) => a.reduce((b, p) => (b == null || f(p) < f(b)) ? p : b, null);
+  let guard = 0;
+  while (of('s').length > tS && guard++ < 300) {           // fusion / sublimation : par le haut et les bords
+    const p = argmin(of('s'), q => q.site.rank);
+    p.site.occ = null; p.site = null;
+    if (of('l').length < tL) { p.st = 'l'; p.vx = rnd(-50, 50); p.vy = rnd(-40, 0); }
+    else { p.st = 'g'; const a = rnd(-2.7, -0.45); p.vx = Math.cos(a) * 240; p.vy = Math.sin(a) * 240; }
+  }
+  while (of('s').length < tS && guard++ < 600) {           // solidification / condensation : par le bas
+    const free = sites.filter(s => !s.occ && !s.salt);
+    if (!free.length) break;
+    const site = free.reduce((b, s) => s.rank > b.rank ? s : b);
+    let pool = of(of('l').length > tL ? 'l' : 'g'); if (!pool.length) pool = water.filter(p => p.st !== 's');
+    if (!pool.length) break;
+    const p = argmin(pool, q => (q.x - site.x) ** 2 + (q.y - site.y) ** 2);
+    p.st = 's'; p.site = site; site.occ = p; p.vx = p.vy = 0;
+  }
+  while (of('g').length > tG && guard++ < 900) {           // liquéfaction : les plus bas
+    const p = argmin(of('g'), q => -q.y); p.st = 'l';
+  }
+  while (of('g').length < tG && guard++ < 1200) {          // vaporisation : à la surface
+    const L = of('l'); if (!L.length) break;
+    const p = argmin(L, q => q.y); p.st = 'g'; p.vy = -260; p.vx = rnd(-80, 80);
+  }
+  // particules de sel (mélange)
+  const nL = of('l').length, nS = of('s').length;
+  parts.filter(p => p.salt).forEach((p, i) => {
+    if (nL > 0) { if (p.st !== 'l') { if (p.site) { p.site.occ = null; p.site = null; } p.st = 'l'; } }
+    else if (nS > 0) { if (p.st !== 's') { const s = sites.filter(x => x.salt)[i]; p.st = 's'; p.site = s; s.occ = p; } }
+    else if (p.st !== 'r') { if (p.site) { p.site.occ = null; p.site = null; } p.st = 'r'; }
+  });
+}
+function segOfPhase(ph) { return S.segs.find(g => g.k === 'sens' && g.ph === ph) || null; }
+function stepParticles(dt, T) {
+  const sub = 3, h = dt / sub, s = S.sub;
+  const chgs = S.segs.filter(g => g.k === 'chg');
+  const tSol = chgs.length ? chgs[0].T0 : s.Tmax;
+  const amp = 0.7 + 2.6 * clamp((T - s.Tmin) / Math.max(1, tSol - s.Tmin), 0, 1);
+  const segL = segOfPhase('l'), segG = segOfPhase('g');
+  const vL = segL ? 45 + 70 * clamp((T - segL.T0) / Math.max(1, segL.T1 - segL.T0), 0, 1) : 60;
+  const vG = clamp(210 * Math.sqrt((T + 273.15) / ((segG ? segG.T0 : T) + 273.15)), 120, 330);
+  for (let k = 0; k < sub; k++) {
+    for (const p of parts) {
+      if (p.st === 's') {
+        const tx = p.site.x + amp * Math.sin(S.clock * p.w1 + p.p1), ty = p.site.y + amp * Math.cos(S.clock * p.w2 + p.p2);
+        const e = Math.min(1, 14 * h); p.x += (tx - p.x) * e; p.y += (ty - p.y) * e; p.vx = p.vy = 0;
+        continue;
+      }
+      const g = p.st === 'g' ? 0 : 900;
+      p.vy += g * h; p.x += p.vx * h; p.y += p.vy * h;
+      const e = p.st === 'g' ? 1 : 0.5, r = p.r;
+      if (p.x < BX0 + r) { p.x = BX0 + r; p.vx = Math.abs(p.vx) * e; }
+      if (p.x > BX1 - r) { p.x = BX1 - r; p.vx = -Math.abs(p.vx) * e; }
+      if (p.y < BY0 + r) { p.y = BY0 + r; p.vy = Math.abs(p.vy) * e; }
+      if (p.y > BY1 - r) { p.y = BY1 - r; p.vy = -Math.abs(p.vy) * e; }
+    }
+    // contacts
+    const n = parts.length;
+    for (let i = 0; i < n; i++) {
+      const a = parts[i];
+      for (let j = i + 1; j < n; j++) {
+        const b = parts[j];
+        const ka = a.st === 's', kb = b.st === 's';
+        if (ka && kb) continue;
+        const dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy, D = a.r + b.r;
+        if (d2 >= D * D || d2 < 1e-8) continue;
+        const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, ov = D - d;
+        const ma = a.st === 'g' ? 1 : 3, mb = b.st === 'g' ? 1 : 3;
+        if (ka) { b.x += nx * ov; b.y += ny * ov; }
+        else if (kb) { a.x -= nx * ov; a.y -= ny * ov; }
+        else { const fa = mb / (ma + mb); a.x -= nx * ov * fa; a.y -= ny * ov * fa; b.x += nx * ov * (1 - fa); b.y += ny * ov * (1 - fa); }
+        const rv = ((kb ? 0 : b.vx) - (ka ? 0 : a.vx)) * nx + ((kb ? 0 : b.vy) - (ka ? 0 : a.vy)) * ny;
+        if (rv < 0) {
+          const ia = ka ? 0 : 1 / ma, ib = kb ? 0 : 1 / mb, j2 = -(1.9) * rv / (ia + ib);
+          if (!ka) { a.vx -= j2 * ia * nx; a.vy -= j2 * ia * ny; }
+          if (!kb) { b.vx += j2 * ib * nx; b.vy += j2 * ib * ny; }
+        }
+      }
+    }
+    // thermostat
+    for (const p of parts) {
+      if (p.st === 's') continue;
+      const vt = p.st === 'g' ? vG : p.st === 'r' ? 4 : vL, rate = p.st === 'g' ? 0.03 : 0.07;
+      let sp = Math.hypot(p.vx, p.vy);
+      if (sp < 1) { const a = rnd(0, TAU); p.vx = Math.cos(a); p.vy = Math.sin(a); sp = 1; }
+      const f = lerp(1, vt / sp, rate); p.vx *= f; p.vy *= f;
+    }
+    // les murs gagnent à la fin
+    for (const p of parts) if (p.st !== 's') { p.x = clamp(p.x, BX0 + p.r, BX1 - p.r); p.y = clamp(p.y, BY0 + p.r, BY1 - p.r); }
+  }
+}
+
+/* ---------- thème / canvas ---------- */
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  C = { canvas: g('--canvas'), glass: g('--glass'), text: g('--text'), muted: g('--muted'), accent: g('--accent'),
+        grid: g('--grid'), warm: g('--warm'), cool: g('--cool'), border: g('--border'), bg: g('--bg') };
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readTheme(); buildTri(); });
+const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+function fitCanvas(cv, LW, LH) {
+  const st = { scale: 1, dpr: 1 };
+  const rs = () => { const w = cv.clientWidth || LW; st.dpr = Math.min(2.5, window.devicePixelRatio || 1); st.scale = w / LW;
+    cv.width = Math.round(w * st.dpr); cv.height = Math.round(w * LH / LW * st.dpr); };
+  new ResizeObserver(rs).observe(cv); rs();
+  return st;
+}
+const cv = $('cv'), ctx = cv.getContext('2d'), CVS = fitCanvas(cv, W, H);
+const GW = 900, GH = 330, gr = $('gr'), gctx = gr.getContext('2d'), GRS = fitCanvas(gr, GW, GH);
+
+function tY(T) { const s = S.sub; return 396 - (T - s.Tmin) / (s.Tmax - s.Tmin) * 352; }
+function niceStep(range, n) {
+  const raw = range / n, p = 10 ** Math.floor(Math.log10(raw)), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p;
+}
+function drawScene(st) {
+  ctx.setTransform(CVS.dpr * CVS.scale, 0, 0, CVS.dpr * CVS.scale, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  // plaque
+  const P = S.P, k = Math.abs(P) / PMAX;
+  ctx.fillStyle = P > 0 ? `rgba(214,69,47,${0.25 + 0.6 * k})` : P < 0 ? `rgba(31,120,200,${0.25 + 0.6 * k})` : C.border;
+  roundRect(BX0, BY1 + 8, BX1 - BX0, 26, 7); ctx.fill();
+  ctx.fillStyle = P ? '#fff' : C.muted; ctx.font = '600 13px system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(P > 0 ? `Chauffage : ${P} W` : P < 0 ? `Refroidissement : ${-P} W` : 'Ni chauffage, ni refroidissement', (BX0 + BX1) / 2, BY1 + 21.5);
+  if (P > 0 && S.run) { // ondulations de chaleur
+    ctx.strokeStyle = `rgba(214,69,47,${0.35 * k})`; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 6; i++) { const x = BX0 + 40 + i * 64; ctx.beginPath();
+      for (let y = 0; y < 10; y++) ctx.lineTo(x + 3 * Math.sin(S.clock * 8 + y + i), BY1 + 6 - y); ctx.stroke(); }
+  }
+  // boîte
+  ctx.lineWidth = 2.5; ctx.strokeStyle = C.glass; roundRect(BX0 - 2, BY0 - 2, BX1 - BX0 + 4, BY1 - BY0 + 4, 8); ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.font = '12px system-ui,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('Boîte fermée, vue agrandie (modèle particulaire)', BX0 + 8, BY0 + 6);
+  // particules
+  const base = S.sub.rgb;
+  for (const p of parts) {
+    const c = p.salt ? [240, 150, 40] : base;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r - 0.6, 0, TAU);
+    ctx.fillStyle = rgba(c, 1); ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(p.x - p.r * .32, p.y - p.r * .32, p.r * .3, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fill();
+  }
+  if (S.sub.mix) {
+    ctx.font = '12px system-ui,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    [['eau', base], ['sel', [240, 150, 40]]].forEach(([t, c], i) => {
+      const x0 = BX1 - 96 + i * 50, y0 = BY0 + 13;
+      ctx.beginPath(); ctx.arc(x0, y0, 5, 0, TAU); ctx.fillStyle = rgba(c, 1); ctx.fill();
+      ctx.fillStyle = C.muted; ctx.fillText(t, x0 + 9, y0);
+    });
+  }
+  // thermomètre
+  const s = S.sub, x = 488, top = 40, bot = 396;
+  ctx.fillStyle = C.canvas; ctx.strokeStyle = C.glass; ctx.lineWidth = 2;
+  roundRect(x - 7, top - 8, 14, bot - top + 16, 7); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, 416, 15, 0, TAU); ctx.fillStyle = '#d6452f'; ctx.fill(); ctx.stroke();
+  const yT = tY(clamp(st.T, s.Tmin, s.Tmax));
+  ctx.fillStyle = '#d6452f'; ctx.fillRect(x - 3.5, yT, 7, 410 - yT);
+  const step = niceStep(s.Tmax - s.Tmin, 7);
+  ctx.font = '11px system-ui,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.muted; ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+  for (let T = Math.ceil(s.Tmin / step) * step; T <= s.Tmax + 1e-9; T += step) {
+    const y = tY(T); ctx.beginPath(); ctx.moveTo(x + 8, y); ctx.lineTo(x + 13, y); ctx.stroke(); ctx.fillText(num(T, 0), x + 16, y);
+  }
+  for (const g of S.segs) if (g.k === 'chg') {
+    const y0 = tY(g.T0), y1 = tY(g.T1), col = C.warm;
+    ctx.fillStyle = col; ctx.globalAlpha = .35; ctx.fillRect(x - 22, Math.min(y0, y1) - 1, 12, Math.abs(y1 - y0) + 2); ctx.globalAlpha = 1;
+    ctx.textAlign = 'right'; ctx.fillStyle = col; ctx.font = '600 10.5px system-ui,sans-serif';
+    ctx.fillText(g.Ln === 'fus' ? 'fusion' : g.Ln === 'vap' ? 'ébullition' : 'sublimation', x - 24, (y0 + y1) / 2);
+  }
+  ctx.textAlign = 'center'; ctx.fillStyle = C.text; ctx.font = '700 13px system-ui,sans-serif'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('θ (°C)', x + 8, 22);
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+
+/* ---------- courbe ---------- */
+function drawGraph() {
+  const g = gctx, s = S.sub, L = 56, Rm = 16, T0 = 14, B = 42, w = GW - L - Rm, hh = GH - T0 - B;
+  g.setTransform(GRS.dpr * GRS.scale, 0, 0, GRS.dpr * GRS.scale, 0, 0);
+  g.clearRect(0, 0, GW, GH);
+  const tNow = S.t / 60;
+  const xs = niceStep(Math.max(4, tNow * 1.12), 8), xmax = Math.max(4, Math.ceil(tNow * 1.12 / xs) * xs);
+  const X = t => L + t / xmax * w, Y = T => T0 + (1 - (T - s.Tmin) / (s.Tmax - s.Tmin)) * hh;
+  g.font = '11.5px system-ui,sans-serif'; g.lineWidth = 1;
+  const ys = niceStep(s.Tmax - s.Tmin, 7);
+  g.strokeStyle = C.grid; g.fillStyle = C.muted; g.textAlign = 'right'; g.textBaseline = 'middle';
+  for (let T = Math.ceil(s.Tmin / ys) * ys; T <= s.Tmax + 1e-9; T += ys) { const y = Y(T); g.beginPath(); g.moveTo(L, y); g.lineTo(L + w, y); g.stroke(); g.fillText(num(T, 0), L - 6, y); }
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  for (let t = 0; t <= xmax + 1e-9; t += xs) { const x = X(t); g.beginPath(); g.moveTo(x, T0); g.lineTo(x, T0 + hh); g.stroke(); g.fillText(num(t, 1), x, T0 + hh + 5); }
+  g.strokeStyle = C.muted; g.lineWidth = 1.5; g.beginPath(); g.moveTo(L, T0); g.lineTo(L, T0 + hh); g.lineTo(L + w, T0 + hh); g.stroke();
+  g.fillStyle = C.text; g.font = '600 12px system-ui,sans-serif';
+  g.fillText('t (min)', L + w / 2, T0 + hh + 22);
+  g.save(); g.translate(14, T0 + hh / 2); g.rotate(-Math.PI / 2); g.textBaseline = 'middle'; g.fillText('θ (°C)', 0, 0); g.restore();
+  // températures de changement d'état
+  for (const sg of S.segs) if (sg.k === 'chg') {
+    g.fillStyle = C.warm; g.strokeStyle = C.warm;
+    if (sg.T0 === sg.T1) { g.setLineDash([5, 5]); g.globalAlpha = .6; g.beginPath(); g.moveTo(L, Y(sg.T0)); g.lineTo(L + w, Y(sg.T0)); g.stroke(); g.setLineDash([]); }
+    else { g.globalAlpha = .12; g.fillRect(L, Y(sg.T1), w, Y(sg.T0) - Y(sg.T1)); }
+    g.globalAlpha = 1; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.font = '600 11.5px system-ui,sans-serif';
+    const nm = sg.Ln === 'fus' ? 'fusion' : sg.Ln === 'vap' ? 'ébullition' : 'sublimation';
+    g.fillText(sg.T0 === sg.T1 ? `θ ${nm} = ${num(sg.T0)} °C` : `${nm} entre ${num(sg.T0)} et ${num(sg.T1)} °C`, L + w - 4, Y(sg.T1) - 3);
+  }
+  // tracé
+  const pts = S.pts; if (pts.length < 2) return;
+  g.lineJoin = 'round'; g.lineCap = 'round';
+  g.strokeStyle = C.accent; g.lineWidth = 2.5; g.beginPath();
+  pts.forEach((p, i) => i ? g.lineTo(X(p.t / 60), Y(p.T)) : g.moveTo(X(p.t / 60), Y(p.T))); g.stroke();
+  // changements d'état : en surbrillance, avec étiquette
+  let run = null; const runs = [];
+  for (const p of pts) {
+    const key = p.c ? p.c + p.s : '';
+    if (run && run.key === key) run.b = p; else { if (run && run.key) runs.push(run); run = { key, a: p, b: p, c: p.c, pure: p.pure }; }
+  }
+  if (run && run.key) runs.push(run);
+  for (const r of runs) {
+    const seg = pts.slice(pts.indexOf(r.a), pts.indexOf(r.b) + 1);
+    g.strokeStyle = C.warm; g.lineWidth = 5; g.beginPath();
+    seg.forEach((p, i) => i ? g.lineTo(X(p.t / 60), Y(p.T)) : g.moveTo(X(p.t / 60), Y(p.T))); g.stroke();
+    const xa = X(r.a.t / 60), xb = X(r.b.t / 60);
+    if (xb - xa > 40) {
+      g.fillStyle = C.warm; g.font = '700 12px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'bottom';
+      const ym = Math.min(Y(r.a.T), Y(r.b.T)) - 8;
+      g.fillText(r.pure ? `palier : ${r.c}` : `${r.c} (pas de palier)`, (xa + xb) / 2, ym);
+    }
+  }
+}
+
+/* ---------- schéma des changements d'état ---------- */
+const NODES = { g: { x: 150, y: 34 }, s: { x: 52, y: 212 }, l: { x: 248, y: 212 } };
+const tri = $('tri');
+function buildTri() {
+  const ns = 'http://www.w3.org/2000/svg';
+  let html = '';
+  for (const [k, v] of Object.entries(CHG)) {
+    const A = NODES[k[0]], B = NODES[k[1]];
+    const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d, nx = -uy, ny = ux;
+    const off = 8, r0 = 40, x0 = A.x + ux * r0 + nx * off, y0 = A.y + uy * r0 + ny * off, x1 = B.x - ux * r0 + nx * off, y1 = B.y - uy * r0 + ny * off;
+    const col = v.endo ? C.warm : C.cool;
+    const ah = `${x1},${y1} ${x1 - ux * 11 + nx * 5},${y1 - uy * 11 + ny * 5} ${x1 - ux * 11 - nx * 5},${y1 - uy * 11 - ny * 5}`;
+    const lx = (x0 + x1) / 2 + nx * 15, ly = (y0 + y1) / 2 + ny * 15;
+    const rot = Math.atan2(dy, dx) * 180 / Math.PI, rr = (rot > 90 || rot < -90) ? rot + 180 : rot;
+    html += `<g class="arr" data-k="${k}" tabindex="0" role="button" aria-label="${v.nom}">
+      <line x1="${x0}" y1="${y0}" x2="${x1 - ux * 8}" y2="${y1 - uy * 8}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"/>
+      <polygon points="${ah}" fill="${col}"/>
+      <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="transparent" stroke-width="18"/>
+      <text x="${lx}" y="${ly}" fill="${col}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${rr} ${lx} ${ly})">${v.nom}</text></g>`;
+  }
+  for (const [k, n] of Object.entries(NODES))
+    html += `<g class="node"><rect x="${n.x - 38}" y="${n.y - 15}" width="76" height="30" rx="9"/><text x="${n.x}" y="${n.y + 1}" text-anchor="middle" dominant-baseline="middle">${cap(PH[k])}</text></g>`;
+  tri.innerHTML = html;
+  tri.querySelectorAll('.arr').forEach(el => {
+    const f = () => { const v = CHG[el.dataset.k];
+      say(`<strong>${cap(v.nom)}</strong> : ${v.def}. Exemple : ${v.ex}. ${v.endo ? "Transformation <strong>endothermique</strong> : le système reçoit de l'énergie du milieu extérieur." : "Transformation <strong>exothermique</strong> : le système cède de l'énergie au milieu extérieur."}`);
+      S.key = 'clic'; };
+    el.addEventListener('click', f); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } });
+  });
+  highlightTri(S.lastChg || null);
+}
+function highlightTri(k) { S.lastChg = k; tri.querySelectorAll('.arr').forEach(el => el.classList.toggle('on', el.dataset.k === k)); }
+
+/* ---------- messages ---------- */
+const msg = $('msg');
+function say(h) { msg.innerHTML = h; }
+function zoneMessage(st, dir) {
+  const s = S.sub, g = st.seg;
+  if (S.limit) return dir > 0 ? 'Température maximale de la simulation atteinte : refroidis, ou repars d\'un autre état.' : 'Température minimale de la simulation atteinte : chauffe, ou repars d\'un autre état.';
+  if (dir === 0) return "Ni chauffage ni refroidissement : le système n'échange plus d'énergie, sa température ne change pas.";
+  if (g.k === 'sens') {
+    const up = dir > 0;
+    if (g.ph === 's') return up ? `${cap(s.art)} solide s'échauffe : ses particules restent ordonnées mais vibrent de plus en plus fort autour de leur position. Pas de changement d'état : la température monte.`
+      : `${cap(s.art)} solide se refroidit : ses particules vibrent de moins en moins. La température baisse.`;
+    if (g.ph === 'l') return up ? `${cap(s.art)} liquide s'échauffe : ses particules, toujours au contact mais désordonnées, s'agitent de plus en plus. La température monte.`
+      : `${cap(s.art)} liquide se refroidit : ses particules s'agitent de moins en moins. La température baisse.`;
+    return up ? `Le gaz s'échauffe : ses particules, très éloignées les unes des autres, se déplacent de plus en plus vite.`
+      : `Le gaz se refroidit : ses particules ralentissent.`;
+  }
+  const c = CHG[dir > 0 ? g.a + g.b : g.b + g.a];
+  const thermo = c.endo ? `La ${c.nom} est <strong>endothermique</strong>.` : `La ${c.nom} est <strong>exothermique</strong>.`;
+  if (g.T0 === g.T1) return `<strong>${cap(c.nom)}</strong> ${deArt(s.art)} : tant que les deux états coexistent, la température reste <strong>constante à ${num(g.T0)} °C</strong>, c'est le <strong>palier</strong>. `
+    + (dir > 0 ? "L'énergie reçue sert à défaire l'organisation des particules, pas à élever la température. " : "Le système cède de l'énergie au milieu extérieur sans que sa température baisse. ") + thermo;
+  return `<strong>${cap(c.nom)}</strong> de l'eau salée : <strong>pas de palier</strong> ! La température continue de ${dir > 0 ? 'monter' : 'baisser'} pendant le changement d'état (entre ${num(g.T0)} et ${num(g.T1)} °C), car la composition du liquide change. C'est ainsi qu'on reconnaît un mélange. ${thermo}`;
+}
+
+/* ---------- lectures ---------- */
+function updateReadout(st) {
+  const s = S.sub, g = st.seg, dir = Math.sign(S.P);
+  $('r-temp').textContent = 'θ = ' + fr(st.T, 1) + ' °C';
+  const parts_ = ['s', 'l', 'g'].filter(p => st.fr[p] > 0.004).map(p => `${PH[p]} ${Math.round(st.fr[p] * 100)} %`);
+  $('r-state').textContent = 'État : ' + (parts_.length > 1 ? parts_.join(' + ') : PH[['s', 'l', 'g'].find(p => st.fr[p] > 0.5)]) + (s.mix ? ' (eau salée)' : '');
+  const bar = $('r-bar');
+  if (g.k === 'chg') {
+    const k = dir < 0 ? g.b + g.a : g.a + g.b, c = CHG[k];
+    const A = k[0], B = k[1];
+    $('r-eq').innerHTML = `${s.f}(${SYM[A]}) → ${s.f}(${SYM[B]}) <span class="tag ${c.endo ? 't-endo' : 't-exo'}">${c.endo ? 'endothermique' : 'exothermique'}</span>`;
+    const Q = S.m * g.L, done = dir < 0 ? 1 - st.x : st.x;
+    $('r-energy').innerHTML = `${cap(c.nom)} de toute la masse : Q = m × L<sub>${g.Ln}</sub> = ${fr(S.m, 3)} kg × ${sci(g.L)} J/kg = <strong>${sci(Q)} J</strong> ${c.endo ? 'à fournir' : 'à céder'}.`;
+    bar.hidden = false; $('r-bar-i').style.width = (done * 100).toFixed(1) + '%';
+    highlightTri(dir ? k : null);
+  } else {
+    $('r-eq').innerHTML = `<span class="small">Pas de changement d'état en cours.</span>`;
+    $('r-energy').textContent = ''; bar.hidden = true;
+    highlightTri(null);
+  }
+  $('r-q').innerHTML = `Énergie échangée depuis le départ : ${S.Q >= 0 ? 'reçue' : 'cédée'} ${sci(Math.abs(S.Q))} J.`;
+}
+
+/* ---------- interface ---------- */
+const subsEl = $('subs');
+SUBS.forEach(s => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'item'; b.dataset.id = s.id;
+  const info = s.Tsub != null ? `sublimation ${num(s.Tsub)} °C` : s.mix ? 'mélange' : `fusion ${num(s.Tf)} °C` + (s.Teb != null ? ` · éb. ${num(s.Teb)} °C` : '');
+  b.innerHTML = `${s.nom} <small>${s.f}${s.mix ? ' + sel' : ''} · ${info}</small>`;
+  b.addEventListener('click', () => selectSub(s.id));
+  subsEl.appendChild(b);
+});
+function selectSub(id) {
+  S.sub = SUBS.find(s => s.id === id); S.segs = buildSegs(S.sub);
+  const htot = S.segs[S.segs.length - 1].h1;
+  S.k = htot * MREF / (PMAX * 45);
+  subsEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === id));
+  $('speed').textContent = `Temps accéléré environ ${Math.round(S.k)} fois. Le temps ne s'écoule que pendant qu'on chauffe ou qu'on refroidit.`;
+  restart(S.sub.Tsub != null ? 's' : 's');
+}
+function restart(state) {
+  const s = S.sub, segs = S.segs;
+  if (state === 'l' && !segs.some(g => g.k === 'sens' && g.ph === 'l')) state = 's';
+  const sens = segs.find(g => g.k === 'sens' && g.ph === state);
+  let h;
+  if (state === 's') { h = 0; if (S.P < 0) setP(Math.abs(S.P) || 400); }
+  else if (state === 'g') { h = segs[segs.length - 1].h1; if (S.P > 0) setP(-S.P); }
+  else { const T = clamp(20, sens.T0 + 2, sens.T1 - 2); h = sens.h0 + (T - sens.T0) * sens.c; }
+  S.h = h; S.t = 0; S.Q = 0; S.pts = []; S.key = ''; S.limit = false;
+  placeParticles(stateAt(segs, h).fr);
+  updateStartBtns();
+}
+function updateStartBtns() {
+  $('starts').querySelectorAll('button').forEach(b => {
+    const ok = S.segs.some(g => g.k === 'sens' && g.ph === b.dataset.start);
+    b.disabled = !ok; b.title = ok ? '' : 'Pas d\'état liquide pour ce corps à la pression atmosphérique';
+  });
+}
+$('starts').addEventListener('click', e => { const b = e.target.closest('button'); if (b) restart(b.dataset.start); });
+function setP(P) { S.P = P; $('pw').value = P; showP(); S.limit = false; }
+function showP() { const P = S.P; $('pw-out').textContent = (P > 0 ? '+' : '') + P + ' W'; }
+$('pw').addEventListener('input', e => { S.P = +e.target.value; S.limit = false; showP(); });
+$('heat').addEventListener('click', () => setP(Math.max(100, Math.abs(S.P) || 400)));
+$('cool').addEventListener('click', () => setP(-Math.max(100, Math.abs(S.P) || 400)));
+$('stop').addEventListener('click', () => setP(0));
+function showM() { $('ms-out').textContent = Math.round(S.m * 1000) + ' g'; }
+$('ms').addEventListener('input', e => { S.m = +e.target.value / 1000; showM(); });
+$('pause').addEventListener('click', () => { S.run = !S.run; $('pause').textContent = S.run ? 'Pause' : 'Reprendre'; });
+const scene = $('sc'), fsBtn = $('fs');
+if (!scene.requestFullscreen) fsBtn.hidden = true;
+fsBtn.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : scene.requestFullscreen());
+document.addEventListener('fullscreenchange', () => { fsBtn.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'; });
+
+/* ---------- boucle ---------- */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const htot = S.segs[S.segs.length - 1].h1;
+  if (S.run) {
+    S.clock += dt;
+    if (S.P !== 0 && !S.limit) {
+      const dts = dt * S.k, dh = S.P * dts / S.m;
+      let h = S.h + dh;
+      if (h >= htot || h <= 0) { h = clamp(h, 0, htot); S.limit = true; }
+      S.Q += (h - S.h) * S.m; S.h = h; S.t += dts;
+      const st = stateAt(S.segs, S.h), g = st.seg, dir = Math.sign(S.P);
+      const c = g.k === 'chg' ? CHG[dir > 0 ? g.a + g.b : g.b + g.a].nom : '';
+      const lp = S.pts[S.pts.length - 1];
+      if (!lp || S.t - lp.t > 0.4 || lp.c !== c) S.pts.push({ t: S.t, T: st.T, c, s: st.i + ':' + dir, pure: g.T0 === g.T1 });
+      if (S.pts.length > 4000) S.pts = S.pts.filter((p, i) => i % 2 === 0 || p.c);
+    }
+  }
+  const st = stateAt(S.segs, S.h);
+  syncStates(st.fr);
+  if (S.run) stepParticles(dt, st.T);
+  const dir = Math.sign(S.P), key = st.i + ':' + dir + ':' + S.limit;
+  if (key !== S.key && S.key !== 'clic') { S.key = key; say(zoneMessage(st, dir)); }
+  else if (S.key === 'clic' && S.P !== 0 && S.run && !S.limit) { S.key = key; } // le message cliqué reste jusqu'au prochain changement de zone
+  updateReadout(st);
+  drawScene(st); drawGraph();
+  requestAnimationFrame(frame);
+}
+
+/* ======================================================================
+   EXERCICES
+   ====================================================================== */
+const SUPMAP = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-' };
+function parseNum(str) {
+  let s = String(str || '').trim().replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-').replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, c => SUPMAP[c]);
+  s = s.replace(/(J|kg|J\/kg|J\.kg-1|g)$/i, '');
+  let m = s.match(/^([-+]?\d*\.?\d+)(?:[eE]([-+]?\d+))?$/);
+  if (m) return parseFloat(m[1]) * 10 ** (+(m[2] || 0));
+  m = s.match(/^([-+]?\d*\.?\d+)[×x*·.]10\^?\(?([-+]?\d+)\)?$/i);
+  if (m) return parseFloat(m[1]) * 10 ** (+m[2]);
+  m = s.match(/^10\^?\(?([-+]?\d+)\)?$/);
+  if (m) return 10 ** (+m[1]);
+  return NaN;
+}
+const close = (a, b, tol = 0.015) => isFinite(a) && Math.abs(a - b) <= tol * Math.abs(b);
+const opts = (list, ph) => `<option value="">${ph}</option>` + list.map(v => `<option value="${v}">${v}</option>`).join('');
+const energyOpts = () => `<option value="">— énergie —</option><option value="endo">endothermique</option><option value="exo">exothermique</option>`;
+const gfmt = m => fr(m, 1);
+
+/* 1. Nommer le changement d'état */
+const SITU = [
+  { t: "De la buée apparaît sur le miroir de la salle de bain après une douche.", c: 'liquéfaction', w: "la vapeur d'eau de l'air devient liquide au contact du miroir froid, en lui cédant de l'énergie" },
+  { t: "Un glaçon posé sur la table devient de l'eau liquide.", c: 'fusion', w: "la glace reçoit de l'énergie de l'air ambiant" },
+  { t: "Le linge mouillé sèche sur le fil.", c: 'vaporisation', w: "l'eau liquide du linge devient vapeur en recevant de l'énergie de l'air" },
+  { t: "Du givre se forme sur un pare-brise une nuit d'hiver, directement à partir de la vapeur d'eau de l'air.", c: 'condensation', w: "la vapeur d'eau passe directement à l'état solide en cédant de l'énergie à la vitre glacée" },
+  { t: "Un morceau de carboglace (CO₂ solide) « fume » et disparaît sans laisser de liquide.", c: 'sublimation', w: "le CO₂ solide passe directement à l'état gazeux en recevant de l'énergie de l'air" },
+  { t: "La lave d'un volcan refroidit et devient de la roche.", c: 'solidification', w: "la roche liquide cède de l'énergie à l'air et au sol" },
+  { t: "L'eau d'une flaque gèle pendant la nuit.", c: 'solidification', w: "l'eau liquide cède de l'énergie à l'air froid" },
+  { t: "Un carré de chocolat fond dans la bouche.", c: 'fusion', w: "le chocolat reçoit de l'énergie de la bouche, plus chaude" },
+  { t: "De la rosée se dépose sur l'herbe au petit matin.", c: 'liquéfaction', w: "la vapeur d'eau de l'air devient liquide sur l'herbe refroidie pendant la nuit" },
+  { t: "L'eau bout dans une casserole.", c: 'vaporisation', w: "l'eau liquide reçoit de l'énergie de la plaque et devient vapeur" },
+  { t: "Du métal liquide versé dans un moule refroidit et durcit.", c: 'solidification', w: "le métal liquide cède de l'énergie au moule" },
+  { t: "Des boules de naphtaline (antimites) rapetissent dans un placard sans jamais laisser de liquide.", c: 'sublimation', w: "la naphtaline solide passe directement à l'état gazeux" },
+  { t: "Une goutte de parfum disparaît de la peau.", c: 'vaporisation', w: "le parfum liquide devient gazeux en prenant de l'énergie à la peau (on ressent du froid)" },
+  { t: "Des gouttes d'eau se forment sur une canette sortie du réfrigérateur.", c: 'liquéfaction', w: "la vapeur d'eau de l'air se liquéfie sur la canette froide en lui cédant de l'énergie" },
+  { t: "Une couche de givre se forme sur les parois d'un congélateur, à partir de la vapeur d'eau de l'air.", c: 'condensation', w: "la vapeur d'eau devient directement solide en cédant de l'énergie aux parois très froides" },
+  { t: "Au sommet d'une montagne, par temps très froid et sec, la neige disparaît sans fondre.", c: 'sublimation', w: "la glace passe directement à l'état de vapeur" },
+  { t: "On fait fondre du beurre dans une poêle.", c: 'fusion', w: "le beurre reçoit de l'énergie de la poêle chaude" },
+  { t: "La cire d'une bougie coule, puis redevient dure en tombant sur la table.", c: 'solidification', w: "la cire liquide cède de l'énergie à la table, plus froide" }
+];
+function exoNommer() {
+  const sit = shuffle(SITU).slice(0, 3);
+  return {
+    titre: "Nommer le changement d'état",
+    enonce: "Pour chaque situation, nomme le changement d'état et indique s'il est endothermique ou exothermique.",
+    rep: sit.map((s, i) => `<div class="q"><p>${i + 1}. ${s.t}</p><div class="row">
+      <select data-i="${i}" data-k="c" aria-label="Changement d'état, situation ${i + 1}">${opts(CHG_NAMES, "— changement d'état —")}</select>
+      <select data-i="${i}" data-k="e" aria-label="Énergie, situation ${i + 1}">${energyOpts()}</select></div></div>`).join(''),
+    check(el) {
+      let ok = 0; const bad = [];
+      sit.forEach((s, i) => {
+        const c = el.querySelector(`select[data-i="${i}"][data-k="c"]`).value, e = el.querySelector(`select[data-i="${i}"][data-k="e"]`).value;
+        const good = CHG_BY_NAME[s.c].endo ? 'endo' : 'exo';
+        if (c === s.c) ok++; else bad.push(`situation ${i + 1} : le nom du changement d'état`);
+        if (e === good) ok++; else bad.push(`situation ${i + 1} : endo ou exothermique`);
+      });
+      return { ok: ok === 6, html: ok === 6 ? 'Bravo, tout est juste !' : `${ok} réponse${ok > 1 ? 's' : ''} juste${ok > 1 ? 's' : ''} sur 6. À revoir : ${bad.join(' ; ')}.` };
+    },
+    corr: sit.map((s, i) => { const c = CHG_BY_NAME[s.c];
+      return `${i + 1}. <span class="res">${cap(s.c)}</span> (${PH[c.a]} → ${PH[c.b]}), <span class="res">${c.endo ? 'endothermique' : 'exothermique'}</span> : ${s.w}.`; }).join('<br>')
+  };
+}
+
+/* 2. Calculer l'énergie Q = m × L */
+const CALC = [
+  { t: m => `Calculer l'énergie Q nécessaire pour faire fondre une masse m = ${m} g de glace prise à 0 °C.`, L: 3.34e5, Ln: 'fus', esp: "eau", verbe: 'reçue', c: 'fusion' },
+  { t: m => `Calculer l'énergie Q nécessaire pour vaporiser une masse m = ${m} g d'eau liquide à 100 °C.`, L: 2.26e6, Ln: 'vap', esp: "eau", verbe: 'reçue', c: 'vaporisation' },
+  { t: m => `Calculer l'énergie Q libérée lorsque m = ${m} g de vapeur d'eau à 100 °C se liquéfient (c'est pour cela qu'une brûlure par la vapeur est si grave).`, L: 2.26e6, Ln: 'vap', esp: "eau", verbe: 'cédée', c: 'liquéfaction' },
+  { t: m => `Calculer l'énergie Q libérée par la solidification de m = ${m} g d'acide stéarique liquide à 69 °C.`, L: 1.99e5, Ln: 'fus', esp: "acide stéarique", verbe: 'cédée', c: 'solidification' },
+  { t: m => `Calculer l'énergie Q nécessaire pour vaporiser m = ${m} g d'éthanol liquide à 78 °C.`, L: 8.37e5, Ln: 'vap', esp: "éthanol", verbe: 'reçue', c: 'vaporisation' },
+  { t: m => `Calculer l'énergie Q nécessaire pour sublimer m = ${m} g de carboglace (CO₂ solide) à −78,5 °C.`, L: 5.73e5, Ln: 'sub', esp: "dioxyde de carbone", verbe: 'reçue', c: 'sublimation' },
+  { t: m => `Calculer l'énergie Q libérée par la solidification de m = ${m} g d'eau liquide à 0 °C.`, L: 3.34e5, Ln: 'fus', esp: "eau", verbe: 'cédée', c: 'solidification' }
+];
+function exoCalcul() {
+  const v = pick(CALC);
+  let mg; do { mg = rint(105, 950); } while (mg % 10 === 0);
+  const m = mg / 1000, Q = round3(m * v.L), endo = CHG_BY_NAME[v.c].endo;
+  const Lname = `L<sub>${v.Ln}</sub>(${v.esp})`;
+  return {
+    titre: "Calculer une énergie de changement d'état",
+    enonce: `${v.t(mg)}<br><span class="small">Donnée : ${Lname} = ${sci(v.L)} J/kg.</span>`,
+    rep: `<div class="q"><p>Q = ? (en joules)</p><div class="row"><input type="text" data-k="q" inputmode="decimal" autocomplete="off" aria-label="Énergie Q en joules" placeholder="ex. 1,23e4"> <span>J</span></div>
+      <p class="small" style="font-weight:400">Tu peux écrire 8,18e4 ou 8,18×10^4.</p></div>`,
+    check(el) {
+      const x = parseNum(el.querySelector('[data-k=q]').value);
+      if (!isFinite(x)) return { ok: false, html: "Écris un nombre (par exemple 8,18e4 pour 8,18 × 10<sup>4</sup>)." };
+      if (close(Math.abs(x), Q)) return { ok: true, html: `Bravo : Q = ${sci(Q)} J.` };
+      if (close(Math.abs(x), Q * 1000)) return { ok: false, html: "Ton résultat est 1000 fois trop grand : as-tu converti la masse en kilogrammes ?" };
+      if (close(Math.abs(x), v.L / mg) || close(Math.abs(x), v.L / m)) return { ok: false, html: "Attention : on multiplie la masse par L, on ne divise pas." };
+      return { ok: false, html: "Ce n'est pas la bonne valeur. Vérifie la relation et les unités." };
+    },
+    corr: `Conversion : m = ${mg} g = ${fr(m, 3)} kg.<br>
+      Expression littérale : Q = m × ${Lname}<br>
+      Application numérique : Q = ${fr(m, 3)} × ${sci(v.L)}<br>
+      Résultat : <span class="res">Q = ${sci(Q)} J</span> (3 chiffres significatifs, comme les données).<br>
+      ${endo ? `L'énergie est reçue par le système : la ${v.c} est endothermique.` : `L'énergie est cédée par le système au milieu extérieur : la ${v.c} est exothermique.`}`
+  };
+}
+
+/* 3. Retrouver L et identifier le solide */
+const LTAB = [
+  { n: 'Aluminium', L: 3.97e5 }, { n: 'Eau', L: 3.34e5 }, { n: 'Fer', L: 2.47e5 }, { n: 'Acide stéarique', L: 1.99e5 },
+  { n: 'Éthanol', L: 1.08e5 }, { n: 'Cyclohexane', L: 3.18e4 }, { n: 'Plomb', L: 2.30e4 }
+];
+function exoIdentifier() {
+  const sp = pick(LTAB), mg = rint(200, 950) / 10, m = mg / 1000, Q = round3(m * sp.L), L = round3(Q / m);
+  return {
+    titre: "Retrouver L et identifier l'espèce",
+    enonce: `Pour faire fondre entièrement m = ${gfmt(mg)} g d'un solide inconnu pris à sa température de fusion, il faut lui fournir Q = ${sci(Q)} J.
+      <div class="tbl"><table class="data"><tr><th>Espèce</th>${LTAB.map(x => `<th>${x.n}</th>`).join('')}</tr><tr><th>L<sub>fus</sub> (J/kg)</th>${LTAB.map(x => `<td>${sci(x.L)}</td>`).join('')}</tr></table></div>`,
+    rep: `<div class="q"><p>a) Calculer l'énergie massique de fusion L<sub>fus</sub> de ce solide.</p><div class="row"><input type="text" data-k="l" inputmode="decimal" autocomplete="off" aria-label="L fusion en joules par kilogramme"> <span>J/kg</span></div></div>
+      <div class="q"><p>b) Identifier le solide.</p><select data-k="n" aria-label="Espèce">${opts(LTAB.map(x => x.n), '— espèce —')}</select></div>`,
+    check(el) {
+      const x = parseNum(el.querySelector('[data-k=l]').value), n = el.querySelector('[data-k=n]').value;
+      const okL = close(x, L, 0.02), okN = n === sp.n, out = [];
+      out.push(okL ? `a) Juste : L<sub>fus</sub> = ${sci(L)} J/kg.` : !isFinite(x) ? 'a) Écris un nombre.' : close(x, L / 1000, 0.02) ? 'a) Ton résultat est 1000 fois trop petit : la masse doit être en kg.' : close(x, Q * m, 0.02) ? 'a) On divise Q par m : L = Q / m.' : 'a) Valeur incorrecte : L = Q / m, avec m en kg.');
+      out.push(okN ? 'b) Juste.' : n ? 'b) Ce n\'est pas cette espèce : compare ta valeur de L au tableau.' : 'b) Choisis une espèce.');
+      return { ok: okL && okN, html: out.join('<br>') };
+    },
+    corr: `a) Q = m × L<sub>fus</sub>, donc l'expression littérale est : L<sub>fus</sub> = Q / m<br>
+      Conversion : m = ${gfmt(mg)} g = ${sci(m)} kg<br>
+      Application numérique : L<sub>fus</sub> = ${sci(Q)} / ${sci(m)}<br>
+      Résultat : <span class="res">L<sub>fus</sub> = ${sci(L)} J/kg</span><br>
+      b) Cette valeur correspond à celle du tableau pour : <span class="res">${sp.n.toLowerCase()}</span>.`
+  };
+}
+
+/* 4. Exploiter une courbe de température */
+const TFTAB = [
+  { n: 'Eau', T: 0 }, { n: 'Cyclohexane', T: 6.5 }, { n: 'Acide laurique', T: 44 }, { n: 'Paradichlorobenzène', T: 53 },
+  { n: 'Acide palmitique', T: 63 }, { n: 'Acide stéarique', T: 69 }, { n: 'Naphtalène', T: 80 }
+];
+const NONE = "Aucune : ce n'est pas un corps pur";
+function exoCourbe() {
+  const pure = Math.random() < 0.72, heat = Math.random() < 0.5;
+  const sp = pick(TFTAB);
+  const Tc = pure ? sp.T : rint(45, 62);
+  const lo = Tc - rint(15, 20), hi = Tc + rint(16, 22);
+  const t1 = rnd(3, 4.5), t2 = t1 + rnd(4, 6), t3 = t2 + rnd(3, 4);
+  // courbe θ(t)
+  const curve = [];
+  for (let i = 0; i <= 240; i++) {
+    const t = t3 * i / 240; let T;
+    const A = heat ? lo : hi, Bv = heat ? hi : lo;
+    if (pure) {
+      if (t < t1) { const u = t / t1; T = lerp(A, Tc, heat ? u : 1 - (1 - u) ** 1.6 ); }
+      else if (t < t2) T = Tc;
+      else { const u = (t - t2) / (t3 - t2); T = lerp(Tc, Bv, heat ? u : 1 - (1 - u) ** 1.4); }
+    } else {
+      // mélange : la pente diminue pendant le changement d'état, sans palier
+      const Ta = heat ? Tc - 7 : Tc, Tb = heat ? Tc : Tc - 7;
+      if (t < t1) T = lerp(A, Ta, t / t1);
+      else if (t < t2) T = lerp(Ta, Tb, (t - t1) / (t2 - t1));
+      else T = lerp(Tb, Bv, (t - t2) / (t3 - t2));
+    }
+    curve.push([t, T]);
+  }
+  const chg = heat ? 'fusion' : 'solidification';
+  const ans = pure ? sp.n : NONE;
+  return {
+    titre: "Exploiter une courbe de température",
+    enonce: `On ${heat ? 'chauffe' : 'refroidit'} régulièrement un échantillon solide${heat ? '' : ' (initialement liquide)'} et on relève sa température au cours du temps.`.replace('échantillon solide (initialement liquide)', 'échantillon initialement liquide')
+      + `<canvas class="mini" width="560" height="300" role="img" aria-label="Courbe de température de l'échantillon"></canvas>
+      <div class="tbl"><table class="data"><tr><th>Espèce</th>${TFTAB.map(x => `<th>${x.n}</th>`).join('')}</tr><tr><th>θ<sub>fus</sub> (°C)</th>${TFTAB.map(x => `<td>${num(x.T)}</td>`).join('')}</tr></table></div>`,
+    rep: `<div class="q"><p>a) Quel changement d'état se produit ?</p><select data-k="c" aria-label="Changement d'état">${opts(CHG_NAMES, "— changement d'état —")}</select></div>
+      <div class="q"><p>b) L'échantillon est-il un corps pur ou un mélange ?</p><div class="choices">
+        <label class="choice"><input type="radio" name="pm" value="pur"> corps pur</label><label class="choice"><input type="radio" name="pm" value="mel"> mélange</label></div></div>
+      <div class="q"><p>c) Identifier l'espèce à l'aide du tableau.</p><select data-k="n" aria-label="Espèce">${opts(TFTAB.map(x => x.n).concat([NONE]), '— espèce —')}</select></div>`,
+    after(el) {
+      const c = el.querySelector('canvas.mini'), g = c.getContext('2d'), d = Math.min(2.5, devicePixelRatio || 1);
+      c.width = 560 * d; c.height = 300 * d; g.scale(d, d);
+      const L = 50, B = 36, w = 560 - L - 14, h = 300 - 12 - B, ymin = Math.floor((lo - 3) / 5) * 5, ymax = Math.ceil((hi + 3) / 5) * 5, xmax = Math.ceil(t3);
+      const X = t => L + t / xmax * w, Y = T => 12 + (1 - (T - ymin) / (ymax - ymin)) * h;
+      g.font = '11px system-ui,sans-serif'; g.strokeStyle = C.grid; g.fillStyle = C.muted; g.lineWidth = 1;
+      g.textAlign = 'right'; g.textBaseline = 'middle';
+      for (let T = ymin; T <= ymax; T += 5) { g.beginPath(); g.moveTo(L, Y(T)); g.lineTo(L + w, Y(T)); g.stroke(); if ((T - ymin) % 10 === 0 || ymax - ymin <= 40) g.fillText(num(T), L - 5, Y(T)); }
+      g.textAlign = 'center'; g.textBaseline = 'top';
+      for (let t = 0; t <= xmax; t++) { g.beginPath(); g.moveTo(X(t), 12); g.lineTo(X(t), 12 + h); g.stroke(); g.fillText(t, X(t), 12 + h + 4); }
+      g.strokeStyle = C.muted; g.lineWidth = 1.4; g.beginPath(); g.moveTo(L, 12); g.lineTo(L, 12 + h); g.lineTo(L + w, 12 + h); g.stroke();
+      g.fillStyle = C.text; g.font = '600 11.5px system-ui,sans-serif'; g.fillText('t (min)', L + w / 2, 12 + h + 18);
+      g.save(); g.translate(13, 12 + h / 2); g.rotate(-Math.PI / 2); g.textBaseline = 'middle'; g.fillText('θ (°C)', 0, 0); g.restore();
+      g.strokeStyle = C.accent; g.lineWidth = 2.5; g.lineJoin = 'round'; g.beginPath();
+      curve.forEach(([t, T], i) => i ? g.lineTo(X(t), Y(T)) : g.moveTo(X(t), Y(T))); g.stroke();
+    },
+    check(el) {
+      const c = el.querySelector('[data-k=c]').value, pm = (el.querySelector('input[name=pm]:checked') || {}).value, n = el.querySelector('[data-k=n]').value;
+      const r = [c === chg, pm === (pure ? 'pur' : 'mel'), n === ans];
+      return { ok: r.every(Boolean), html: ['a)', 'b)', 'c)'].map((q, i) => `${q} ${r[i] ? 'juste' : 'à revoir'}`).join(' · ') };
+    },
+    corr: `a) L'échantillon passe de l'état ${heat ? 'solide' : 'liquide'} à l'état ${heat ? 'liquide' : 'solide'} : c'est une <span class="res">${chg}</span>.<br>`
+      + (pure ? `b) La courbe présente un <strong>palier</strong> : la température reste constante pendant le changement d'état. C'est un <span class="res">corps pur</span>.<br>
+          c) On lit la température du palier : θ = ${num(Tc)} °C. D'après le tableau, c'est <span class="res">${sp.n.toLowerCase()}</span>.`
+        : `b) La courbe ne présente <strong>pas de palier</strong> : la température continue de varier pendant le changement d'état (la pente change seulement). C'est un <span class="res">mélange</span>.<br>
+          c) Un mélange n'a pas de température de changement d'état fixe : <span class="res">on ne peut pas l'identifier</span> avec ce tableau.`)
+  };
+}
+
+/* 5. Écrire l'équation d'une transformation physique */
+const EQS = [
+  { f: 'Fe', n: 'du fer', c: 'fusion', ctx: 'dans un haut-fourneau' }, { f: 'H₂O', n: "de l'eau", c: 'solidification', ctx: 'dans un bac à glaçons' },
+  { f: 'C₂H₆O', n: "de l'éthanol", c: 'vaporisation', ctx: 'lors d\'une distillation' }, { f: 'N₂', n: 'du diazote', c: 'liquéfaction', ctx: "pour produire de l'azote liquide" },
+  { f: 'I₂', n: 'du diiode', c: 'sublimation', ctx: 'quand on chauffe doucement des cristaux' }, { f: 'H₂O', n: "de l'eau", c: 'condensation', ctx: 'quand le givre se forme' },
+  { f: 'CO₂', n: 'du dioxyde de carbone', c: 'sublimation', ctx: 'quand la carboglace « fume »' }, { f: 'Al', n: "de l'aluminium", c: 'fusion', ctx: 'dans une fonderie' },
+  { f: 'C₄H₁₀', n: 'du butane', c: 'liquéfaction', ctx: 'dans une bouteille de gaz' }, { f: 'Cu', n: 'du cuivre', c: 'solidification', ctx: 'dans un moule' },
+  { f: 'H₂O', n: "de l'eau", c: 'vaporisation', ctx: 'quand une flaque sèche' }
+];
+function exoEquation() {
+  const e = pick(EQS), c = CHG_BY_NAME[e.c];
+  const eq = (a, b) => `${e.f}(${SYM[a]}) → ${e.f}(${SYM[b]})`;
+  const good = eq(c.a, c.b);
+  const others = shuffle(Object.keys(CHG).filter(k => k !== c.a + c.b)).slice(0, 3).map(k => eq(k[0], k[1]));
+  const choices = shuffle([good, ...others]);
+  const nm = 'eq' + Math.random().toString(36).slice(2, 7);
+  return {
+    titre: "Écrire l'équation d'une transformation physique",
+    enonce: `On s'intéresse à la ${e.c} ${e.n} (${e.f}) ${e.ctx}.`,
+    rep: `<div class="q"><p>a) Quelle est l'équation de cette transformation ?</p><div class="choices">${choices.map(x => `<label class="choice"><input type="radio" name="${nm}" value="${x}"> ${x}</label>`).join('')}</div></div>
+      <div class="q"><p>b) Cette transformation est-elle endothermique ou exothermique ?</p><select data-k="e" aria-label="Énergie">${energyOpts()}</select></div>`,
+    check(el) {
+      const a = (el.querySelector(`input[name=${nm}]:checked`) || {}).value, b = el.querySelector('[data-k=e]').value;
+      const r = [a === good, b === (c.endo ? 'endo' : 'exo')];
+      return { ok: r[0] && r[1], html: `a) ${r[0] ? 'juste' : 'à revoir'} · b) ${r[1] ? 'juste' : 'à revoir'}` };
+    },
+    corr: `a) La ${e.c} est le ${c.def}, d'où l'équation : <span class="res">${good}</span>.<br>
+      L'espèce chimique est la même de chaque côté de la flèche, seul son état physique change : c'est une transformation physique.<br>
+      b) La ${e.c} est <span class="res">${c.endo ? 'endothermique' : 'exothermique'}</span> : ${c.endo ? "le système reçoit de l'énergie du milieu extérieur." : "le système cède de l'énergie au milieu extérieur."}`
+  };
+}
+
+/* 6. Raisonner sur le palier */
+function exoPalier() {
+  const v = pick([
+    { q: (m, D) => `On chauffe ${m} g de glace à 0 °C avec une plaque de puissance constante : le palier de fusion dure ${D} min. Combien de temps durerait-il avec ${2 * m} g de glace et la même plaque ?`, k: 2 },
+    { q: (m, D) => `On chauffe ${m} g de glace à 0 °C avec une plaque de puissance constante : le palier de fusion dure ${D} min. Combien de temps durerait-il avec la même masse et une plaque deux fois plus puissante ?`, k: 0.5 }
+  ]);
+  const m = pick([100, 150, 200, 250]), D = pick([4, 6, 8, 10]), ans = D * v.k;
+  return {
+    titre: "Raisonner sur la durée d'un palier",
+    enonce: v.q(m, D),
+    rep: `<div class="q"><p>Durée du palier :</p><div class="row"><input type="text" data-k="d" inputmode="decimal" autocomplete="off" aria-label="Durée en minutes"> <span>min</span></div></div>`,
+    check(el) {
+      const x = parseNum(el.querySelector('[data-k=d]').value);
+      return close(x, ans, 0.01) ? { ok: true, html: 'Bravo !' } : { ok: false, html: "Ce n'est pas ça. Pense à Q = m × L : comment varie l'énergie à fournir ? et à quelle vitesse la plaque la fournit-elle ?" };
+    },
+    corr: v.k === 2
+      ? `L'énergie nécessaire pour la fusion est Q = m × L<sub>fus</sub> : elle est proportionnelle à la masse. Avec une masse double, il faut deux fois plus d'énergie ; la plaque fournit l'énergie au même rythme, donc le palier dure deux fois plus longtemps : <span class="res">${num(ans)} min</span>. La température du palier, elle, ne change pas (0 °C).`
+      : `L'énergie nécessaire Q = m × L<sub>fus</sub> est la même (même masse). Une plaque deux fois plus puissante fournit cette énergie deux fois plus vite : le palier dure deux fois moins longtemps, <span class="res">${num(ans)} min</span>. La température du palier reste 0 °C.`
+  };
+}
+
+const EXOS = [exoNommer, exoEquation, exoCalcul, exoIdentifier, exoCourbe, exoPalier];
+const list = $('exo-list');
+EXOS.forEach((gen, idx) => {
+  const el = document.createElement('article'); el.className = 'exo';
+  list.appendChild(el);
+  let cur;
+  const render = () => {
+    cur = gen();
+    el.innerHTML = `<h3>Exercice ${idx + 1} · ${cur.titre}</h3><div class="enonce">${cur.enonce}</div><div class="rep">${cur.rep}</div>
+      <div class="btns"><button type="button" data-a="check">Vérifier</button><button type="button" class="ghost" data-a="corr">Voir la correction</button><button type="button" class="ghost" data-a="new">Nouvel énoncé</button></div>
+      <div class="fb" aria-live="polite"></div><div class="correction" hidden><h4>Correction</h4>${cur.corr}</div>`;
+    if (cur.after) cur.after(el);
+  };
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button[data-a]'); if (!b) return;
+    if (b.dataset.a === 'new') return render();
+    if (b.dataset.a === 'check') { const r = cur.check(el), fb = el.querySelector('.fb'); fb.className = 'fb feedback ' + (r.ok ? 'ok' : 'ko'); fb.innerHTML = r.html; }
+    if (b.dataset.a === 'corr') { const c = el.querySelector('.correction'); c.hidden = !c.hidden; b.textContent = c.hidden ? 'Voir la correction' : 'Cacher la correction'; }
+  });
+  render();
+  el._render = render;
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => list.querySelectorAll('.exo').forEach(el => { const cv = el.querySelector('canvas.mini'); if (cv) el._render(); }));
+
+/* ---------- démarrage ---------- */
+buildTri();
+showP(); showM();
+selectSub('eau');
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

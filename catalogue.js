@@ -62,5 +62,14 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "transformations-physiques",
+    titre: "Transformations physiques",
+    resume: "Chauffer ou refroidir un corps : particules, courbe de température avec palier (corps pur) ou sans palier (mélange), énergie Q = m × L. Six exercices corrigés pour s'entraîner.",
+    theme: "matiere",
+    chapitre: "Transformations physiques",
+    mots: ["changement d'état", "fusion", "vaporisation", "sublimation", "palier", "corps pur", "mélange", "endothermique", "exothermique", "énergie massique", "exercices"],
+    statut: "en-ligne"
   }
 ];
