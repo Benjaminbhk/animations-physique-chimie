@@ -64,5 +64,14 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "spectres-lumineux",
+    titre: "Spectres lumineux",
+    resume: "Décomposer la lumière avec un prisme : spectres continus (lampe à incandescence, Soleil), raies d'émission (H, He, Na, Hg, Ne, Li), raies d'absorption par un gaz froid, laser. Exercices : retrouver les éléments d'une étoile, classer des spectres, QCM corrigé.",
+    theme: "ondes",
+    chapitre: "Signaux lumineux",
+    mots: ["spectre", "prisme", "longueur d'onde", "raies d'émission", "raies d'absorption", "lumière monochromatique", "exercices"],
+    statut: "en-ligne"
   }
 ];
