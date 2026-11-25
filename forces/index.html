@@ -163,6 +163,12 @@ footer strong{color:var(--text)}
             <input id="par" type="range">
             <output id="par-out" for="par"></output>
           </div>
+          <div class="row" id="par2-row" style="margin-top:6px;display:none">
+            <label for="par2" id="par2-l"></label>
+            <input id="par2" type="range">
+            <output id="par2-out" for="par2"></output>
+          </div>
+          <p class="small" id="pval" style="margin:.3rem 0 0"></p>
           <div class="row" style="margin-top:6px">
             <label for="ech">Échelle : 1 carreau ↔</label>
             <select id="ech"></select>
@@ -355,8 +361,9 @@ const SIT = [
   },
   {
     id: 'ballon', nom: 'Ballon en vol', sys: 'le ballon',
-    intro: "Un ballon de football (m = 430 g) a été frappé. Il monte vers la droite. Les frottements de l'air ne sont pas négligés.",
-    par: { l: 'Frottements de l\'air f', min: 0.5, max: 3.0, step: 0.1, v: 1.5, u: 'N' },
+    intro: "Un ballon a été frappé. Il monte vers la droite. Les frottements de l'air ne sont pas négligés. Règle la masse du ballon (football : 0,43 kg ; volley : 0,27 kg ; basket : 0,62 kg).",
+    par: { l: 'Masse du ballon', min: 0.20, max: 0.65, step: 0.01, v: 0.43, u: 'kg' },
+    par2: { l: 'Frottements de l\'air f', min: 0.5, max: 3.0, step: 0.1, v: 1.5, u: 'N' },
     ech: [0.5, 1, 0.25], e0: 0.5,
     pts: { G: [BX, BY, 'G', 'centre du ballon'], S: [BX, BY + 22, 'S', 'bas du ballon'], V: [BX + 40 * Math.cos(30 * D2R), BY - 40 * Math.sin(30 * D2R), 'V', 'devant le ballon'] },
     act: [
@@ -365,13 +372,13 @@ const SIT = [
       { id: 'pied', nom: 'Pied du joueur', rep: 'none', why: "Le ballon a quitté le pied : une fois lancé, plus rien ne le pousse vers l'avant." },
       { id: 'sol', nom: 'Sol', rep: 'none', why: 'Le ballon est en l\'air, il ne touche pas le sol.' }
     ],
-    forces(f) {
+    forces(m, f) {
       return [
-        { s: 'P', nom: 'Poids', act: 'Terre sur le ballon', pt: ['G'], ang: 90, F: 0.43 * g, dir: 'verticale', sens: 'vers le bas', c: '--vP' },
+        { s: 'P', nom: 'Poids', act: 'Terre sur le ballon', pt: ['G'], ang: 90, F: m * g, dir: 'verticale', sens: 'vers le bas', c: '--vP' },
         { s: 'f', nom: "Frottements de l'air", act: 'Air sur le ballon', pt: ['G'], ang: 150, F: f, dir: 'celle de la vitesse (tangente à la trajectoire)', sens: 'opposé au mouvement', c: '--vf' }
       ];
     },
-    note: () => `P = m × g = 0,430 × 9,81 = ${N(0.43 * g, 3)}. Il n'y a pas de « force du pied » : une fois le ballon parti, seuls la Terre et l'air agissent sur lui.`,
+    note: m => `P = m × g = ${sig(m, 2)} × 9,81 = ${N(m * g)}. Il n'y a pas de « force du pied » : une fois le ballon parti, seuls la Terre et l'air agissent sur lui.`,
     draw() {
       const ux = Math.cos(-30 * D2R), uy = Math.sin(-30 * D2R);
       return `<line x1="20" y1="442" x2="620" y2="442" stroke="#3c8d3c" stroke-width="4"/>
@@ -390,16 +397,17 @@ const SIT = [
 ];
 
 /* ---------- état ---------- */
-const S = { k: 0, tab: 1, par: {}, ech: {}, doi: {}, doiChecked: {}, user: {}, sel: {}, sol: {}, ptmod: false, drag: null };
-SIT.forEach(s => { S.par[s.id] = s.par.v; S.ech[s.id] = s.e0; S.doi[s.id] = {}; S.user[s.id] = {}; S.sel[s.id] = 0; S.sol[s.id] = false; });
+const S = { k: 0, tab: 1, par: {}, par2: {}, ech: {}, doi: {}, doiChecked: {}, user: {}, sel: {}, sol: {}, ptmod: false, drag: null };
+SIT.forEach(s => { S.par[s.id] = s.par.v; if (s.par2) S.par2[s.id] = s.par2.v; S.ech[s.id] = s.e0; S.doi[s.id] = {}; S.user[s.id] = {}; S.sel[s.id] = 0; S.sol[s.id] = false; });
 const cur = () => SIT[S.k];
-const forces = () => cur().forces(S.par[cur().id]);
+const forces = () => cur().forces(S.par[cur().id], S.par2[cur().id]);
 const ech = () => S.ech[cur().id];
 const eTxt = e => (e < 1 ? fmt(e, e === 0.25 ? 2 : 1) : String(e)) + ' N';
-const parTxt = s => {
-  const v = S.par[s.id];
-  return s.par.u === 'kg' ? sig(v, 2) + ' kg' : sig(v, 2) + ' N';
-};
+const parTxt = (s, k = 'par') => sig(S[k][s.id], 2) + ' ' + s[k].u;
+function showP() {
+  const s = cur(), m = S.par[s.id];
+  $('pval').innerHTML = `Poids : P = m × g = ${sig(m, 2)} kg × 9,81 N/kg = <strong>${N(m * g)}</strong>`;
+}
 
 /* ---------- message ---------- */
 function say(html, cls = '') { const m = $('msg'); m.className = 'explain ' + cls; m.innerHTML = html; }
@@ -618,6 +626,9 @@ function loadSit() {
   $('par-l').textContent = p.l;
   r.min = p.min; r.max = p.max; r.step = p.step; r.value = S.par[s.id];
   $('par-out').textContent = parTxt(s);
+  $('par2-row').style.display = s.par2 ? '' : 'none';
+  if (s.par2) { const q = s.par2, r2 = $('par2'); $('par2-l').textContent = q.l; r2.min = q.min; r2.max = q.max; r2.step = q.step; r2.value = S.par2[s.id]; $('par2-out').textContent = parTxt(s, 'par2'); }
+  showP();
   $('ech').innerHTML = s.ech.map(e => `<option value="${e}" ${e === ech() ? 'selected' : ''}>${eTxt(e)}</option>`).join('');
   $('sys1').textContent = s.sys; $('sys2').textContent = s.sys;
   $('f-sol').textContent = S.sol[s.id] ? 'Masquer la correction' : 'Montrer la correction';
@@ -626,9 +637,13 @@ function loadSit() {
 }
 function refresh() { renderForces(); renderTable(); draw(); sv.classList.toggle('draw', S.tab === 2); }
 $('par').addEventListener('input', e => {
-  const s = cur(); S.par[s.id] = +e.target.value; $('par-out').textContent = parTxt(s); refresh();
+  const s = cur(); S.par[s.id] = +e.target.value; $('par-out').textContent = parTxt(s); showP(); refresh();
   const fs = forces(), has = fs.some((f, i) => S.user[s.id][i]);
   if (has && !S.sol[s.id]) say('La valeur a changé : vérifie la longueur de tes flèches.');
+});
+$('par2').addEventListener('input', e => {
+  const s = cur(); S.par2[s.id] = +e.target.value; $('par2-out').textContent = parTxt(s, 'par2'); refresh();
+  if (Object.keys(S.user[s.id]).length && !S.sol[s.id]) say('La valeur des frottements a changé : vérifie la longueur de la flèche f.');
 });
 $('ech').addEventListener('change', e => {
   const s = cur(); S.ech[s.id] = +e.target.value; refresh();
