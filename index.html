@@ -3,59 +3,119 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Animations physique-chimie</title>
-<meta name="description" content="Petites animations interactives de physique-chimie pour la classe de Seconde.">
+<title>Simulations physique-chimie</title>
+<meta name="description" content="Simulations interactives de physique-chimie pour la classe de Seconde, réalisées par Benjamin Barre.">
 <style>
-:root{--bg:#f4f6fb;--surface:#fff;--text:#1c2333;--muted:#5a6478;--border:#dde2ec;--accent:#5b3fd0;--accent-soft:#ece8ff}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#10131a;--surface:#181c26;--text:#e6e9f0;--muted:#9aa3b6;--border:#2a3040;--accent:#a593ff;--accent-soft:#272042}}
-:root[data-theme="dark"]{--bg:#10131a;--surface:#181c26;--text:#e6e9f0;--muted:#9aa3b6;--border:#2a3040;--accent:#a593ff;--accent-soft:#272042}
+:root{--bg:#f4f6fb;--surface:#fff;--text:#1c2333;--muted:#5a6478;--border:#dde2ec;--accent:#5b3fd0;--accent-soft:#ece8ff;--thumb:#fbfcff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#10131a;--surface:#181c26;--text:#e6e9f0;--muted:#9aa3b6;--border:#2a3040;--accent:#a593ff;--accent-soft:#272042;--thumb:#20253a}}
+:root[data-theme="dark"]{--bg:#10131a;--surface:#181c26;--text:#e6e9f0;--muted:#9aa3b6;--border:#2a3040;--accent:#a593ff;--accent-soft:#272042;--thumb:#20253a}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-.wrap{max-width:1000px;margin:0 auto;padding:32px 16px 16px}
-h1{font-size:clamp(1.6rem,4.5vw,2.3rem);margin:0 0 .3rem;letter-spacing:-.01em}
-.lead{color:var(--muted);margin:0 0 1.6rem;max-width:65ch}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
-a.card{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform .15s,border-color .15s}
-a.card:hover,a.card:focus-visible{transform:translateY(-2px);border-color:var(--accent);outline:none}
-.thumb{background:var(--accent-soft);display:flex;justify-content:center;padding:14px 0}
-.body{padding:12px 14px 16px}
-.body h2{font-size:1.15rem;margin:0 0 .25rem}
-.body p{margin:0;color:var(--muted);font-size:.95rem}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.6rem}
-.chip{font-size:.75rem;font-weight:600;padding:.1rem .5rem;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
-footer{max-width:1000px;margin:24px auto 0;padding:12px 16px 28px;border-top:1px solid var(--border);color:var(--muted);font-size:.9rem}
+.wrap{max-width:1080px;margin:0 auto;padding:36px 16px 16px}
+.hero h1{font-size:clamp(1.7rem,5vw,2.6rem);margin:0 0 .35rem;letter-spacing:-.015em;line-height:1.15}
+.hero p{color:var(--muted);margin:0;max-width:62ch;font-size:1.05rem}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:26px 0 8px}
+.search{flex:1 1 240px;max-width:360px;font:inherit;padding:.55rem .8rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.9rem;font-weight:600;padding:.4rem .8rem;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;min-height:38px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#14111f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#14111f}}
+.chip:focus-visible,.search:focus-visible,a.card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+section.theme{margin-top:30px}
+section.theme h2{font-size:1.2rem;margin:0 0 12px;display:flex;align-items:center;gap:.55rem}
+section.theme h2 .dot{width:12px;height:12px;border-radius:50%;flex:none}
+section.theme h2 .count{font-size:.85rem;font-weight:500;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+a.card{transition:transform .15s,border-color .15s,box-shadow .15s}
+a.card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 8px 24px rgba(20,30,60,.08)}
+.thumb{aspect-ratio:16/9;background:var(--thumb);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .ph{font-size:2.4rem;opacity:.5}
+.body{padding:12px 14px 16px;display:flex;flex-direction:column;gap:.35rem;flex:1}
+.kicker{font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.body h3{font-size:1.1rem;margin:0}
+.body p{margin:0;color:var(--muted);font-size:.93rem}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:.4rem}
+.tag{font-size:.72rem;padding:.08rem .45rem;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.card.soon{opacity:.6}
+.card.soon .badge{align-self:flex-start;font-size:.72rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.empty{border:2px dashed var(--border);border-radius:14px;padding:18px;color:var(--muted);text-align:center}
+.none{color:var(--muted);margin-top:24px}
+footer{max-width:1080px;margin:40px auto 0;padding:14px 16px 30px;border-top:1px solid var(--border);color:var(--muted);font-size:.9rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
 footer strong{color:var(--text)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Animations de physique-chimie</h1>
-  <p class="lead">Petites animations interactives pour visualiser les notions du cours de Seconde. Elles fonctionnent sur ordinateur, tablette et téléphone, sans installation.</p>
-  <div class="grid">
-    <a class="card" href="dissolution-dilution/">
-      <div class="thumb" aria-hidden="true">
-        <svg width="200" height="110" viewBox="0 0 200 110">
-          <g fill="none" stroke="#7b8aa3" stroke-width="2">
-            <path d="M20 22v70a30 9 0 0 0 60 0V22"/><ellipse cx="50" cy="22" rx="30" ry="9"/>
-            <path d="M120 22v70a30 9 0 0 0 60 0V22"/><ellipse cx="150" cy="22" rx="30" ry="9"/>
-          </g>
-          <path d="M21 45v47a29 8 0 0 0 58 0V45z" fill="#7634aa" opacity=".28"/>
-          <path d="M121 45v47a29 8 0 0 0 58 0V45z" fill="#7634aa" opacity=".08"/>
-          <g fill="#7634aa">
-            <circle cx="32" cy="58" r="3"/><circle cx="44" cy="70" r="3"/><circle cx="58" cy="54" r="3"/><circle cx="66" cy="80" r="3"/><circle cx="36" cy="88" r="3"/><circle cx="52" cy="92" r="3"/><circle cx="62" cy="66" r="3"/><circle cx="40" cy="76" r="3"/><circle cx="70" cy="58" r="3"/><circle cx="48" cy="60" r="3"/>
-            <circle cx="138" cy="62" r="3"/><circle cx="162" cy="84" r="3"/><circle cx="150" cy="72" r="3"/>
-          </g>
-          <path d="M92 55h16m-5-5 5 5-5 5" stroke="#7b8aa3" stroke-width="2" fill="none"/>
-        </svg>
-      </div>
-      <div class="body">
-        <h2>Dissolution et dilution</h2>
-        <p>Dissoudre un solide dans un solvant, puis diluer une solution mère avec une pipette : voir pourquoi la concentration diminue.</p>
-        <div class="chips"><span class="chip">Solutions aqueuses</span><span class="chip">Concentration en masse</span></div>
-      </div>
-    </a>
+  <header class="hero">
+    <h1>Simulations de physique-chimie</h1>
+    <p>Des animations interactives pour visualiser les notions du programme de Seconde. Elles fonctionnent sur ordinateur, tablette et téléphone, sans installation ni compte.</p>
+  </header>
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="Rechercher (ex. dilution, son, vitesse…)" aria-label="Rechercher une simulation">
+    <div class="chips" id="chips" role="group" aria-label="Filtrer par thème"></div>
   </div>
+  <main id="list"></main>
+  <p class="none" id="none" hidden>Aucune simulation ne correspond à cette recherche.</p>
 </div>
-<footer>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</footer>
+<footer>
+  <span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie</span>
+  <span>Programme de Seconde générale</span>
+</footer>
+<script src="catalogue.js"></script>
+<script>
+(() => {
+  const THEMES = window.THEMES || [], CAT = window.CATALOGUE || [];
+  const list = document.getElementById('list'), chips = document.getElementById('chips'), q = document.getElementById('q'), none = document.getElementById('none');
+  let filtre = 'tous';
+  try { filtre = localStorage.getItem('sim-filtre') || 'tous'; } catch (e) {}
+  const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  function makeChips() {
+    const opts = [{ id: 'tous', titre: 'Tous les thèmes' }, ...THEMES];
+    chips.innerHTML = opts.map(t => `<button type="button" class="chip" data-id="${t.id}" aria-pressed="${t.id === filtre}">${esc(t.titre)}</button>`).join('');
+    chips.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+      filtre = b.dataset.id; try { localStorage.setItem('sim-filtre', filtre); } catch (e) {}
+      chips.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b)); render();
+    }));
+  }
+  function card(s, th) {
+    const tags = (s.mots || []).slice(0, 4).map(m => `<span class="tag">${esc(m)}</span>`).join('');
+    const thumb = s.statut === 'en-ligne'
+      ? `<img src="${esc(s.dossier)}/apercu.jpg" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ph',textContent:'⚗️'}))">`
+      : `<span class="ph">⏳</span>`;
+    const inner = `<div class="thumb">${thumb}</div><div class="body">
+      <span class="kicker" style="color:${th.couleur}">${esc(s.chapitre || '')}</span>
+      <h3>${esc(s.titre)}</h3>${s.statut === 'bientot' ? '<span class="badge">Bientôt</span>' : ''}
+      <p>${esc(s.resume || '')}</p><div class="tags">${tags}</div></div>`;
+    return s.statut === 'en-ligne'
+      ? `<a class="card" href="${esc(s.dossier)}/">${inner}</a>`
+      : `<div class="card soon" aria-disabled="true">${inner}</div>`;
+  }
+  function render() {
+    const term = norm(q.value.trim());
+    let total = 0, html = '';
+    for (const th of THEMES) {
+      if (filtre !== 'tous' && filtre !== th.id) continue;
+      const items = CAT.filter(s => s.theme === th.id && (!term ||
+        norm([s.titre, s.resume, s.chapitre, ...(s.mots || [])].join(' ')).includes(term)));
+      items.sort((a, b) => (a.statut === 'bientot') - (b.statut === 'bientot'));
+      total += items.length;
+      if (term && !items.length) continue;
+      const online = items.filter(s => s.statut === 'en-ligne').length;
+      html += `<section class="theme" aria-labelledby="h-${th.id}"><h2 id="h-${th.id}"><span class="dot" style="background:${th.couleur}"></span>${esc(th.titre)}
+        <span class="count">${online} simulation${online > 1 ? 's' : ''}</span></h2>
+        ${items.length ? `<div class="grid">${items.map(s => card(s, th)).join('')}</div>` : `<div class="empty">Les simulations de ce thème arrivent bientôt.</div>`}</section>`;
+    }
+    list.innerHTML = html;
+    none.hidden = !(term && total === 0);
+  }
+  makeChips(); render();
+  q.addEventListener('input', render);
+})();
+</script>
 </body>
 </html>

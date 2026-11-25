@@ -10,9 +10,10 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/
 
 ## Organisation
 
-- `index.html` : page d'accueil qui liste les animations.
-- Un dossier par animation, contenant un `index.html` autonome (HTML + CSS + JavaScript, sans dépendance).
+- `index.html` : page d'accueil, avec les simulations classées par thème du programme (recherche + filtres).
+- `catalogue.js` : la liste des simulations affichées sur l'accueil (une entrée par simulation, statut `en-ligne` ou `bientot`).
+- Un dossier par simulation : `index.html` autonome (HTML + CSS + JavaScript, sans dépendance) et `apercu.jpg` (vignette 16:9).
 
-Pour ajouter une animation : créer un dossier `nom-de-l-animation/index.html`, garder le pied de page « Réalisé par Benjamin Barre », puis ajouter une carte dans `index.html` et une ligne dans ce tableau.
+Pour ajouter une simulation : créer `nom-de-la-simulation/index.html` (avec le pied de page « Réalisé par Benjamin Barre ») et `apercu.jpg`, puis ajouter son entrée dans `catalogue.js` et une ligne dans ce tableau.
 
 Le site est publié avec GitHub Pages depuis la branche `main`.
