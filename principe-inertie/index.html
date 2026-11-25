@@ -83,10 +83,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .hide{display:none!important}
 
 /* ---------- Exercices : fond coloré distinct ---------- */
-.exos{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:18px 16px 8px;margin:0 0 22px}
+.exos{background:var(--ex-bg,var(--exo-bg));border:1px solid var(--ex-edge,var(--exo-border));border-radius:14px;padding:18px 16px 8px;margin:0 0 22px}
 .exos > h2{margin:0 0 .2rem;font-size:1.35rem}
 .exos > p{margin:0 0 1rem;color:var(--muted)}
-.exo{background:var(--exo-card);border:1px solid var(--exo-border);border-radius:12px;padding:.8rem 1rem;margin:0 0 14px}
+.exo{background:var(--ex-card,var(--exo-card));border:1px solid var(--ex-line,var(--exo-border));border-radius:12px;padding:.8rem 1rem;margin:0 0 14px}
 .exo h3{margin:0 0 .4rem;font-size:1.02rem}
 .exo h3 .n{display:inline-grid;place-items:center;width:1.7em;height:1.7em;border-radius:50%;background:var(--accent);
   color:var(--accent-ink);font-size:.85rem;margin-right:.4rem}
@@ -110,6 +110,7 @@ footer strong{color:var(--text)}
   .scene{padding:12px}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -220,8 +221,8 @@ footer strong{color:var(--text)}
     <p class="small" style="margin:.6rem 0 0">Modèle simplifié : palet de 200 g, g = 9,81 N/kg, frottements de valeur constante pendant le glissement. Vecteurs forces à l'échelle (1 N ↔ 45 px sur l'animation) ; les vecteurs vitesse sont tracés en bleu.</p>
   </section>
 
-  <section class="exos" id="exos" aria-labelledby="exos-titre">
-    <h2 id="exos-titre">S'entraîner : exercices d'application directe</h2>
+  <section class="scene exercices exos" id="exos" aria-labelledby="exos-titre">
+    <h2 id="exos-titre"><span class="ex-badge">✎ Exercices</span> Exercices d'application directe</h2>
     <p>Réponds d'abord sur ton cahier, puis ouvre la correction.</p>
 
     <article class="exo">
