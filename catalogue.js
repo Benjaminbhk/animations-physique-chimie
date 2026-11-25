@@ -44,5 +44,14 @@ window.CATALOGUE = [
     chapitre: "Entités chimiques et molécules",
     mots: ["schéma de Lewis", "doublet liant", "doublet non liant", "électrons de valence", "règle de l'octet", "règle du duet"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "colonne-densites",
+    titre: "Colonne de densités",
+    resume: "Verser 2 à 4 liquides non miscibles dans n'importe quel ordre : ils se rangent selon leur masse volumique. Des objets coulent puis se stabilisent aux interfaces.",
+    theme: "matiere",
+    chapitre: "Corps purs et mélanges",
+    mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
+    statut: "en-ligne"
   }
 ];

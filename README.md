@@ -10,6 +10,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/
 | Visualiser une mole | https://benjaminbhk.github.io/animations-physique-chimie/mole/ |
 | Le réactif limitant | https://benjaminbhk.github.io/animations-physique-chimie/reactif-limitant/ |
 | Schémas de Lewis | https://benjaminbhk.github.io/animations-physique-chimie/schemas-lewis/ |
+| Colonne de densités | https://benjaminbhk.github.io/animations-physique-chimie/colonne-densites/ |
 
 ## Organisation
 
