@@ -66,6 +66,15 @@ window.CATALOGUE = [
     statut: "en-ligne"
   },
   {
+    dossier: "ajuster-equations",
+    titre: "Ajuster une équation de réaction",
+    resume: "Régler les nombres stœchiométriques et voir les modèles moléculaires de chaque côté : compteurs d'atomes par élément et de charges, indices, puis exercices aléatoires corrigés (avec des ions).",
+    theme: "matiere",
+    chapitre: "Transformations chimiques",
+    mots: ["équation de réaction", "ajuster", "nombre stœchiométrique", "conservation des éléments", "conservation de la charge", "exercices"],
+    statut: "en-ligne"
+  },
+  {
     dossier: "spectres-lumineux",
     titre: "Spectres lumineux",
     resume: "Décomposer la lumière avec un prisme : spectres continus (lampe à incandescence, Soleil), raies d'émission (H, He, Na, Hg, Ne, Li), raies d'absorption par un gaz froid, laser. Exercices : retrouver les éléments d'une étoile, classer des spectres, QCM corrigé.",

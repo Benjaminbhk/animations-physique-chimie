@@ -12,6 +12,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Le réactif limitant | https://benjaminbhk.github.io/animations-physique-chimie/reactif-limitant/ |
 | Schémas de Lewis | https://benjaminbhk.github.io/animations-physique-chimie/schemas-lewis/ |
 | Colonne de densités | https://benjaminbhk.github.io/animations-physique-chimie/colonne-densites/ |
+| Ajuster une équation de réaction | https://benjaminbhk.github.io/animations-physique-chimie/ajuster-equations/ |
 | Spectres lumineux | https://benjaminbhk.github.io/animations-physique-chimie/spectres-lumineux/ |
 | Réfraction et réflexion totale | https://benjaminbhk.github.io/animations-physique-chimie/refraction/ |
 | Lentille convergente, œil et appareil photo | https://benjaminbhk.github.io/animations-physique-chimie/lentille-convergente/ |
