@@ -62,5 +62,14 @@ window.CATALOGUE = [
     chapitre: "Corps purs et mélanges",
     mots: ["masse volumique", "densité", "liquides non miscibles", "flotter", "couler"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "refraction",
+    titre: "Réfraction et réflexion totale",
+    resume: "Orienter un laser vers la surface entre deux milieux : rayons réfléchi et réfracté, angle limite, réflexion totale et dispersion de la lumière blanche. Mesures, graphique sin i₁ = f(sin i₂) et exercices corrigés.",
+    theme: "ondes",
+    chapitre: "Lumière : réfraction",
+    mots: ["Snell-Descartes", "indice de réfraction", "angle limite", "réflexion totale", "dispersion", "normale"],
+    statut: "en-ligne"
   }
 ];
