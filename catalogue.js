@@ -66,12 +66,77 @@ window.CATALOGUE = [
     statut: "en-ligne"
   },
   {
+    dossier: "ajuster-equations",
+    titre: "Ajuster une équation de réaction",
+    resume: "Régler les nombres stœchiométriques et voir les modèles moléculaires de chaque côté : compteurs d'atomes par élément et de charges, indices, puis exercices aléatoires corrigés (avec des ions).",
+    theme: "matiere",
+    chapitre: "Transformations chimiques",
+    mots: ["équation de réaction", "ajuster", "nombre stœchiométrique", "conservation des éléments", "conservation de la charge", "exercices"],
+    statut: "en-ligne"
+  },
+  {
     dossier: "spectres-lumineux",
     titre: "Spectres lumineux",
     resume: "Décomposer la lumière avec un prisme : spectres continus (lampe à incandescence, Soleil), raies d'émission (H, He, Na, Hg, Ne, Li), raies d'absorption par un gaz froid, laser. Exercices : retrouver les éléments d'une étoile, classer des spectres, QCM corrigé.",
     theme: "ondes",
     chapitre: "Signaux lumineux",
     mots: ["spectre", "prisme", "longueur d'onde", "raies d'émission", "raies d'absorption", "lumière monochromatique", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "refraction",
+    titre: "Réfraction et réflexion totale",
+    resume: "Orienter un laser vers la surface entre deux milieux : rayons réfléchi et réfracté, angle limite, réflexion totale et dispersion de la lumière blanche. Mesures, graphique sin i₁ = f(sin i₂) et exercices corrigés.",
+    theme: "ondes",
+    chapitre: "Lumière : réfraction",
+    mots: ["Snell-Descartes", "indice de réfraction", "angle limite", "réflexion totale", "dispersion", "normale"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "lentille-convergente",
+    titre: "Lentille convergente, œil et appareil photo",
+    resume: "Construire l'image d'un objet avec les trois rayons particuliers, calculer le grandissement, puis comprendre l'accommodation de l'œil et la mise au point de l'appareil photo. Exercices corrigés.",
+    theme: "ondes",
+    chapitre: "Vision et image",
+    mots: ["lentille convergente", "foyer", "distance focale", "grandissement", "image réelle", "œil", "accommodation", "appareil photo", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "interaction-gravitationnelle",
+    titre: "Interaction gravitationnelle",
+    resume: "Régler les masses et la distance de deux astres pour voir varier F = G·mA·mB/d², lancer un satellite en orbite, comparer le poids sur la Terre, la Lune, Mars ou Jupiter. Exercices d'application directe corrigés.",
+    theme: "mouvement",
+    niveau: "seconde",
+    chapitre: "Modéliser une action sur un système",
+    mots: ["interaction gravitationnelle", "force", "poids", "intensité de pesanteur", "orbite", "satellite", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "transformations-nucleaires",
+    titre: "Transformations nucléaires",
+    resume: "Construire des noyaux et leurs isotopes, voir la fission de l'uranium et la fusion de l'hydrogène nucléon par nucléon, vérifier la conservation de A et de Z, puis s'entraîner sur des exercices corrigés.",
+    theme: "matiere",
+    chapitre: "Transformations nucléaires",
+    mots: ["fission", "fusion", "isotopes", "nombre de masse", "numéro atomique", "équation nucléaire", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "principe-inertie",
+    titre: "Le principe d'inertie",
+    resume: "Lancer un palet en réglant les frottements jusqu'à zéro (table à coussin d'air), voir les forces se compenser ou non, puis une sonde spatiale et un passager de bus qui freine. Exercices corrigés.",
+    theme: "mouvement",
+    niveau: "seconde",
+    chapitre: "Mouvement et interactions",
+    mots: ["principe d'inertie", "contraposée", "forces qui se compensent", "mouvement rectiligne uniforme", "chronophotographie", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "circuits-electriques",
+    titre: "Circuits électriques",
+    resume: "Construire un circuit (générateur, résistances, lampe, DEL, interrupteur), brancher ampèremètres et voltmètres, vérifier la loi des nœuds et la loi des mailles, puis tracer et modéliser la caractéristique U = f(I) d'un dipôle. Exercices corrigés.",
+    theme: "ondes",
+    chapitre: "Signaux et capteurs",
+    mots: ["loi des nœuds", "loi des mailles", "loi d'Ohm", "caractéristique", "ampèremètre", "voltmètre", "DEL", "série", "dérivation"],
     statut: "en-ligne"
   },
   {
