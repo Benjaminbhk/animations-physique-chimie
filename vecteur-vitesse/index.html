@@ -12,7 +12,7 @@
   --canvas:#fbfcff; --grid:rgba(31,127,191,.13); --grid-strong:rgba(31,127,191,.28);
   --pt:#1c2333; --vcol:#1f6fd1; --dvcol:#e0540f; --fcol:#2b8a3e; --ground:#8a7a66;
   --ok:#2b8a3e; --ko:#c92a2a;
-  --exo-bg:#fff2e0; --exo-border:#f2c58c; --exo-ink:#8a4b08; --card:#ffffff;
+  --exo-bg:#e6f3fc; --exo-border:#a9d3f0; --exo-ink:#14659f; --card:#ffffff;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -21,7 +21,7 @@
     --canvas:#141821; --grid:rgba(95,179,234,.13); --grid-strong:rgba(95,179,234,.28);
     --pt:#e6e9f0; --vcol:#6aa8ff; --dvcol:#ff8a4c; --fcol:#5cc27a; --ground:#a8987f;
     --ok:#5cc27a; --ko:#ff7676;
-    --exo-bg:#2a2014; --exo-border:#5e4422; --exo-ink:#ffc078; --card:#1d2029;
+    --exo-bg:#0f2234; --exo-border:#25496b; --exo-ink:#8ccaf5; --card:#0b1828;
   }
 }
 :root[data-theme="dark"]{
@@ -30,7 +30,7 @@
   --canvas:#141821; --grid:rgba(95,179,234,.13); --grid-strong:rgba(95,179,234,.28);
   --pt:#e6e9f0; --vcol:#6aa8ff; --dvcol:#ff8a4c; --fcol:#5cc27a; --ground:#a8987f;
   --ok:#5cc27a; --ko:#ff7676;
-  --exo-bg:#2a2014; --exo-border:#5e4422; --exo-ink:#ffc078; --card:#1d2029;
+  --exo-bg:#0f2234; --exo-border:#25496b; --exo-ink:#8ccaf5; --card:#0b1828;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -81,7 +81,7 @@ tr.sel td{background:var(--accent-soft);font-weight:700}
 .vec{position:relative;display:inline-block;padding-top:.15em}
 .vec::before{content:"→";position:absolute;left:50%;top:-.5em;transform:translateX(-50%) scaleX(.9);font-size:.8em;line-height:1}
 
-/* ---------- exercices : fond coloré distinct de la modélisation ---------- */
+/* ---------- exercices : fond bleu ciel (mêmes couleurs que commun/exercices.css) ---------- */
 .exos{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:18px 16px 8px;margin:0 0 24px}
 .exos > h2{margin:0 0 .2rem;font-size:1.35rem;color:var(--exo-ink)}
 .exos > p.intro{margin:0 0 14px;color:var(--muted)}
