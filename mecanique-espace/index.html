@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mouvements et interactions dans l'espace</title>
+<meta name="description" content="Simulation interactive : le Système solaire et la gravitation, poids et masse sur différents astres, décrire un mouvement (trajectoire, vitesse) (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f6fae; --accent-soft:#e4f0fa; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#6db6ec; --accent-soft:#132a3d; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#6db6ec; --accent-soft:#132a3d; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/500}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.grid4 button,.grid3 button,.grid2 button.seg{font-size:.86rem;padding:.35rem .3rem}
+.lbl{font-weight:600;font-size:.92rem;margin:8px 0 4px}
+[hidden]{display:none!important}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Mouvements et interactions dans l'espace</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Observe les planètes tourner autour du Soleil, puis <strong>coupe la gravitation</strong> pour voir ce qui se passe.
+    Pèse un objet sur la Terre, la Lune ou Jupiter : sa <strong>masse</strong> ne change pas, mais son <strong>poids</strong>, si !
+    Enfin, décris le mouvement d'une fusée, d'un satellite ou d'une sonde à partir de leur chronophotographie.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de mécanique dans l'espace">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="ss" aria-pressed="true">🪐 Le Système solaire</button>
+      <button type="button" class="seg" data-mode="pm" aria-pressed="false">⚖ Poids et masse</button>
+      <button type="button" class="seg" data-mode="mv" aria-pressed="false">🚀 Décrire un mouvement</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Animation de mécanique dans l'espace"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <!-- Système solaire -->
+        <div id="p-ss">
+          <h3>1. Observer <small>clique sur une planète</small></h3>
+          <div class="row"><label for="spd" style="min-width:5em">Vitesse</label><input id="spd" type="range" min="0" max="100" step="1" value="40"><output id="spd-out" for="spd" style="min-width:9ch"></output></div>
+          <label class="check"><input type="checkbox" id="arrows" checked> Montrer l'attraction du Soleil et la vitesse</label>
+          <h3 style="margin-top:12px">2. Expérience impossible</h3>
+          <div class="grid2">
+            <button id="grav" type="button">Couper la gravitation</button>
+            <button id="ssreset" class="ghost" type="button">Rétablir</button>
+          </div>
+          <h3 style="margin-top:12px">3. Fiche de la planète</h3>
+          <div class="info" id="pinfo"></div>
+        </div>
+        <!-- Poids et masse -->
+        <div id="p-pm" hidden>
+          <h3>1. Choisir l'astre</h3>
+          <div class="grid3" id="astres" role="group" aria-label="Astre"></div>
+          <h3 style="margin-top:12px">2. Choisir l'objet</h3>
+          <div class="grid3" id="objets" role="group" aria-label="Objet"></div>
+          <div class="row"><label for="mass" style="min-width:5em">Masse</label><input id="mass" type="range" min="0.5" max="150" step="0.5" value="5"><output id="mass-out" for="mass" style="min-width:8ch"></output></div>
+          <h3 style="margin-top:12px">3. Sauter</h3>
+          <button id="jump" type="button" style="width:100%">Faire sauter l'astronaute</button>
+          <h3 style="margin-top:12px">Le calcul</h3>
+          <div class="info" id="pminfo"></div>
+        </div>
+        <!-- Mouvement -->
+        <div id="p-mv" hidden>
+          <h3>1. Choisir une situation</h3>
+          <div class="grid2" id="scen" role="group" aria-label="Situation"></div>
+          <button id="replay" class="ghost" type="button" style="width:100%;margin-top:6px">Rejouer la chronophotographie</button>
+          <h3 style="margin-top:12px">2. Décrire le mouvement</h3>
+          <div class="lbl">Trajectoire</div>
+          <div class="grid3" id="q-traj" role="group" aria-label="Trajectoire"></div>
+          <div class="lbl">Vitesse</div>
+          <div class="grid2" id="q-vit" role="group" aria-label="Vitesse"></div>
+          <button id="verif" type="button" style="width:100%;margin-top:10px">Vérifier</button>
+          <div class="info" id="mvinfo" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>La gravitation</h3>Deux objets qui ont une masse s'attirent : c'est l'<strong>interaction gravitationnelle</strong>, une action <strong>à distance</strong>. Elle maintient les planètes en orbite autour du Soleil et la Lune autour de la Terre.</div>
+      <div><h3>Poids et masse</h3>La <strong>masse m</strong> (en kg) se mesure avec une balance : elle est la même partout. Le <strong>poids P</strong> (en N) est l'attraction de l'astre ; il se mesure avec un dynamomètre : <strong>P = m × g</strong>, g en N/kg.</div>
+      <div><h3>Décrire un mouvement</h3>On précise le <strong>référentiel</strong>, la <strong>trajectoire</strong> (rectiligne, circulaire, curviligne) et l'évolution de la <strong>vitesse</strong> (uniforme, accéléré, ralenti). Vitesse moyenne : <strong>v = d / t</strong>.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Tu peux vérifier certaines réponses avec la simulation ci-dessus.</p>
+    <div id="exo-meca"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Système solaire : distances et tailles non à l'échelle.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 500;
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+const { fmt, sci } = Exo;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'ss';
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const STARS = Array.from({ length: 160 }, () => [Math.random() * W, Math.random() * H, Math.random() * 1.3 + .3, Math.random()]);
+function space() {
+  ctx.fillStyle = '#060a1a'; ctx.fillRect(0, 0, W, H);
+  const t = performance.now() / 1000;
+  STARS.forEach(([x, y, r, p]) => { ctx.fillStyle = `rgba(255,255,255,${.3 + .3 * Math.sin(t * 1.3 + p * 6)})`; ctx.fillRect(x, y, r, r); });
+}
+function arrow(x0, y0, x1, y1, color, w = 3) {
+  const a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0); if (L < 2) return;
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a) * 8, y1 - Math.sin(a) * 8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - 13 * Math.cos(a - .4), y1 - 13 * Math.sin(a - .4)); ctx.lineTo(x1 - 13 * Math.cos(a + .4), y1 - 13 * Math.sin(a + .4)); ctx.closePath(); ctx.fill();
+}
+function ball(x, y, r, c1, c2) {
+  const g = ctx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
+  g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+}
+
+/* =================== 1. Système solaire =================== */
+const PL = [
+  { nom: 'Mercure', a: .387, T: .241, r: 3.5, c: ['#d8d2c8', '#8a8178'], g: 3.70, D: 4879 },
+  { nom: 'Vénus', a: .723, T: .615, r: 5.5, c: ['#fff1c8', '#d6a95a'], g: 8.87, D: 12104 },
+  { nom: 'la Terre', a: 1, T: 1, r: 6, c: ['#9fd6ff', '#1f5fae'], g: 9.81, D: 12742 },
+  { nom: 'Mars', a: 1.524, T: 1.881, r: 4.5, c: ['#ffab85', '#b4431f'], g: 3.71, D: 6779 },
+  { nom: 'Jupiter', a: 5.20, T: 11.86, r: 13, c: ['#f6dcb8', '#b9814a'], g: 24.8, D: 139820 },
+  { nom: 'Saturne', a: 9.58, T: 29.46, r: 11, c: ['#fbecc4', '#c8a25e'], g: 10.4, D: 116460, ring: true },
+  { nom: 'Uranus', a: 19.2, T: 84.0, r: 8, c: ['#d5fbff', '#5fb6c6'], g: 8.87, D: 50724 },
+  { nom: 'Neptune', a: 30.1, T: 164.8, r: 8, c: ['#a9c8ff', '#2a55c9'], g: 11.2, D: 49244 }
+];
+const SX = 410, SY = 250;
+const Rpx = a => 52 + 188 * Math.log(a / .3) / Math.log(30.1 / .3);
+const SS = { sel: 2, grav: true, years: 0 };
+PL.forEach((p, i) => { p.th = i * 1.7 + .4; p.R = Rpx(p.a); p.free = null; p.trail = []; });
+function yearsPerSec() { const v = +$('spd').value; return 0.02 * Math.pow(250, v / 100); }   // 0,02 à 5 ans par seconde
+function spdLabel() {
+  const y = yearsPerSec();
+  $('spd-out').textContent = y < 1 / 12 ? `1 s = ${Math.round(y * 365)} j` : y < 1 ? `1 s = ${Math.round(y * 12)} mois` : `1 s = ${f(y, 1)} an${y >= 2 ? 's' : ''}`;
+}
+function plPos(p) { return p.free ? [p.free.x, p.free.y] : [SX + p.R * Math.cos(p.th), SY - p.R * Math.sin(p.th)]; }
+function tickSS(dt) {
+  const y = yearsPerSec() * dt; SS.years += y;
+  PL.forEach(p => {
+    if (!p.free) { p.th += 2 * Math.PI * y / p.T; }
+    else { p.free.x += p.free.vx * dt; p.free.y += p.free.vy * dt; p.trail.push([p.free.x, p.free.y]); if (p.trail.length > 300) p.trail.shift(); }
+  });
+}
+function cutGravity() {
+  if (!SS.grav) return;
+  SS.grav = false;
+  PL.forEach(p => {
+    const [x, y] = plPos(p), w = 2 * Math.PI * yearsPerSec() / p.T, v = Math.max(18, Math.min(420, p.R * w));
+    p.free = { x, y, vx: -Math.sin(p.th) * v, vy: -Math.cos(p.th) * v }; p.trail = [[x, y]];
+  });
+  $('grav').disabled = true;
+  $('msg').innerHTML = 'Sans l’attraction du Soleil, chaque planète part <strong>en ligne droite</strong>, dans la direction de sa vitesse, et ne tourne plus : c’est la gravitation qui courbe leur trajectoire. (Heureusement, on ne peut pas couper la gravitation !)';
+}
+function resetSS() {
+  SS.grav = true; PL.forEach(p => { p.free = null; p.trail = []; }); $('grav').disabled = false; ssMsg();
+}
+function ssMsg() {
+  $('msg').innerHTML = 'Les huit planètes tournent autour du Soleil sur des trajectoires presque circulaires. Plus une planète est loin du Soleil, plus elle met de temps à faire un tour. Clique sur une planète pour afficher sa fiche.';
+}
+function pInfo() {
+  const p = PL[SS.sel], km = p.a * 1.496e8;
+  const T = p.T < 1 ? `${Math.round(p.T * 365)} jours` : `${f(p.T, p.T < 10 ? 2 : 1)} ans`;
+  $('pinfo').innerHTML = `<b>${p.nom.replace(/^la /, '').replace(/^./, c => c.toUpperCase())}</b><br>
+    Distance au Soleil : ${fmt(p.a, 3)} UA ≈ ${sci(km, 3)} km<br>
+    Durée d'un tour (révolution) : ${T}<br>Diamètre : ${p.D.toLocaleString('fr-FR')} km<br>
+    Intensité de pesanteur : g = ${fmt(p.g, 3)} N/kg<br><span style="color:var(--muted)">1 UA (unité astronomique) = distance Terre-Soleil ≈ 1,50 × 10<sup>8</sup> km.</span>`;
+}
+function drawSS() {
+  space();
+  // orbites
+  ctx.lineWidth = 1;
+  PL.forEach((p, i) => { ctx.strokeStyle = i === SS.sel ? 'rgba(140,200,255,.55)' : 'rgba(150,170,220,.18)'; ctx.beginPath(); ctx.arc(SX, SY, p.R, 0, 7); ctx.stroke(); });
+  // ceinture d'astéroïdes
+  ctx.fillStyle = 'rgba(200,190,170,.35)';
+  for (let k = 0; k < 120; k++) { const a = k * 2.399, r = Rpx(2.7) + ((k * 37) % 9) - 4; ctx.fillRect(SX + r * Math.cos(a + SS.years * .2), SY - r * Math.sin(a + SS.years * .2), 1.4, 1.4); }
+  // Soleil
+  const g = ctx.createRadialGradient(SX, SY, 6, SX, SY, 48); g.addColorStop(0, 'rgba(255,220,120,.7)'); g.addColorStop(1, 'rgba(255,180,60,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(SX, SY, 48, 0, 7); ctx.fill();
+  ball(SX, SY, 22, '#fff6b0', '#ffa516');
+  ctx.fillStyle = '#ffe9a8'; ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Soleil', SX, SY + 38);
+  // planètes
+  PL.forEach((p, i) => {
+    if (p.trail.length > 1) { ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 4]); ctx.beginPath(); p.trail.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]); }
+    const [x, y] = plPos(p);
+    if (p.ring) { ctx.strokeStyle = 'rgba(240,220,170,.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x, y, p.r * 1.9, p.r * .6, -.3, 0, 7); ctx.stroke(); }
+    ball(x, y, p.r, p.c[0], p.c[1]);
+    if (i === SS.sel) { ctx.strokeStyle = '#8fd0ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, p.r + 5, 0, 7); ctx.stroke(); }
+    if (i >= 4 || i === SS.sel) { ctx.fillStyle = '#cfdaf5'; ctx.font = '12px system-ui, sans-serif'; ctx.fillText(p.nom.replace(/^la /, '').replace(/^./, c => c.toUpperCase()), x, y - p.r - 7); }
+    if ($('arrows').checked && i === SS.sel && x > 0 && x < W && y > 0 && y < H) {
+      if (SS.grav) { const d = Math.hypot(SX - x, SY - y); arrow(x, y, x + (SX - x) / d * 46, y + (SY - y) / d * 46, '#ff6b5e'); }
+      const vx = p.free ? p.free.vx : -Math.sin(p.th), vy = p.free ? p.free.vy : -Math.cos(p.th), n = Math.hypot(vx, vy);
+      arrow(x, y, x + vx / n * 50, y + vy / n * 50, '#5fe08f');
+    }
+  });
+  // légende
+  ctx.textAlign = 'left'; ctx.font = '12px system-ui, sans-serif';
+  ctx.fillStyle = '#9fb0d8'; ctx.fillText(`Temps écoulé : ${f(SS.years, 1)} années terrestres`, 14, 22);
+  if ($('arrows').checked) {
+    arrow(16, H - 44, 50, H - 44, '#ff6b5e', 2.5); ctx.fillStyle = '#ffb3ab'; ctx.fillText('attraction du Soleil sur la planète', 58, H - 40);
+    arrow(16, H - 22, 50, H - 22, '#5fe08f', 2.5); ctx.fillStyle = '#b4f2c9'; ctx.fillText('vitesse de la planète', 58, H - 18);
+  }
+  ctx.textAlign = 'right'; ctx.fillStyle = '#7f8db3'; ctx.fillText('distances et tailles non à l’échelle', W - 12, H - 14);
+}
+
+/* =================== 2. Poids et masse =================== */
+const AST = [
+  { id: 'terre', nom: 'la Terre', g: 9.81, sky: ['#8cc8f2', '#d8eefc'], sol: '#5b8a3c' },
+  { id: 'lune', nom: 'la Lune', g: 1.62, sky: ['#05070f', '#141a2c'], sol: '#9a9a9a' },
+  { id: 'mars', nom: 'Mars', g: 3.71, sky: ['#c98b5f', '#ecc19a'], sol: '#a9542f' },
+  { id: 'venus', nom: 'Vénus', g: 8.87, sky: ['#d9b66d', '#f2dfa7'], sol: '#9e7a3d' },
+  { id: 'jupiter', nom: 'Jupiter', g: 24.8, sky: ['#b98a5a', '#ead2b0'], sol: '#8d6a47', gaz: true },
+  { id: 'saturne', nom: 'Saturne', g: 10.4, sky: ['#cdb27a', '#efe2bd'], sol: '#a88d55', gaz: true }
+];
+const OBJ = [{ nom: 'Pomme', m: 0.5 }, { nom: 'Cartable', m: 5 }, { nom: 'Astronaute', m: 120 }];
+const PM = { a: 0, jump: null };
+const V0 = 3.0, PXM = 120;           // vitesse de saut (m/s) ; échelle de hauteur (px par m)
+function pmInfo() {
+  const A = AST[PM.a], m = +$('mass').value, P = m * A.g, h = V0 * V0 / (2 * A.g);
+  $('mass-out').textContent = f(m, 1) + ' kg';
+  $('pminfo').innerHTML = `Sur ${A.nom} : <b>g = ${fmt(A.g, 3)} N/kg</b><br>Masse (balance) : <b>m = ${f(m, 1)} kg</b>, la même partout<br>
+    Poids (dynamomètre) : P = m × g = ${f(m, 1)} × ${fmt(A.g, 3)}<br>P = <b>${fmt(P, 3)} N</b><br>
+    <span style="color:var(--muted)">Avec le même élan, l'astronaute saute à ${fmt(h, 2)} m de haut.</span>`;
+  $('msg').innerHTML = `Sur ${A.nom}, l'objet a toujours une masse de ${f(m, 1)} kg (la balance indique la même valeur), mais son poids vaut ${fmt(P, 3)} N. ` +
+    (A.g < 9.81 ? `Il y est ${fmt(9.81 / A.g, 2)} fois plus léger que sur Terre.` : A.g > 9.81 ? `Il y est ${fmt(A.g / 9.81, 2)} fois plus lourd que sur Terre.` : 'C’est la référence.') +
+    (A.gaz ? ' (Planète gazeuse : on imagine qu’on peut s’y poser !)' : '');
+}
+function drawPM() {
+  const A = AST[PM.a], m = +$('mass').value, P = m * A.g, GY = 440;
+  const sky = ctx.createLinearGradient(0, 0, 0, GY); sky.addColorStop(0, A.sky[0]); sky.addColorStop(1, A.sky[1]);
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, GY);
+  if (A.id === 'lune') { STARS.forEach(([x, y, r]) => { if (y < GY) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(x, y, r, r); } }); ball(470, 60, 20, '#9fd6ff', '#1f5fae'); }
+  ctx.fillStyle = A.sol; ctx.fillRect(0, GY, W, H - GY);
+  const dark = A.id === 'lune';
+  const ink = dark ? '#e8eefc' : '#1c2333';
+  ctx.fillStyle = ink; ctx.font = '700 16px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(`Sur ${A.nom} : g = ${fmt(A.g, 3)} N/kg`, 16, 28);
+  const side = Math.max(16, Math.min(60, 14 + 10 * Math.cbrt(m)));
+  // --- dynamomètre ---
+  const DX = 150, top = 60;
+  ctx.fillStyle = '#6b5a45'; ctx.fillRect(DX - 70, top - 10, 140, 10);
+  const stretch = 30 + 200 * Math.sqrt(Math.min(1, P / 3000));
+  ctx.fillStyle = '#e9edf3'; ctx.strokeStyle = '#59626f'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(DX - 14, top, 28, 60, 5); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#59626f'; ctx.lineWidth = 2; ctx.beginPath();
+  const n = 14; for (let k = 0; k <= n; k++) { const y = top + 60 + stretch * k / n; ctx.lineTo(DX + (k % 2 ? 9 : -9), y); } ctx.stroke();
+  const oy = top + 60 + stretch + 8;
+  ctx.beginPath(); ctx.moveTo(DX, oy - 8); ctx.lineTo(DX, oy); ctx.stroke();
+  ctx.fillStyle = '#c2452f'; ctx.fillRect(DX - side / 2, oy, side, side);
+  // vecteur poids
+  const cx = DX, cy = oy + side / 2, L = 12 + 48 * A.g / 9.81;
+  arrow(cx, cy, cx, cy + L, dark ? '#ffd24a' : '#1f5fd0', 3.5);
+  ctx.fillStyle = dark ? '#ffd24a' : '#1f5fd0'; ctx.font = '700 15px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('P', cx + 8, cy + L - 4);
+  lcd(DX + 30, top + 6, fmt(P, 3) + ' N', 'dynamomètre', ink);
+  // --- balance ---
+  const BX = 400;
+  ctx.fillStyle = '#e3e7ee'; ctx.strokeStyle = '#59626f'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(BX - 80, GY - 46, 160, 46, 8); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(BX - 60, GY - 54, 120, 8, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#c2452f'; ctx.fillRect(BX - side / 2, GY - 54 - side, side, side);
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(BX - 52, GY - 38, 104, 28, 5); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 17px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center'; ctx.fillText(f(m, 1) + ' kg', BX, GY - 18);
+  ctx.fillStyle = ink; ctx.font = '13px system-ui, sans-serif'; ctx.fillText('balance (masse)', BX, GY - 64 - side);
+  // --- saut ---
+  const JX = 650;
+  ctx.strokeStyle = dark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)'; ctx.fillStyle = ink; ctx.lineWidth = 1; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'right';
+  for (let k = 0; k <= 3; k += .5) { const y = GY - k * PXM; ctx.beginPath(); ctx.moveTo(JX + 70, y); ctx.lineTo(JX + 80, y); ctx.stroke(); if (k % 1 === 0) ctx.fillText(k + ' m', JX + 112, y + 4); }
+  ctx.beginPath(); ctx.moveTo(JX + 75, GY); ctx.lineTo(JX + 75, GY - 3 * PXM); ctx.stroke();
+  let hy = 0;
+  if (PM.jump) { const t = PM.jump.t; hy = Math.max(0, V0 * t - A.g * t * t / 2); }
+  const hmax = V0 * V0 / (2 * A.g);
+  ctx.setLineDash([5, 5]); ctx.strokeStyle = dark ? 'rgba(255,210,74,.8)' : 'rgba(31,95,208,.7)';
+  ctx.beginPath(); ctx.moveTo(JX - 40, GY - hmax * PXM); ctx.lineTo(JX + 75, GY - hmax * PXM); ctx.stroke(); ctx.setLineDash([]);
+  astronaut(JX, GY - hy * PXM);
+  ctx.fillStyle = ink; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffffff'; ctx.font = '600 14px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillText(`hauteur du saut : ${fmt(hmax, 2)} m`, W - 14, GY + 34);
+}
+function lcd(x, y, txt, label, ink) {
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(x, y, 116, 32, 6); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 17px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center'; ctx.fillText(txt, x + 58, y + 22);
+  ctx.fillStyle = ink; ctx.font = '12px system-ui, sans-serif'; ctx.fillText(label, x + 58, y + 46);
+}
+function astronaut(x, yFeet) {
+  ctx.save(); ctx.translate(x, yFeet);
+  ctx.fillStyle = '#f2f4f8'; ctx.strokeStyle = '#59626f'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(-14, -30, 11, 30, 4); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(3, -30, 11, 30, 4); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(-18, -70, 36, 44, 9); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#d0d5de'; ctx.fillRect(-26, -62, 8, 22); ctx.fillRect(18, -62, 8, 22);
+  ctx.fillStyle = '#f2f4f8'; ctx.beginPath(); ctx.arc(0, -86, 17, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#2a3b5c'; ctx.beginPath(); ctx.roundRect(-11, -94, 22, 15, 6); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(-7, -92, 6, 4);
+  ctx.restore();
+}
+
+/* =================== 3. Décrire un mouvement =================== */
+const TRAJ = ['rectiligne', 'circulaire', 'curviligne'];
+const VIT = ['uniforme', 'accéléré', 'ralenti', 'ralenti puis accéléré'];
+const SC = [
+  { id: 'fusee', nom: 'Fusée au décollage', ref: 'le sol (la Terre)', traj: 0, vit: 1, dt: '0,50 s',
+    pts: Array.from({ length: 12 }, (_, k) => [410, 430 - 2.6 * k * k]),
+    expl: 'Les positions sont alignées : trajectoire <strong>rectiligne</strong>. Les distances entre deux positions successives augmentent : mouvement <strong>accéléré</strong>. La poussée des moteurs est plus forte que le poids de la fusée.' },
+  { id: 'sat', nom: 'Satellite en orbite', ref: 'le centre de la Terre', traj: 1, vit: 0, dt: '10 min',
+    pts: Array.from({ length: 13 }, (_, k) => [410 + 175 * Math.cos(.3 + k * .46), 250 - 175 * Math.sin(.3 + k * .46)]),
+    expl: 'Les positions sont sur un cercle : trajectoire <strong>circulaire</strong>. Les distances entre deux positions sont égales : mouvement <strong>uniforme</strong>. C’est l’attraction de la Terre qui courbe la trajectoire.' },
+  { id: 'sonde', nom: 'Sonde loin des astres', ref: 'les étoiles lointaines', traj: 0, vit: 0, dt: '1 jour',
+    pts: Array.from({ length: 12 }, (_, k) => [90 + 58 * k, 400 - 24 * k]),
+    expl: 'Trajectoire <strong>rectiligne</strong> et distances égales : mouvement <strong>rectiligne uniforme</strong>. Loin de tout astre, aucune action ne s’exerce sur la sonde : elle continue tout droit à la même vitesse, moteurs éteints.' },
+  { id: 'capsule', nom: 'Capsule sous parachute', ref: 'le sol (la Terre)', traj: 0, vit: 2, dt: '0,50 s',
+    pts: (() => { const a = []; let y = 40; for (let k = 0; k < 12; k++) { a.push([410, y]); y += 62 * Math.pow(.8, k); } return a; })(),
+    expl: 'Trajectoire <strong>rectiligne</strong> (verticale). Les distances entre deux positions diminuent : mouvement <strong>ralenti</strong>. L’action de l’air sur le parachute freine la capsule.' },
+  { id: 'balle', nom: 'Balle lancée sur la Lune', ref: 'le sol lunaire', traj: 2, vit: 3, dt: '1,0 s',
+    pts: Array.from({ length: 13 }, (_, k) => [90 + 52 * k, 420 - (62 * k - 5.1 * k * k)]),
+    expl: 'La trajectoire est une courbe : <strong>curviligne</strong>. La balle <strong>ralentit en montant puis accélère en descendant</strong> : la Lune l’attire vers le bas (son poids).' }
+];
+const MV = { s: 0, t: 0, a: null, b: null };
+function scButtons() {
+  $('scen').innerHTML = SC.map((s, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === MV.s}">${s.nom}</button>`).join('');
+  $('scen').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.s = +b.dataset.i; scButtons(); startMV(); }));
+  $('q-traj').innerHTML = TRAJ.map((t, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${MV.a === i}">${t}</button>`).join('');
+  $('q-vit').innerHTML = VIT.map((t, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${MV.b === i}">${t}</button>`).join('');
+  $('q-traj').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.a = +b.dataset.i; scButtons(); }));
+  $('q-vit').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { MV.b = +b.dataset.i; scButtons(); }));
+}
+function startMV() {
+  MV.t = 0; MV.a = null; MV.b = null; scButtons();
+  const s = SC[MV.s];
+  $('mvinfo').innerHTML = `Référentiel : <b>${s.ref}</b><br>Durée entre deux positions : <b>Δt = ${s.dt}</b>`;
+  $('msg').innerHTML = `Chronophotographie : la position de l’objet est enregistrée à intervalles de temps réguliers (Δt = ${s.dt}). Observe la forme de la trajectoire et l’écart entre les points, puis décris le mouvement.`;
+}
+function checkMV() {
+  const s = SC[MV.s];
+  if (MV.a === null || MV.b === null) { $('msg').innerHTML = 'Choisis d’abord une trajectoire et une évolution de la vitesse.'; return; }
+  const ok1 = MV.a === s.traj, ok2 = MV.b === s.vit;
+  $('msg').innerHTML = (ok1 && ok2 ? '<strong>Bravo !</strong> ' : `<strong>${ok1 ? 'Trajectoire juste' : 'Trajectoire fausse'}, ${ok2 ? 'vitesse juste' : 'vitesse fausse'}.</strong> `) + s.expl;
+}
+function drawMV() {
+  space();
+  const s = SC[MV.s], n = Math.min(s.pts.length, Math.floor(MV.t / .35) + 1);
+  // décor
+  if (s.id === 'sat') { ball(410, 250, 70, '#9fd6ff', '#1f5fae'); ctx.fillStyle = '#e8f3ff'; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Terre', 410, 255); }
+  if (s.id === 'fusee' || s.id === 'capsule') { ctx.fillStyle = '#20314a'; ctx.fillRect(0, 460, W, 40); ctx.fillStyle = '#9fb0d8'; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('sol', 12, 482); }
+  if (s.id === 'balle') { ctx.fillStyle = '#8e8e8e'; ctx.fillRect(0, 430, W, 70); ball(720, 70, 24, '#9fd6ff', '#1f5fae'); }
+  // points
+  for (let k = 0; k < n; k++) {
+    const [x, y] = s.pts[k];
+    ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#cfdaf5'; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('M' + k, x + 9, y - 6);
+  }
+  // objet
+  const [x, y] = s.pts[n - 1];
+  ctx.save(); ctx.translate(x, y);
+  if (s.id === 'fusee') { ctx.fillStyle = '#eef2f8'; ctx.beginPath(); ctx.moveTo(0, -34); ctx.lineTo(9, -16); ctx.lineTo(9, 14); ctx.lineTo(-9, 14); ctx.lineTo(-9, -16); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ff9a2a'; ctx.beginPath(); ctx.moveTo(-6, 14); ctx.lineTo(0, 30 + 6 * Math.sin(performance.now() / 50)); ctx.lineTo(6, 14); ctx.fill(); }
+  else if (s.id === 'capsule') { ctx.strokeStyle = '#d8dde8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-8, -4); ctx.lineTo(-26, -40); ctx.moveTo(8, -4); ctx.lineTo(26, -40); ctx.stroke(); ctx.fillStyle = '#ff6b4a'; ctx.beginPath(); ctx.arc(0, -40, 28, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#c9ced8'; ctx.beginPath(); ctx.moveTo(-10, -4); ctx.lineTo(10, -4); ctx.lineTo(13, 10); ctx.lineTo(-13, 10); ctx.closePath(); ctx.fill(); }
+  else if (s.id === 'sat') { ctx.fillStyle = '#4f7fd6'; ctx.fillRect(-22, -4, 14, 8); ctx.fillRect(8, -4, 14, 8); ctx.fillStyle = '#e6e9ef'; ctx.fillRect(-7, -7, 14, 14); }
+  else if (s.id === 'sonde') { ctx.fillStyle = '#e6e9ef'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, 7); ctx.fill(); ctx.strokeStyle = '#e6e9ef'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-6, 6); ctx.lineTo(-14, 16); ctx.moveTo(0, -8); ctx.lineTo(0, -20); ctx.stroke(); }
+  else { ball(0, 0, 8, '#ffffff', '#d0d4dc'); }
+  ctx.restore();
+  ctx.fillStyle = '#9fb0d8'; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(`${s.nom} · référentiel : ${s.ref} · Δt = ${s.dt}`, 14, 22);
+}
+
+/* =================== commun =================== */
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+  ['ss', 'pm', 'mv'].forEach(k => $('p-' + k).hidden = k !== m);
+  if (m === 'ss') ssMsg(); else if (m === 'pm') pmInfo(); else startMV();
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$('spd').addEventListener('input', spdLabel);
+$('grav').addEventListener('click', cutGravity);
+$('ssreset').addEventListener('click', resetSS);
+cv.addEventListener('click', e => {
+  if (mode !== 'ss') return;
+  const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+  let best = -1, bd = 22;
+  PL.forEach((p, i) => { const [px, py] = plPos(p), d = Math.hypot(px - x, py - y) - p.r; if (d < bd) { bd = d; best = i; } });
+  if (best >= 0) { SS.sel = best; pInfo(); }
+});
+$('astres').innerHTML = AST.map((a, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === PM.a}">${a.nom.replace(/^la /, '').replace(/^./, c => c.toUpperCase())}</button>`).join('');
+$('astres').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  PM.a = +b.dataset.i; PM.jump = null; $('astres').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); pmInfo();
+}));
+$('objets').innerHTML = OBJ.map((o, i) => `<button type="button" class="seg" data-m="${o.m}">${o.nom}</button>`).join('');
+$('objets').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('mass').value = b.dataset.m; pmInfo(); }));
+$('mass').addEventListener('input', pmInfo);
+$('jump').addEventListener('click', () => { PM.jump = { t: 0 }; });
+$('replay').addEventListener('click', () => { MV.t = 0; });
+$('verif').addEventListener('click', checkMV);
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (mode === 'ss') tickSS(dt);
+  if (mode === 'pm' && PM.jump) { PM.jump.t += dt; if (PM.jump.t > 2 * V0 / AST[PM.a].g + .4) PM.jump = null; }
+  if (mode === 'mv') MV.t += dt;
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'ss' ? drawSS() : mode === 'pm' ? drawPM() : drawMV();
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); spdLabel(); pInfo(); scButtons(); setMode('ss');
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, fmt, res, shuffle, etape, texte, sci } = Exo;
+const G = [
+  { nom: 'la Terre', g: 9.81 }, { nom: 'la Lune', g: 1.62 }, { nom: 'Mars', g: 3.71 },
+  { nom: 'Jupiter', g: 24.8 }, { nom: 'Saturne', g: 10.4 }, { nom: 'Vénus', g: 8.87 }
+];
+const RAPPEL = `P = m × g : P en newtons (N), m en kilogrammes (kg), g en newtons par kilogramme (N/kg). La masse ne dépend pas du lieu, le poids si.
+  Vitesse moyenne : v = d / t. 1 h = 3 600 s ; 1 km = 1 000 m. Le résultat garde autant de chiffres significatifs que la donnée qui en a le moins.`;
+const nu = s => s.replace(/^la /, '');
+Exo.monter('exo-meca', [
+  { id: 'p', label: 'Calculer un poids', rappel: RAPPEL, gen() {
+    const A = pick(G.slice(1)), m = rnd(20.0, 150, 3), PT = m * 9.81, PA = m * A.g;
+    return {
+      enonce: `<p>Un astronaute équipé de sa combinaison a une masse <strong>m = ${fmt(m, 3)} kg</strong>. Données : g<sub>Terre</sub> = 9,81 N/kg ; g sur ${A.nom} = ${fmt(A.g, 3)} N/kg.</p>`,
+      questions: [
+        { label: '1. Calcule son poids sur la Terre.', unite: 'N', rep: PT, cs: 3 },
+        { label: `2. Calcule son poids sur ${A.nom}.`, unite: 'N', rep: PA, cs: 3 },
+        { label: `3. Quelle est sa masse sur ${A.nom} ?`, unite: 'kg', rep: m, cs: 3 }
+      ],
+      correction: etape({ q: '1.', lit: 'P = m × g<sub>Terre</sub>', an: `P = ${fmt(m, 3)} × 9,81`, res: `P = ${res(PT, 3, 'N')}` }) +
+        etape({ q: '2.', lit: `P = m × g<sub>${nu(A.nom)}</sub>`, an: `P = ${fmt(m, 3)} × ${fmt(A.g, 3)}`, res: `P = ${res(PA, 3, 'N')}` }) +
+        texte('3.', `La masse ne dépend pas du lieu : sur ${A.nom}, elle vaut toujours <strong>${fmt(m, 3)} kg</strong>.`)
+    };
+  } },
+  { id: 'g', label: 'Identifier un astre', rappel: RAPPEL, gen() {
+    const A = pick(G), m = rnd(1.00, 9.00, 3), P = Exo.round(m * A.g, 3), g = P / m;
+    const choix = shuffle(G);
+    return {
+      enonce: `<p>Sur un astre inconnu, un objet de masse <strong>m = ${fmt(m, 3)} kg</strong> est accroché à un dynamomètre, qui indique <strong>P = ${fmt(P, 3)} N</strong>.</p>
+        <p>Données (N/kg) : ${G.map(x => `${nu(x.nom)} ${fmt(x.g, 3)}`).join(' ; ')}.</p>`,
+      questions: [
+        { label: '1. Calcule l’intensité de pesanteur g de cet astre.', unite: 'N/kg', rep: g, cs: 3, marge: 2 },
+        { label: '2. Sur quel astre se trouve l’objet ?', choix: choix.map(x => nu(x.nom).replace(/^./, c => c.toUpperCase())), rep: choix.indexOf(A) }
+      ],
+      correction: etape({ q: '1.', lit: 'P = m × g donc g = P / m', an: `g = ${fmt(P, 3)} / ${fmt(m, 3)}`, res: `g = ${res(g, 3, 'N/kg')}` }) +
+        texte('2.', `Cette valeur correspond à <strong>${A.nom}</strong> (g = ${fmt(A.g, 3)} N/kg).`)
+    };
+  } },
+  { id: 'v', label: 'Vitesse dans l’espace', rappel: RAPPEL, gen() {
+    const C = pick([
+      () => { const d = rnd(4.20e4, 4.30e4, 3), t = rnd(90.0, 93.0, 3); return { txt: `La Station spatiale internationale (ISS) fait un tour de la Terre, soit <strong>d = ${sci(d, 3)} km</strong>, en <strong>t = ${fmt(t, 3)} min</strong>.`, d, th: t / 60, tlab: `${fmt(t, 3)} min = ${fmt(t, 3)} / 60 h`, tv: t / 60 }; },
+      () => { const d = rnd(9.30e8, 9.50e8, 3), j = rnd(365, 366, 3); return { txt: `En une année, la Terre parcourt <strong>d = ${sci(d, 3)} km</strong> autour du Soleil, en <strong>t = ${fmt(j, 3)} jours</strong>.`, d, th: j * 24, tlab: `${fmt(j, 3)} j = ${fmt(j, 3)} × 24 h`, tv: j * 24 }; },
+      () => { const d = rnd(2.40e6, 2.45e6, 3), j = rnd(27.2, 27.4, 3); return { txt: `La Lune fait un tour de la Terre, soit <strong>d = ${sci(d, 3)} km</strong>, en <strong>t = ${fmt(j, 3)} jours</strong>.`, d, th: j * 24, tlab: `${fmt(j, 3)} j = ${fmt(j, 3)} × 24 h`, tv: j * 24 }; }
+    ])();
+    const v = C.d / C.th, vs = v / 3600;
+    return {
+      enonce: `<p>${C.txt}</p>`,
+      questions: [
+        { label: '1. Convertis la durée en heures.', unite: 'h', rep: C.th, cs: 3 },
+        { label: '2. Calcule la vitesse moyenne en km/h.', unite: 'km/h', rep: v, cs: 3 },
+        { label: '3. Convertis cette vitesse en km/s.', unite: 'km/s', rep: vs, cs: 3 }
+      ],
+      correction: etape({ q: '1.', an: `t = ${C.tlab}`, res: `t = ${res(C.th, 3, 'h')}` }) +
+        etape({ q: '2.', lit: 'v = d / t', an: `v = ${sci(C.d, 3)} / ${fmt(C.th, 3)}`, res: `v = ${res(v, 3, 'km/h')}` }) +
+        etape({ q: '3.', lit: '1 h = 3 600 s', an: `v = ${fmt(v, 3)} / 3 600`, res: `v = ${res(vs, 3, 'km/s')}` })
+    };
+  } },
+  { id: 'qcm', label: 'Interactions et mouvements', gen() {
+    const POOL = [
+      { q: 'L’action du Soleil sur la Terre est une action…', c: ['à distance', 'de contact'], e: 'Le Soleil et la Terre ne se touchent pas : c’est une action <strong>à distance</strong> (la gravitation).' },
+      { q: 'L’action du sol sur les pieds d’un astronaute est une action…', c: ['de contact', 'à distance'], e: 'Le sol touche les pieds : action <strong>de contact</strong>.' },
+      { q: 'Quand un astronaute va de la Terre à la Lune, sa masse…', c: ['ne change pas', 'diminue', 'augmente'], e: 'La masse est la quantité de matière : elle <strong>ne change pas</strong>. C’est le poids qui diminue.' },
+      { q: 'Avec quel instrument mesure-t-on un poids ?', c: ['Un dynamomètre', 'Une balance', 'Un chronomètre'], e: 'Le poids est une force : il se mesure avec un <strong>dynamomètre</strong>, en newtons.' },
+      { q: 'Quelle est l’unité du poids ?', c: ['le newton (N)', 'le kilogramme (kg)', 'le N/kg'], e: 'Le poids est une force, en <strong>newtons (N)</strong>.' },
+      { q: 'Si la gravitation du Soleil disparaissait, la Terre…', c: ['partirait en ligne droite', 'tomberait sur le Soleil', 'continuerait à tourner'], e: 'Plus rien ne courberait sa trajectoire : elle partirait <strong>en ligne droite</strong>.' },
+      { q: 'Pourquoi les planètes tournent-elles autour du Soleil ?', c: ['Le Soleil les attire (gravitation)', 'Le vent solaire les pousse', 'Elles sont accrochées par des forces de contact'], e: 'La <strong>gravitation</strong> du Soleil attire les planètes et courbe leur trajectoire.' },
+      { q: 'Des points également espacés et alignés sur une chronophotographie indiquent un mouvement…', c: ['rectiligne uniforme', 'circulaire uniforme', 'rectiligne accéléré'], e: 'Alignés : rectiligne. Également espacés : uniforme. Donc <strong>rectiligne uniforme</strong>.' },
+      { q: 'Un passager assis dans un train qui roule est immobile…', c: ['par rapport au train', 'par rapport au sol', 'dans tous les référentiels'], e: 'Le mouvement dépend du référentiel : le passager est <strong>immobile par rapport au train</strong> mais en mouvement par rapport au sol.' },
+      { q: 'Sur la Lune, g = 1,62 N/kg contre 9,81 N/kg sur Terre. Un objet y est…', c: ['environ 6 fois plus léger', 'environ 6 fois plus lourd', 'aussi lourd que sur Terre'], e: '9,81 / 1,62 ≈ 6 : le poids est <strong>environ 6 fois plus petit</strong> sur la Lune.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>
