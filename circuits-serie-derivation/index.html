@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Série, dérivation et loi d'Ohm</title>
+<meta name="description" content="Simulation interactive : lampes en série et en dérivation, lois des intensités et des tensions, loi d'Ohm U = R × I (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#b8382a; --accent-soft:#fbe9e6; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#ff8a7a; --accent-soft:#3a1d1a; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#ff8a7a; --accent-soft:#3a1d1a; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/500;cursor:pointer}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+table.pts{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums;margin-top:8px}
+table.pts th,table.pts td{border-bottom:1px solid var(--border);padding:.2rem .35rem;text-align:center}
+[hidden]{display:none!important}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Série, dérivation et loi d'Ohm</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Branche deux lampes <strong>en série</strong> ou <strong>en dérivation</strong>. Clique sur une lampe pour la dévisser,
+    sur l'interrupteur pour l'ouvrir, et lis les ampèremètres et les voltmètres pour découvrir les lois de l'intensité et de la tension.
+    Puis trace la caractéristique d'une résistance : c'est la <strong>loi d'Ohm</strong>.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de circuits électriques">
+    <div class="tabs" role="group" aria-label="Choisir le circuit">
+      <button type="button" class="seg" data-mode="serie" aria-pressed="true">Lampes en série</button>
+      <button type="button" class="seg" data-mode="derivation" aria-pressed="false">Lampes en dérivation</button>
+      <button type="button" class="seg" data-mode="ohm" aria-pressed="false">Loi d'Ohm</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Schéma du circuit électrique avec les mesures"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-lamp">
+          <h3>1. Régler le circuit</h3>
+          <div class="row"><span style="font-weight:600;font-size:.92rem">Générateur</span></div>
+          <div class="grid3" id="ug" role="group" aria-label="Tension du générateur"></div>
+          <div class="row"><span style="font-weight:600;font-size:.92rem">Lampes</span></div>
+          <div class="grid2" id="lamps" role="group" aria-label="Type de lampes">
+            <button type="button" class="seg" data-l="id" aria-pressed="true">identiques</button>
+            <button type="button" class="seg" data-l="diff" aria-pressed="false">différentes</button>
+          </div>
+          <h3 style="margin-top:14px">2. Agir <small>ou clique sur le schéma</small></h3>
+          <div class="grid3">
+            <button id="bk" type="button" class="ghost">Ouvrir K</button>
+            <button id="b1" type="button" class="ghost">Dévisser L₁</button>
+            <button id="b2" type="button" class="ghost">Dévisser L₂</button>
+          </div>
+          <label class="check"><input type="checkbox" id="mes" checked> Afficher les mesures (ampèremètres et voltmètres)</label>
+          <h3 style="margin-top:14px">3. Les lois</h3>
+          <div class="info" id="lois"></div>
+        </div>
+        <div id="p-ohm" hidden>
+          <h3>1. Choisir la résistance</h3>
+          <div class="grid4" id="rs" role="group" aria-label="Valeur de la résistance"></div>
+          <h3 style="margin-top:12px">2. Régler la tension</h3>
+          <div class="row"><label for="uo" style="min-width:6em">Générateur</label><input id="uo" type="range" min="0" max="12" step="0.5" value="6"><output id="uo-out" for="uo"></output></div>
+          <div class="grid2" style="margin-top:10px">
+            <button id="note" type="button">Noter la mesure</button>
+            <button id="clr" class="ghost" type="button">Effacer</button>
+          </div>
+          <table class="pts" id="pts" aria-label="Mesures notées"></table>
+          <h3 style="margin-top:12px">3. Exploiter</h3>
+          <div class="info" id="ohm-info"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>En série</h3>Une seule boucle. L'intensité est <strong>la même partout</strong> : I = I₁ = I₂. Les tensions s'additionnent : <strong>U<sub>G</sub> = U₁ + U₂</strong>. Si une lampe est dévissée, tout s'éteint.</div>
+      <div><h3>En dérivation</h3>Plusieurs boucles. Les intensités s'additionnent : <strong>I = I₁ + I₂</strong> (loi des nœuds). Même tension aux bornes de chaque branche : <strong>U<sub>G</sub> = U₁ = U₂</strong>. Les lampes sont indépendantes.</div>
+      <div><h3>Loi d'Ohm</h3>Pour une résistance : <strong>U = R × I</strong>, avec U en volts (V), R en ohms (Ω) et I en ampères (A). La caractéristique U = f(I) est une droite qui passe par l'origine.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Tu peux vérifier tes réponses en construisant le circuit ci-dessus.</p>
+    <div id="exo-elec"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Lampes modélisées par des résistances constantes ; générateur idéal.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 500;
+const LAMPS = { id: [12, 12], diff: [10, 20] };
+const UNOM = 6;                                   // tension nominale des lampes
+const RVAL = [47, 100, 220, 'x'];
+const S = { mode: 'serie', UG: 6, lamps: 'id', K: true, L: [true, true], mes: true, R: 100, Rx: 68, Uo: 6, pts: [] };
+let flow = 0;
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+
+/* ---------- physique ---------- */
+function solve() {
+  const [R1, R2] = LAMPS[S.lamps], UG = S.UG, K = S.K, [a, b] = S.L;
+  const o = { UG, I: 0, I1: 0, I2: 0, U1: 0, U2: 0, UK: 0 };
+  if (S.mode === 'serie') {
+    const opens = [!K && 'K', !a && 'U1', !b && 'U2'].filter(Boolean);
+    if (!opens.length) { o.I = UG / (R1 + R2); o.I1 = o.I2 = o.I; o.U1 = R1 * o.I; o.U2 = R2 * o.I; }
+    else if (opens.length === 1) o[opens[0] === 'K' ? 'UK' : opens[0]] = UG;
+    else opens.forEach(k => o[k === 'K' ? 'UK' : k] = null);
+  } else {
+    o.I1 = K && a ? UG / R1 : 0; o.I2 = K && b ? UG / R2 : 0; o.I = o.I1 + o.I2;
+    o.U1 = o.U2 = K ? UG : (a || b ? 0 : null);
+    o.UK = K ? 0 : (a || b ? UG : null);
+  }
+  return o;
+}
+function solveOhm() { const R = S.R === 'x' ? S.Rx : S.R; return { R, U: S.Uo, I: S.Uo / R }; }
+
+/* ---------- géométrie ---------- */
+const GEO = {
+  serie: {
+    gen: [110, 260], K: [280, 110], L1: [520, 110, 'h'], L2: [710, 260, 'v'],
+    paths: [{ k: 'I', p: [[110, 250], [110, 110], [710, 110], [710, 410], [110, 410], [110, 270]] }],
+    amp: [['I', 400, 110, 'I'], ['I', 710, 360, 'I'], ['I', 300, 410, 'I']],
+    volt: [['U1', 520, 66, 'U₁'], ['U2', 768, 222, 'U₂'], ['UK', 280, 66, 'U<sub>K</sub>']],
+    nodes: []
+  },
+  derivation: {
+    gen: [110, 260], K: [260, 110], L1: [420, 260, 'v'], L2: [710, 260, 'v'],
+    paths: [{ k: 'I', p: [[110, 250], [110, 110], [420, 110]] }, { k: 'I1', p: [[420, 110], [420, 410]] },
+            { k: 'I2', p: [[420, 110], [710, 110], [710, 410], [420, 410]] }, { k: 'I', p: [[420, 410], [110, 410], [110, 270]] }],
+    amp: [['I', 260, 410, 'I'], ['I1', 420, 170, 'I₁'], ['I2', 570, 110, 'I₂']],
+    volt: [['U1', 474, 222, 'U₁'], ['U2', 768, 222, 'U₂'], ['UK', 260, 66, 'U<sub>K</sub>']],
+    nodes: [[420, 110], [420, 410]]
+  },
+  ohm: {
+    gen: [80, 260], amp: [210, 110], R: [230, 410], volt: [230, 470],
+    paths: [{ k: 'I', p: [[80, 250], [80, 110], [380, 110], [380, 410], [80, 410], [80, 270]] }]
+  }
+};
+
+/* ---------- dessin ---------- */
+function line(pts, color, w) { ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineJoin = 'round'; ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); }
+function gen(x, y, U) {
+  const bg = css('--canvas'), ink = css('--text');
+  ctx.fillStyle = bg; ctx.fillRect(x - 30, y - 9, 60, 18);
+  ctx.strokeStyle = ink; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 24, y - 9); ctx.lineTo(x + 24, y - 9); ctx.stroke();
+  ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x - 12, y + 9); ctx.lineTo(x + 12, y + 9); ctx.stroke();
+  ctx.fillStyle = '#c0392b'; ctx.font = '700 17px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('+', x - 34, y - 12);
+  ctx.fillStyle = '#2c6fbf'; ctx.fillText('−', x - 34, y + 20);
+  ctx.fillStyle = ink; ctx.font = '600 14px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('G', x + 30, y - 4);
+  if (U !== undefined) { ctx.fillStyle = css('--muted'); ctx.font = '13px system-ui, sans-serif'; ctx.fillText(f(U, 1) + ' V', x + 30, y + 14); }
+}
+function lamp(x, y, on, bright, label, orient) {
+  const v = orient === 'v', lx = v ? x - 30 : x, ly = v ? y + 5 : y + 40;
+  const bg = css('--canvas'), ink = css('--text');
+  if (on && bright > .01) {
+    const r = 26 + 34 * Math.min(1.3, bright), g = ctx.createRadialGradient(x, y, 4, x, y, r);
+    g.addColorStop(0, `rgba(255,230,90,${Math.min(.95, .25 + .7 * bright)})`); g.addColorStop(1, 'rgba(255,200,40,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = on && bright > .01 ? `rgba(255,236,150,${Math.min(1, .35 + bright)})` : bg;
+  ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.fill();
+  ctx.strokeStyle = on ? ink : css('--muted'); ctx.lineWidth = 2.2; ctx.setLineDash(on ? [] : [4, 4]);
+  ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  if (on) { const k = 12.7; ctx.beginPath(); ctx.moveTo(x - k, y - k); ctx.lineTo(x + k, y + k); ctx.moveTo(x + k, y - k); ctx.lineTo(x - k, y + k); ctx.stroke(); }
+  ctx.fillStyle = ink; ctx.font = '700 15px system-ui, sans-serif'; ctx.textAlign = v ? 'right' : 'center';
+  ctx.fillText(label, lx, ly);
+  if (!on) { ctx.fillStyle = css('--muted'); ctx.font = 'italic 12px system-ui, sans-serif'; ctx.fillText('(dévissée)', lx, ly + 16); }
+}
+function sw(x, y, closed) {
+  const bg = css('--canvas'), ink = css('--text');
+  ctx.fillStyle = bg; ctx.fillRect(x - 22, y - 30, 44, 34);
+  ctx.strokeStyle = ink; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(x - 20, y);
+  if (closed) ctx.lineTo(x + 20, y); else ctx.lineTo(x + 14, y - 22);
+  ctx.stroke();
+  [x - 20, x + 20].forEach(px => { ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(px, y, 3.5, 0, 7); ctx.fill(); });
+  ctx.fillStyle = ink; ctx.font = '700 15px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('K', x, y + 24);
+}
+function meter(x, y, letter, val, unit, color) {
+  ctx.fillStyle = css('--canvas'); ctx.strokeStyle = color; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.arc(x, y, 15, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = color; ctx.font = '700 15px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(letter, x, y + 1);
+  ctx.textBaseline = 'alphabetic';
+}
+function tag(x, y, txt, color) {
+  // « _X » écrit X en indice
+  const parts = txt.split(/_(\S)/).map((t, i) => ({ t, sub: i % 2 === 1 }));
+  const F = '700 14px ui-monospace, Menlo, Consolas, monospace', FS = '700 10px ui-monospace, Menlo, Consolas, monospace';
+  let w = 14; parts.forEach(p => { ctx.font = p.sub ? FS : F; p.w = ctx.measureText(p.t).width; w += p.w; });
+  ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 12, w, 24, 6); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  let cx = x - w / 2 + 7;
+  parts.forEach(p => { ctx.font = p.sub ? FS : F; ctx.fillText(p.t, cx, y + (p.sub ? 5 : 1)); cx += p.w; });
+  ctx.textBaseline = 'alphabetic';
+}
+const subTxt = s => s.replace('<sub>K</sub>', '_K').replace('₁', '_1').replace('₂', '_2');
+function dots(paths, vals, speedOf) {
+  ctx.fillStyle = '#e8a000';
+  for (const P of paths) {
+    const I = vals[P.k]; if (!I) continue;
+    const segs = []; let L = 0;
+    for (let i = 1; i < P.p.length; i++) { const [x0, y0] = P.p[i - 1], [x1, y1] = P.p[i], l = Math.hypot(x1 - x0, y1 - y0); segs.push([x0, y0, x1, y1, L, l]); L += l; }
+    const sp = 26, off = (flow * speedOf(I)) % sp;
+    for (let s = off; s < L; s += sp) {
+      const g = segs.find(q => s >= q[4] && s <= q[4] + q[5]); if (!g) continue;
+      const u = (s - g[4]) / g[5];
+      ctx.beginPath(); ctx.arc(g[0] + (g[2] - g[0]) * u, g[1] + (g[3] - g[1]) * u, 3.2, 0, 7); ctx.fill();
+    }
+  }
+}
+function drawLamps() {
+  const G = GEO[S.mode], o = solve(), wire = css('--text'), [R1, R2] = LAMPS[S.lamps];
+  ctx.globalAlpha = .9; G.paths.forEach(P => line(P.p, wire, 2.2)); ctx.globalAlpha = 1;
+  dots(G.paths, o, I => 40 + 240 * Math.min(1, I / .9));
+  G.nodes.forEach(([x, y]) => { ctx.fillStyle = wire; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill(); });
+  gen(G.gen[0], G.gen[1], S.UG);
+  sw(G.K[0], G.K[1], S.K);
+  lamp(G.L1[0], G.L1[1], S.L[0], (o.U1 || 0) * (o.I1 || 0) / (UNOM * UNOM / R1), 'L₁', G.L1[2]);
+  lamp(G.L2[0], G.L2[1], S.L[1], (o.U2 || 0) * (o.I2 || 0) / (UNOM * UNOM / R2), 'L₂', G.L2[2]);
+  if (S.mes) {
+    const A = '#c0392b', V = '#2c6fbf';
+    G.amp.forEach(([k, x, y, l]) => tag(x, y + (y > 300 ? 26 : (x === 420 || x === 710) ? 0 : -26), `${subTxt(l)} = ${f(o[k], 2)} A`, A));
+    G.volt.forEach(([k, x, y, l]) => tag(x + (k === 'U2' ? 0 : 0), y, `${subTxt(l)} = ${o[k] === null ? '?' : f(o[k], 1) + ' V'}`, V));
+    tag(G.gen[0] - 20, G.gen[1] + 70, `U_G = ${f(S.UG, 1)} V`, V);
+  }
+  ctx.fillStyle = css('--muted'); ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('Clique sur une lampe pour la dévisser, sur K pour ouvrir ou fermer.', 20, H - 14);
+  ctx.textAlign = 'right';
+  ctx.fillText(S.lamps === 'id' ? `L₁ et L₂ identiques (${R1} Ω), prévues pour 6 V` : `L₁ : ${R1} Ω, L₂ : ${R2} Ω, prévues pour 6 V`, W - 16, 26);
+}
+function drawOhm() {
+  const G = GEO.ohm, o = solveOhm(), wire = css('--text'), ink = css('--text'), mut = css('--muted');
+  line(G.paths[0].p, wire, 2.2);
+  line([[180, 410], [180, 470], [280, 470], [280, 410]], wire, 2.2);
+  dots(G.paths, o, I => 30 + 3000 * Math.min(.08, I));
+  gen(G.gen[0], G.gen[1], S.Uo);
+  meter(G.amp[0], G.amp[1], 'A', 0, '', '#c0392b');
+  meter(G.volt[0], G.volt[1], 'V', 0, '', '#2c6fbf');
+  ctx.fillStyle = css('--canvas'); ctx.fillRect(G.R[0] - 28, G.R[1] - 10, 56, 20);
+  ctx.strokeStyle = ink; ctx.lineWidth = 2.2; ctx.strokeRect(G.R[0] - 28, G.R[1] - 10, 56, 20);
+  ctx.fillStyle = ink; ctx.font = '700 14px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(S.R === 'x' ? 'R = ?' : `R = ${S.R} Ω`, G.R[0], G.R[1] - 18);
+  [[180, 410], [280, 410]].forEach(([x, y]) => { ctx.fillStyle = wire; ctx.beginPath(); ctx.arc(x, y, 4.5, 0, 7); ctx.fill(); });
+  tag(G.amp[0], G.amp[1] - 32, `I = ${f(o.I * 1000, 1)} mA`, '#c0392b');
+  tag(G.volt[0] + 95, G.volt[1], `U = ${f(o.U, 2)} V`, '#2c6fbf');
+  // graphique
+  const gx = 470, gy = 440, gw = 320, gh = 360, Imax = Math.max(60, Math.ceil(12 / o.R * 1000 / 20) * 20);
+  ctx.strokeStyle = css('--border'); ctx.lineWidth = 1; ctx.font = '12px system-ui, sans-serif'; ctx.fillStyle = mut;
+  for (let k = 0; k <= 6; k++) {
+    const y = gy - gh * k / 6; ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke();
+    ctx.textAlign = 'right'; ctx.fillText(2 * k, gx - 6, y + 4);
+  }
+  for (let k = 0; k <= 4; k++) {
+    const x = gx + gw * k / 4; ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - gh); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.fillText(Math.round(Imax * k / 4), x, gy + 16);
+  }
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.6; line([[gx, gy - gh - 8], [gx, gy], [gx + gw + 8, gy]], ink, 1.6);
+  ctx.fillStyle = ink; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('U (V)', gx - 4, gy - gh - 14); ctx.textAlign = 'right'; ctx.fillText('I (mA)', gx + gw + 6, gy + 34);
+  const X = I => gx + gw * I * 1000 / Imax, Y = U => gy - gh * U / 12;
+  if (S.pts.length >= 2) {
+    const k = S.pts.reduce((a, p) => a + p.U * p.I, 0) / S.pts.reduce((a, p) => a + p.I * p.I, 0);
+    const Iend = Math.min(Imax / 1000, 12 / k);
+    ctx.setLineDash([6, 5]); line([[X(0), Y(0)], [X(Iend), Y(k * Iend)]], '#2f8f6b', 2); ctx.setLineDash([]);
+  }
+  S.pts.forEach(p => { ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2.2; const x = X(p.I), y = Y(p.U); ctx.beginPath(); ctx.moveTo(x - 5, y - 5); ctx.lineTo(x + 5, y + 5); ctx.moveTo(x + 5, y - 5); ctx.lineTo(x - 5, y + 5); ctx.stroke(); });
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Caractéristique U = f(I)', gx + gw / 2, 26);
+}
+function draw() {
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  S.mode === 'ohm' ? drawOhm() : drawLamps();
+}
+
+/* ---------- panneau ---------- */
+function lois() {
+  const o = solve(), v = x => x === null ? '?' : f(x, 1);
+  let h = '';
+  if (S.mode === 'serie') {
+    h = `Intensité : <b>I = ${f(o.I, 2)} A</b> en tout point du circuit.<br>
+      Tensions : U<sub>G</sub> = ${f(S.UG, 1)} V ; U₁ = ${v(o.U1)} V ; U₂ = ${v(o.U2)} V ; U<sub>K</sub> = ${v(o.UK)} V<br>`;
+    if (o.U1 !== null && o.U2 !== null && o.UK !== null) h += `Additivité : U₁ + U₂ + U<sub>K</sub> = ${v(o.U1 + o.U2 + o.UK)} V = <b>U<sub>G</sub></b>`;
+  } else {
+    h = `Intensités : I₁ = ${f(o.I1, 2)} A ; I₂ = ${f(o.I2, 2)} A<br>Loi des nœuds : <b>I = I₁ + I₂ = ${f(o.I, 2)} A</b><br>
+      Tensions : U<sub>G</sub> = ${f(S.UG, 1)} V ; U₁ = ${v(o.U1)} V ; U₂ = ${v(o.U2)} V`;
+    if (S.K) h += '<br>Unicité : <b>U<sub>G</sub> = U₁ = U₂</b>';
+  }
+  $('lois').innerHTML = h;
+  $('bk').textContent = S.K ? 'Ouvrir K' : 'Fermer K';
+  $('b1').textContent = S.L[0] ? 'Dévisser L₁' : 'Revisser L₁';
+  $('b2').textContent = S.L[1] ? 'Dévisser L₂' : 'Revisser L₂';
+}
+function msgLamps(ev) {
+  const o = solve(), ser = S.mode === 'serie';
+  let s;
+  if (ev === 'mode' || !ev) s = ser
+    ? 'Les deux lampes sont branchées <strong>en série</strong> : il n’y a qu’une seule boucle. Compare les trois ampèremètres, puis la somme des tensions.'
+    : 'Les deux lampes sont branchées <strong>en dérivation</strong> : chaque lampe est dans sa propre boucle avec le générateur. Compare I avec I₁ + I₂.';
+  else if (ev === 'K') s = S.K ? 'L’interrupteur est fermé : le courant circule.' : `L’interrupteur est ouvert : le circuit est ouvert, aucun courant ne circule. Toute la tension du générateur se retrouve aux bornes de l’interrupteur (U<sub>K</sub> = ${f(S.UG, 1)} V).`;
+  else if (ser) s = (!S.L[0] || !S.L[1])
+    ? `En série, dévisser une lampe <strong>ouvre le circuit</strong> : l’autre lampe s’éteint aussi, l’intensité est nulle partout.${o.U1 === S.UG || o.U2 === S.UG ? ` La tension du générateur se retrouve aux bornes de la douille vide (${f(S.UG, 1)} V).` : ''}`
+    : 'Les deux lampes sont revissées : le courant circule à nouveau dans l’unique boucle.';
+  else s = (!S.L[0] || !S.L[1])
+    ? (!S.L[0] && !S.L[1] ? 'Les deux lampes sont dévissées : plus aucun courant.' : `En dérivation, l’autre lampe <strong>reste allumée</strong>, avec le même éclat : sa branche est indépendante. Mais l’intensité dans la branche principale a diminué (I = ${f(o.I, 2)} A).`)
+    : 'Les deux lampes brillent : chacune reçoit toute la tension du générateur.';
+  if (S.mode === 'serie' && S.lamps === 'id' && S.K && S.L[0] && S.L[1] && (!ev || ev === 'mode')) s += ' Remarque : en série, chaque lampe ne reçoit que la moitié de la tension, elle brille moins.';
+  $('msg').innerHTML = s;
+}
+function ohmInfo() {
+  const o = solveOhm(), n = S.pts.length;
+  $('uo-out').textContent = f(S.Uo, 1) + ' V';
+  $('pts').innerHTML = n ? `<tr><th>U (V)</th>${S.pts.map(p => `<td>${f(p.U, 2)}</td>`).join('')}</tr><tr><th>I (mA)</th>${S.pts.map(p => `<td>${f(p.I * 1000, 1)}</td>`).join('')}</tr>` : '';
+  let h = `Mesures : U = ${f(o.U, 2)} V et I = ${f(o.I * 1000, 1)} mA = ${f(o.I, 4)} A`;
+  if (o.I > 0) h += `<br>U / I = ${f(o.U, 2)} / ${f(o.I, 4)} = <b>${Math.round(o.U / o.I)} Ω</b>`;
+  if (n >= 2) h += `<br>Les points sont alignés sur une <b>droite qui passe par l’origine</b> : U et I sont proportionnels. Le coefficient de proportionnalité est la résistance R${S.R === 'x' ? ' : tu peux maintenant la calculer !' : ` = ${S.R} Ω`}.`;
+  else h += '<br>Note au moins 3 mesures pour des tensions différentes.';
+  $('ohm-info').innerHTML = h;
+}
+function setMode(m) {
+  S.mode = m; S.K = true; S.L = [true, true];
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+  $('p-lamp').hidden = m === 'ohm'; $('p-ohm').hidden = m !== 'ohm';
+  if (m === 'ohm') { ohmInfo(); $('msg').innerHTML = 'Le voltmètre (V) est branché <strong>en dérivation</strong> aux bornes de la résistance, l’ampèremètre (A) <strong>en série</strong>. Règle la tension, note la mesure, recommence : le graphique U = f(I) se construit.'; }
+  else { lois(); msgLamps('mode'); }
+}
+$('ug').innerHTML = [3, 4.5, 6].map(u => `<button type="button" class="seg" data-u="${u}" aria-pressed="${u === S.UG}">${f(u, 1)} V</button>`).join('');
+$('ug').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  S.UG = +b.dataset.u; $('ug').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); lois();
+}));
+$('lamps').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  S.lamps = b.dataset.l; $('lamps').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); lois(); msgLamps();
+  if (S.lamps === 'diff') $('msg').innerHTML += ' Les lampes sont maintenant <strong>différentes</strong> : regarde comment se partagent les tensions (en série) ou les intensités (en dérivation).';
+}));
+const toggleK = () => { S.K = !S.K; lois(); msgLamps('K'); };
+const toggleL = i => { S.L[i] = !S.L[i]; lois(); msgLamps('L'); };
+$('bk').addEventListener('click', toggleK);
+$('b1').addEventListener('click', () => toggleL(0));
+$('b2').addEventListener('click', () => toggleL(1));
+$('mes').addEventListener('change', () => { S.mes = $('mes').checked; });
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+cv.addEventListener('click', e => {
+  if (S.mode === 'ohm') return;
+  const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height, G = GEO[S.mode];
+  if (Math.hypot(x - G.K[0], y - G.K[1] + 8) < 30) toggleK();
+  else if (Math.hypot(x - G.L1[0], y - G.L1[1]) < 30) toggleL(0);
+  else if (Math.hypot(x - G.L2[0], y - G.L2[1]) < 30) toggleL(1);
+});
+$('rs').innerHTML = RVAL.map(r => `<button type="button" class="seg" data-r="${r}" aria-pressed="${r === S.R}">${r === 'x' ? 'R = ?' : r + ' Ω'}</button>`).join('');
+$('rs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  S.R = b.dataset.r === 'x' ? 'x' : +b.dataset.r; S.pts = [];
+  if (S.R === 'x') S.Rx = [33, 56, 68, 82, 150][Math.floor(Math.random() * 5)];
+  $('rs').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); ohmInfo();
+}));
+$('uo').addEventListener('input', () => { S.Uo = +$('uo').value; ohmInfo(); });
+$('note').addEventListener('click', () => {
+  const o = solveOhm();
+  if (S.pts.some(p => p.U === o.U)) { $('msg').innerHTML = 'Cette mesure est déjà notée : change la tension du générateur.'; return; }
+  S.pts.push({ U: o.U, I: o.I }); S.pts.sort((a, b) => a.U - b.U); ohmInfo();
+  $('msg').innerHTML = `Mesure notée : U = ${f(o.U, 2)} V, I = ${f(o.I * 1000, 1)} mA.${S.pts.length < 3 ? ' Continue avec une autre tension.' : ' Regarde la forme du graphique.'}`;
+});
+$('clr').addEventListener('click', () => { S.pts = []; ohmInfo(); });
+
+let last = performance.now();
+function loop(now) { const dt = Math.min(.05, (now - last) / 1000); last = now; flow += dt; draw(); requestAnimationFrame(loop); }
+window.addEventListener('resize', resize);
+resize(); setMode('serie');
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte, round, expo } = Exo;
+const csDec = (x, d) => Math.max(1, expo(round(x, 6)) + 1 + d);
+const dec = (x, d) => Math.round(x * Math.pow(10, d)) / Math.pow(10, d);
+const fd = (x, d) => fmt(x, csDec(x, d));
+const RAPPEL = `En série : I = I₁ = I₂ et U<sub>G</sub> = U₁ + U₂. En dérivation : I = I₁ + I₂ et U<sub>G</sub> = U₁ = U₂.
+  Loi d'Ohm : U = R × I (U en V, R en Ω, I en A ; 1 mA = 10<sup>−3</sup> A).
+  Pour une somme ou une différence, le résultat a autant de décimales que la donnée qui en a le moins.`;
+Exo.monter('exo-elec', [
+  { id: 'serie', label: 'Circuit en série', rappel: RAPPEL, gen() {
+    const UG = pick([4.5, 6.0, 9.0, 12.0]), U1 = dec(rnd(1.0, UG - 1.2, 3), 1), U2 = dec(UG - U1, 1), I = dec(rnd(0.10, 0.60, 3), 2);
+    return {
+      enonce: `<p>Deux lampes L₁ et L₂ sont branchées <strong>en série</strong> avec un générateur de tension <strong>U<sub>G</sub> = ${fd(UG, 1)} V</strong>.
+        On mesure <strong>U₁ = ${fd(U1, 1)} V</strong> aux bornes de L₁ et <strong>I = ${fd(I, 2)} A</strong> entre le générateur et L₁.</p>`,
+      questions: [
+        { label: '1. Quelle est la tension U₂ aux bornes de L₂ ?', unite: 'V', rep: U2, cs: csDec(U2, 1) },
+        { label: '2. Quelle est l’intensité I₂ du courant qui traverse L₂ ?', unite: 'A', rep: I, cs: csDec(I, 2) },
+        { label: '3. On dévisse L₁. Que devient L₂ ?', choix: ['Elle s’éteint', 'Elle brille davantage', 'Elle ne change pas'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', note: 'Loi d’additivité des tensions en série.', lit: 'U<sub>G</sub> = U₁ + U₂ donc U₂ = U<sub>G</sub> − U₁', an: `U₂ = ${fd(UG, 1)} − ${fd(U1, 1)}`, res: `U₂ = ${res(U2, csDec(U2, 1), 'V')}` }) +
+        etape({ q: '2.', note: 'En série, l’intensité est la même en tout point du circuit.', lit: 'I₂ = I', res: `I₂ = ${res(I, csDec(I, 2), 'A')}` }) +
+        texte('3.', 'Le circuit est ouvert : le courant ne circule plus, <strong>L₂ s’éteint</strong>.')
+    };
+  } },
+  { id: 'der', label: 'Circuit en dérivation', rappel: RAPPEL, gen() {
+    const UG = pick([4.5, 6.0, 9.0, 12.0]), I = dec(rnd(0.50, 1.50, 3), 2), I1 = dec(rnd(0.15, I - 0.15, 3), 2), I2 = dec(I - I1, 2);
+    return {
+      enonce: `<p>Deux lampes L₁ et L₂ sont branchées <strong>en dérivation</strong> aux bornes d'un générateur de tension <strong>U<sub>G</sub> = ${fd(UG, 1)} V</strong>.
+        L'ampèremètre de la branche principale indique <strong>I = ${fd(I, 2)} A</strong> et celui de la branche de L₁ indique <strong>I₁ = ${fd(I1, 2)} A</strong>.</p>`,
+      questions: [
+        { label: '1. Quelle est l’intensité I₂ du courant dans la branche de L₂ ?', unite: 'A', rep: I2, cs: csDec(I2, 2) },
+        { label: '2. Quelle est la tension U₂ aux bornes de L₂ ?', unite: 'V', rep: UG, cs: csDec(UG, 1) },
+        { label: '3. On dévisse L₁. Que devient L₂ ?', choix: ['Elle reste allumée', 'Elle s’éteint', 'Elle brille deux fois moins'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', note: 'Loi des nœuds (additivité des intensités en dérivation).', lit: 'I = I₁ + I₂ donc I₂ = I − I₁', an: `I₂ = ${fd(I, 2)} − ${fd(I1, 2)}`, res: `I₂ = ${res(I2, csDec(I2, 2), 'A')}` }) +
+        etape({ q: '2.', note: 'En dérivation, la tension est la même aux bornes de chaque branche.', lit: 'U₂ = U<sub>G</sub>', res: `U₂ = ${res(UG, csDec(UG, 1), 'V')}` }) +
+        texte('3.', 'La branche de L₂ forme toujours une boucle fermée avec le générateur : <strong>L₂ reste allumée</strong>.')
+    };
+  } },
+  { id: 'ohm', label: 'Loi d’Ohm', rappel: RAPPEL, gen() {
+    const R = pick([22, 33, 47, 56, 68, 82]), k = irnd(0, 2);
+    if (k === 0) {
+      const ImA = rnd(20, 150, 3), I = ImA / 1000, U = R * I;
+      return {
+        enonce: `<p>Une résistance <strong>R = ${R} Ω</strong> est traversée par un courant d'intensité <strong>I = ${fmt(ImA, 3)} mA</strong>.</p>`,
+        questions: [
+          { label: '1. Convertis l’intensité en ampères.', unite: 'A', rep: I, cs: 3 },
+          { label: '2. Calcule la tension U aux bornes de la résistance.', unite: 'V', rep: U, cs: 2 }
+        ],
+        correction: etape({ q: '1.', lit: '1 mA = 10<sup>−3</sup> A', an: `I = ${fmt(ImA, 3)} × 10<sup>−3</sup>`, res: `I = ${res(I, 3, 'A')}` }) +
+          etape({ q: '2.', note: 'R n’a que 2 chiffres significatifs : le résultat en a 2.', lit: 'U = R × I', an: `U = ${R} × ${fmt(I, 3)}`, res: `U = ${res(U, 2, 'V')}` })
+      };
+    }
+    if (k === 1) {
+      const U = rnd(2.0, 11.5, 3), I = U / R, ImA = round(I * 1000, 3), Rc = U / (ImA / 1000);
+      return {
+        enonce: `<p>On mesure une tension <strong>U = ${fmt(U, 3)} V</strong> aux bornes d'une résistance et une intensité <strong>I = ${fmt(ImA, 3)} mA</strong>.</p>`,
+        questions: [{ label: 'Calcule la valeur de la résistance R.', unite: 'Ω', rep: Rc, cs: 3 }],
+        correction: etape({ note: 'On convertit d’abord I en ampères : I = ' + fmt(ImA, 3) + ' mA = ' + fmt(ImA / 1000, 3) + ' A.', lit: 'U = R × I donc R = U / I', an: `R = ${fmt(U, 3)} / ${fmt(ImA / 1000, 3)}`, res: `R = ${res(Rc, 3, 'Ω')}` })
+      };
+    }
+    const U = rnd(1.5, 12, 3), I = U / R;
+    return {
+      enonce: `<p>On applique une tension <strong>U = ${fmt(U, 3)} V</strong> aux bornes d'une résistance <strong>R = ${R} Ω</strong>.</p>`,
+      questions: [
+        { label: '1. Calcule l’intensité I du courant, en ampères.', unite: 'A', rep: I, cs: 2 },
+        { label: '2. Exprime-la en milliampères.', unite: 'mA', rep: I * 1000, cs: 2 }
+      ],
+      correction: etape({ q: '1.', lit: 'U = R × I donc I = U / R', an: `I = ${fmt(U, 3)} / ${R}`, res: `I = ${res(I, 2, 'A')}` }) +
+        etape({ q: '2.', lit: '1 A = 1 000 mA', an: `I = ${fmt(I, 2)} × 1 000`, res: `I = ${res(I * 1000, 2, 'mA')}` })
+    };
+  } },
+  { id: 'qcm', label: 'Série ou dérivation ?', gen() {
+    const POOL = [
+      { q: 'Dans une maison, quand une ampoule grille, les autres restent allumées. Les lampes sont branchées…', c: ['en dérivation', 'en série'], e: 'Chaque lampe a sa propre boucle : branchement <strong>en dérivation</strong>.' },
+      { q: 'Dans une vieille guirlande, quand une ampoule grille, toutes s’éteignent. Les ampoules sont branchées…', c: ['en série', 'en dérivation'], e: 'Une seule boucle : si elle est ouverte, plus de courant. Branchement <strong>en série</strong>.' },
+      { q: 'Comment branche-t-on un ampèremètre ?', c: ['En série', 'En dérivation'], e: 'L’ampèremètre mesure le courant qui le traverse : il se branche <strong>en série</strong>.' },
+      { q: 'Comment branche-t-on un voltmètre ?', c: ['En dérivation', 'En série'], e: 'Le voltmètre mesure une tension entre deux points : il se branche <strong>en dérivation</strong> (aux bornes du dipôle).' },
+      { q: 'Dans un circuit en série, l’intensité du courant…', c: ['est la même en tout point', 's’use le long du circuit', 'est plus grande près du générateur'], e: 'En série, <strong>l’intensité est la même partout</strong> : le courant ne s’use pas.' },
+      { q: 'En dérivation, la tension aux bornes de chaque branche…', c: ['est égale à celle du générateur', 'est la moitié de celle du générateur', 'est nulle'], e: 'En dérivation, toutes les branches ont <strong>la même tension</strong>, celle du générateur.' },
+      { q: 'Quelle est l’unité de la résistance électrique ?', c: ['l’ohm (Ω)', 'le volt (V)', 'l’ampère (A)'], e: 'La résistance se mesure en <strong>ohms (Ω)</strong>.' },
+      { q: 'La caractéristique U = f(I) d’une résistance est…', c: ['une droite qui passe par l’origine', 'une courbe qui monte puis redescend', 'une droite horizontale'], e: 'U = R × I : U et I sont proportionnels, c’est <strong>une droite passant par l’origine</strong>.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

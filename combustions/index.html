@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les combustions</title>
+<meta name="description" content="Simulation interactive : combustion du carbone, du méthane et du dihydrogène, réarrangement et conservation des atomes, tests des produits (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#7a3fd0; --accent-soft:#efe7fd; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+#cv{aspect-ratio:640/540}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Les combustions</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Dans un flacon fermé, on place un <strong>combustible</strong> et du <strong>dioxygène</strong>. Allume : les molécules se cassent,
+    les atomes se <strong>réarrangent</strong> pour former de nouvelles molécules. Compte les atomes avant et après, regarde la balance,
+    puis identifie les produits avec les tests du laboratoire.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation d'une combustion dans un flacon fermé">
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Flacon fermé contenant des modèles moléculaires, posé sur une balance"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div>
+          <h3>1. Choisir le combustible</h3>
+          <div class="grid3" id="fuels" role="group" aria-label="Combustible"></div>
+        </div>
+        <div>
+          <h3>2. Remplir le flacon</h3>
+          <div class="row"><label for="nf" id="nf-lbl">Combustible</label><input id="nf" type="range" min="1" max="8" step="1" value="3"><output id="nf-out" for="nf"></output></div>
+          <div class="row"><label for="no">Dioxygène O₂</label><input id="no" type="range" min="1" max="14" step="1" value="6"><output id="no-out" for="no"></output></div>
+        </div>
+        <div>
+          <h3>3. Réaliser la combustion</h3>
+          <div class="grid3">
+            <button id="fire" type="button">🔥 Allumer</button>
+            <button id="step" class="ghost" type="button">Pas à pas</button>
+            <button id="reset" class="ghost" type="button">Recommencer</button>
+          </div>
+        </div>
+        <div class="eq" id="eq"></div>
+        <div>
+          <h3>Compter <small>dans le flacon</small></h3>
+          <table class="cnt" id="tab-mol" aria-label="Nombre de molécules"></table>
+          <table class="cnt" id="tab-at" aria-label="Nombre d'atomes" style="margin-top:8px"></table>
+        </div>
+        <div>
+          <h3>4. Tester les produits</h3>
+          <div class="tests">
+            <button id="t-chaux" class="ghost" type="button">Eau de chaux</button>
+            <button id="t-cuivre" class="ghost" type="button">Sulfate de cuivre anhydre</button>
+            <div class="tube"><i id="tube-chaux"></i><span id="r-chaux">limpide</span></div>
+            <div class="tube"><i id="tube-cuivre"></i><span id="r-cuivre">poudre blanche</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Une combustion</h3>C'est une transformation chimique : un <strong>combustible</strong> réagit avec le <strong>dioxygène</strong> (le comburant). Il faut une source de chaleur pour la démarrer.</div>
+      <div><h3>Les atomes se conservent</h3>Les molécules des réactifs disparaissent, mais leurs atomes se réarrangent pour former les produits. Même nombre d'atomes de chaque sorte avant et après : <strong>la masse se conserve</strong>.</div>
+      <div><h3>Les tests</h3>Le <strong>dioxyde de carbone</strong> trouble l'eau de chaux. L'<strong>eau</strong> fait bleuir le sulfate de cuivre anhydre (blanc).</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard. Tu peux vérifier tes réponses avec la simulation ci-dessus.</p>
+    <div id="exo-comb"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Modèles moléculaires : carbone noir, oxygène rouge, hydrogène blanc.</span></footer>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 640, H = 540;
+const BOX = { x: 40, y: 78, w: 560, h: 360 };          // intérieur du flacon
+const ATOM = {
+  C: { r: 15, fill: '#2d2d2d', hi: '#777', ink: '#fff', m: 12, nom: 'carbone' },
+  O: { r: 13, fill: '#e0392f', hi: '#ff9a8f', ink: '#fff', m: 16, nom: 'oxygène' },
+  H: { r: 9,  fill: '#f2f2f2', hi: '#ffffff', ink: '#333', m: 1,  nom: 'hydrogène' }
+};
+const MOL = {
+  C:   { nom: 'carbone', f: 'C', atoms: [['C', 0, 0]] },
+  O2:  { nom: 'dioxygène', f: 'O₂', atoms: [['O', -10, 0], ['O', 10, 0]] },
+  CO2: { nom: 'dioxyde de carbone', f: 'CO₂', atoms: [['O', -23, 0], ['O', 23, 0], ['C', 0, 0]] },
+  H2O: { nom: 'eau', f: 'H₂O', atoms: [['H', -13, 9], ['H', 13, 9], ['O', 0, 0]] },
+  CH4: { nom: 'méthane', f: 'CH₄', atoms: [['H', -13, -11], ['H', 13, -11], ['H', -12, 12], ['H', 12, 12], ['C', 0, 0]] },
+  H2:  { nom: 'dihydrogène', f: 'H₂', atoms: [['H', -7, 0], ['H', 7, 0]] }
+};
+const REAC = {
+  carbone:   { label: 'Carbone', fuel: 'C', reactifs: { C: 1, O2: 1 }, produits: { CO2: 1 },
+               mots: 'carbone + dioxygène → dioxyde de carbone', eq: 'C + O₂ → CO₂', nf: 4, no: 6 },
+  methane:   { label: 'Méthane', fuel: 'CH4', reactifs: { CH4: 1, O2: 2 }, produits: { CO2: 1, H2O: 2 },
+               mots: 'méthane + dioxygène → dioxyde de carbone + eau', eq: 'CH₄ + 2 O₂ → CO₂ + 2 H₂O', nf: 3, no: 6 },
+  hydrogene: { label: 'Dihydrogène', fuel: 'H2', reactifs: { H2: 2, O2: 1 }, produits: { H2O: 2 },
+               mots: 'dihydrogène + dioxygène → eau', eq: '2 H₂ + O₂ → 2 H₂O', nf: 6, no: 3 }
+};
+const ORDRE = ['C', 'CH4', 'H2', 'O2', 'CO2', 'H2O'];
+
+let cur = 'methane', mols = [], flights = [], burning = false, wait = 0, init = null, flash = [];
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+
+/* ---------- remplissage ---------- */
+const rand = (a, b) => a + Math.random() * (b - a);
+function newMol(t, x, y) {
+  const solid = t === 'C';
+  const sp = rand(28, 55), a = rand(0, Math.PI * 2);
+  return { t, x, y, a: solid ? 0 : rand(0, 6.28), va: solid ? 0 : rand(-1, 1),
+           vx: solid ? 0 : Math.cos(a) * sp, vy: solid ? 0 : Math.sin(a) * sp };
+}
+function freeSpot() {
+  for (let k = 0; k < 60; k++) {
+    const x = rand(BOX.x + 40, BOX.x + BOX.w - 40), y = rand(BOX.y + 40, BOX.y + BOX.h - 90);
+    if (mols.every(m => Math.hypot(m.x - x, m.y - y) > 52)) return [x, y];
+  }
+  return [rand(BOX.x + 40, BOX.x + BOX.w - 40), rand(BOX.y + 40, BOX.y + BOX.h - 90)];
+}
+function carbonSpot(i) {           // le carbone est un solide : un petit tas de charbon au fond
+  const col = i % 4, row = Math.floor(i / 4);
+  return [BOX.x + BOX.w / 2 - 46 + col * 30 + (row % 2) * 15, BOX.y + BOX.h - 18 - row * 27];
+}
+function fill() {
+  const R = REAC[cur];
+  mols = []; flights = []; flash = []; burning = false;
+  const nf = +$('nf').value, no = +$('no').value;
+  for (let i = 0; i < nf; i++) {
+    if (R.fuel === 'C') { const [x, y] = carbonSpot(i); mols.push(newMol('C', x, y)); }
+    else { const [x, y] = freeSpot(); mols.push(newMol(R.fuel, x, y)); }
+  }
+  for (let i = 0; i < no; i++) { const [x, y] = freeSpot(); mols.push(newMol('O2', x, y)); }
+  init = countAtoms();
+  setMsg(`Le flacon contient ${nf} ${MOL[R.fuel].nom === 'carbone' ? `atome${nf > 1 ? 's' : ''} de carbone (un morceau de charbon)` : `molécule${nf > 1 ? 's' : ''} de ${MOL[R.fuel].nom}`} et ${no} molécule${no > 1 ? 's' : ''} de dioxygène. Clique sur « Allumer » pour démarrer la combustion.`);
+  $('fire').disabled = false; $('step').disabled = false;
+  resetTests(); update();
+}
+
+/* ---------- comptages ---------- */
+function countMols() {
+  const c = {}; ORDRE.forEach(t => c[t] = 0);
+  mols.forEach(m => c[m.t]++);
+  return c;
+}
+function countAtoms() {
+  const c = { C: 0, H: 0, O: 0 };
+  mols.forEach(m => MOL[m.t].atoms.forEach(a => c[a[0]]++));
+  flights.forEach(f => f.atoms.forEach(a => c[a.e]++));
+  return c;
+}
+const massOf = c => c.C * 12 + c.H * 1 + c.O * 16;
+
+/* ---------- une réaction élémentaire ---------- */
+const world = (m, a) => { const c = Math.cos(m.a), s = Math.sin(m.a); return [m.x + a[1] * c - a[2] * s, m.y + a[1] * s + a[2] * c]; };
+function canReact() {
+  const R = REAC[cur], c = countMols();
+  return Object.entries(R.reactifs).every(([t, n]) => c[t] >= n);
+}
+function react() {
+  const R = REAC[cur];
+  if (!canReact()) return false;
+  const pool = mols.slice(), chosen = [];
+  const fuels = pool.filter(m => m.t === R.fuel);
+  const first = fuels[Math.floor(Math.random() * fuels.length)];
+  chosen.push(first);
+  for (const [t, n] of Object.entries(R.reactifs)) {
+    const need = n - (t === R.fuel ? 1 : 0);
+    const cand = pool.filter(m => m.t === t && !chosen.includes(m)).sort((a, b) => Math.hypot(a.x - first.x, a.y - first.y) - Math.hypot(b.x - first.x, b.y - first.y));
+    chosen.push(...cand.slice(0, need));
+  }
+  let cx = 0, cy = 0; chosen.forEach(m => { cx += m.x; cy += m.y; }); cx /= chosen.length; cy /= chosen.length;
+  if (R.fuel === 'C') cy = Math.min(cy, BOX.y + BOX.h - 70);
+  cx = Math.max(BOX.x + 50, Math.min(BOX.x + BOX.w - 50, cx)); cy = Math.max(BOX.y + 45, Math.min(BOX.y + BOX.h - 45, cy));
+  const free = [];
+  chosen.forEach(m => MOL[m.t].atoms.forEach(a => { const [x, y] = world(m, a); free.push({ e: a[0], x0: x, y0: y }); }));
+  mols = mols.filter(m => !chosen.includes(m));
+  const prods = [];
+  const list = []; Object.entries(R.produits).forEach(([t, n]) => { for (let i = 0; i < n; i++) list.push(t); });
+  const rot = rand(0, 6.28);
+  list.forEach((t, i) => {
+    const r = list.length > 1 ? 30 : 0, ang = rot + i * 2 * Math.PI / list.length;
+    const p = newMol(t, cx + Math.cos(ang) * r, cy + Math.sin(ang) * r);
+    p.vx = Math.cos(ang) * 70 + rand(-15, 15); p.vy = Math.sin(ang) * 70 + rand(-15, 15);
+    if (!list.length || r === 0) { p.vy = -60; }
+    prods.push(p);
+  });
+  const atoms = [];
+  prods.forEach(p => MOL[p.t].atoms.forEach(a => {
+    const [x1, y1] = world(p, a);
+    let best = -1, bd = 1e9;
+    free.forEach((f, k) => { if (f.e === a[0] && !f.used) { const d = Math.hypot(f.x0 - x1, f.y0 - y1); if (d < bd) { bd = d; best = k; } } });
+    const f = free[best]; f.used = true;
+    const ox = f.x0 - cx, oy = f.y0 - cy, on = Math.hypot(ox, oy) || 1;
+    atoms.push({ e: a[0], x0: f.x0, y0: f.y0, xm: f.x0 + ox / on * 14, ym: f.y0 + oy / on * 14, x1, y1, x: f.x0, y: f.y0 });
+  }));
+  flights.push({ atoms, prods, t: 0, dur: 1.25, cx, cy });
+  flash.push({ x: cx, y: cy, t: 0 });
+  return true;
+}
+
+/* ---------- animation ---------- */
+const ease = u => u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+function tick(dt) {
+  for (const m of mols) {
+    if (m.t === 'C') continue;
+    m.x += m.vx * dt; m.y += m.vy * dt; m.a += m.va * dt;
+    const r = 26;
+    if (m.x < BOX.x + r) { m.x = BOX.x + r; m.vx = Math.abs(m.vx); }
+    if (m.x > BOX.x + BOX.w - r) { m.x = BOX.x + BOX.w - r; m.vx = -Math.abs(m.vx); }
+    if (m.y < BOX.y + r) { m.y = BOX.y + r; m.vy = Math.abs(m.vy); }
+    if (m.y > BOX.y + BOX.h - r) { m.y = BOX.y + BOX.h - r; m.vy = -Math.abs(m.vy); }
+    const v = Math.hypot(m.vx, m.vy);              // les produits chauds ralentissent peu à peu
+    if (v > 60) { m.vx *= 1 - .6 * dt; m.vy *= 1 - .6 * dt; }
+  }
+  for (const f of flights) {
+    f.t += dt / f.dur;
+    const u = Math.min(1, f.t);
+    for (const a of f.atoms) {
+      if (u < .35) { const k = ease(u / .35); a.x = a.x0 + (a.xm - a.x0) * k; a.y = a.y0 + (a.ym - a.y0) * k; }
+      else { const k = ease((u - .35) / .65); a.x = a.xm + (a.x1 - a.xm) * k; a.y = a.ym + (a.y1 - a.ym) * k; }
+    }
+  }
+  const done = flights.filter(f => f.t >= 1);
+  if (done.length) {
+    done.forEach(f => mols.push(...f.prods));
+    flights = flights.filter(f => f.t < 1);
+    update();
+    if (!burning && !flights.length && !canReact()) finish();
+  }
+  flash.forEach(f => f.t += dt); flash = flash.filter(f => f.t < 1.4);
+  if (burning) {
+    wait -= dt;
+    if (wait <= 0 && flights.length < 2) {
+      if (react()) { wait = .45; update(); }
+      else if (!flights.length) { burning = false; finish(); }
+    }
+  }
+}
+function finish() {
+  const R = REAC[cur], c = countMols();
+  const prod = Object.keys(R.produits).map(t => `${c[t]} molécule${c[t] > 1 ? 's' : ''} de ${MOL[t].nom}`).join(' et ');
+  const rest = Object.keys(R.reactifs).filter(t => c[t] > 0);
+  const epuise = Object.keys(R.reactifs).filter(t => c[t] < R.reactifs[t]);
+  const nm = t => t === 'C' ? 'carbone' : MOL[t].nom;
+  let s = `La combustion s'arrête : il ne reste plus assez de ${epuise.map(nm).join(' ni de ')}. Il s'est formé ${prod}.`;
+  if (rest.length) s += ` Il reste ${rest.map(t => `${c[t]} ${t === 'C' ? 'atome' + (c[t] > 1 ? 's' : '') + ' de carbone' : 'molécule' + (c[t] > 1 ? 's' : '') + ' de ' + MOL[t].nom}`).join(' et ')} qui n'${rest.length > 1 ? 'ont' : 'a'} pas réagi.`;
+  s += ' Compare le nombre d’atomes avant et après : il n’a pas changé.';
+  setMsg(s);
+  $('fire').disabled = true; $('step').disabled = true;
+}
+
+/* ---------- dessin ---------- */
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function atom(x, y, e, glow) {
+  const A = ATOM[e];
+  const g = ctx.createRadialGradient(x - A.r * .35, y - A.r * .4, A.r * .15, x, y, A.r);
+  g.addColorStop(0, A.hi); g.addColorStop(1, A.fill);
+  ctx.beginPath(); ctx.arc(x, y, A.r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 1; ctx.strokeStyle = e === 'H' ? '#9aa0aa' : 'rgba(0,0,0,.45)'; ctx.stroke();
+  if (glow) { ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,170,40,.9)'; ctx.stroke(); }
+}
+function drawMol(m) {
+  MOL[m.t].atoms.forEach(a => { const [x, y] = world(m, a); atom(x, y, a[0]); });
+}
+function draw() {
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const text = css('--text'), muted = css('--muted'), glass = css('--glass');
+  // légende
+  ctx.font = '600 14px system-ui, sans-serif'; ctx.textBaseline = 'middle';
+  let lx = 48;
+  ['C', 'O', 'H'].forEach(e => { atom(lx, 26, e); ctx.fillStyle = text; ctx.textAlign = 'left'; ctx.fillText('atome ' + (e === 'C' ? 'de ' : "d'") + ATOM[e].nom + ` (${e})`, lx + 20, 27); lx += 196; });
+  // flacon
+  ctx.save();
+  ctx.fillStyle = css('--glass-fill');
+  ctx.beginPath(); ctx.roundRect(BOX.x - 8, BOX.y - 8, BOX.w + 16, BOX.h + 16, 26); ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = glass; ctx.stroke();
+  ctx.fillStyle = '#9a6b3d'; ctx.beginPath(); ctx.roundRect(W / 2 - 40, BOX.y - 22, 80, 18, 5); ctx.fill();
+  ctx.fillStyle = muted; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('flacon fermé (bouchon)', W / 2 + 48, BOX.y - 13);
+  ctx.restore();
+  // lueur des réactions
+  flash.forEach(f => {
+    const k = Math.max(0, 1 - f.t / 1.4), r = 40 + 60 * f.t;
+    const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
+    g.addColorStop(0, `rgba(255,200,60,${.55 * k})`); g.addColorStop(.6, `rgba(255,120,30,${.25 * k})`); g.addColorStop(1, 'rgba(255,90,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, Math.PI * 2); ctx.fill();
+  });
+  // molécules
+  mols.forEach(drawMol);
+  flights.forEach(f => f.atoms.forEach(a => atom(a.x, a.y, a.e, true)));
+  // flamme d'allumage
+  if (burning) {
+    const t = performance.now() / 1000, x = BOX.x + BOX.w - 40, y = BOX.y + BOX.h - 16;
+    for (let i = 0; i < 3; i++) {
+      const h = 30 + 6 * Math.sin(t * 9 + i), w = 10 - i * 2.5;
+      ctx.fillStyle = ['rgba(255,140,0,.85)', 'rgba(255,200,40,.9)', 'rgba(255,250,200,.95)'][i];
+      ctx.beginPath(); ctx.moveTo(x - w, y); ctx.quadraticCurveTo(x - w, y - h * .5, x, y - h * (1 - i * .2)); ctx.quadraticCurveTo(x + w, y - h * .5, x + w, y); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = muted; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('étincelle', x, y + 2 - 46);
+  }
+  // balance
+  const by = BOX.y + BOX.h + 26;
+  ctx.fillStyle = css('--bg'); ctx.strokeStyle = css('--border'); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(BOX.x + 60, by - 12, BOX.w - 120, 16, 6); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(W / 2 - 150, by + 8, 300, 62, 10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(W / 2 - 92, by + 18, 184, 42, 6); ctx.fill();
+  const c = countAtoms(), m = 250 + massOf(c) * 0.05;
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 26px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center';
+  ctx.fillText(m.toFixed(2).replace('.', ',') + ' g', W / 2, by + 40);
+  ctx.fillStyle = muted; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('balance', W / 2 + 100, by + 40);
+}
+
+/* ---------- panneau ---------- */
+function update() {
+  const R = REAC[cur], c = countMols(), a = countAtoms();
+  const shown = ORDRE.filter(t => t === R.fuel || t === 'O2' || R.produits[t]);
+  $('tab-mol').innerHTML = `<tr><th>Molécules</th>${shown.map(t => `<th>${MOL[t].f}</th>`).join('')}</tr>
+    <tr><td>maintenant</td>${shown.map(t => `<td>${c[t]}</td>`).join('')}</tr>`;
+  const els = ['C', 'H', 'O'].filter(e => init[e] > 0);
+  $('tab-at').innerHTML = `<tr><th>Atomes</th>${els.map(e => `<th>${e}</th>`).join('')}<th>masse</th></tr>
+    <tr><td>au départ</td>${els.map(e => `<td>${init[e]}</td>`).join('')}<td>${(250 + massOf(init) * .05).toFixed(2).replace('.', ',')} g</td></tr>
+    <tr><td>maintenant</td>${els.map(e => `<td class="${a[e] === init[e] ? 'same' : ''}">${a[e]}</td>`).join('')}<td class="same">${(250 + massOf(a) * .05).toFixed(2).replace('.', ',')} g</td></tr>`;
+  $('eq').innerHTML = `Bilan de la combustion :<br>${R.mots}<b>${R.eq}</b>`;
+}
+function setMsg(s) { $('msg').innerHTML = s; }
+function resetTests() {
+  $('tube-chaux').style.background = ''; $('r-chaux').textContent = 'eau de chaux limpide';
+  $('tube-cuivre').style.background = ''; $('r-cuivre').textContent = 'poudre blanche';
+}
+function fuelButtons() {
+  $('fuels').innerHTML = Object.entries(REAC).map(([k, r]) => `<button type="button" class="seg" data-k="${k}" aria-pressed="${k === cur}">${r.label}</button>`).join('');
+  $('fuels').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    cur = b.dataset.k; const R = REAC[cur];
+    $('nf').value = R.nf; $('no').value = R.no;
+    $('fuels').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    labels(); fill();
+  }));
+}
+function labels() {
+  const R = REAC[cur];
+  $('nf-lbl').textContent = R.fuel === 'C' ? 'Carbone C' : MOL[R.fuel].nom.charAt(0).toUpperCase() + MOL[R.fuel].nom.slice(1) + ' ' + MOL[R.fuel].f;
+  $('nf-out').textContent = $('nf').value; $('no-out').textContent = $('no').value;
+}
+['nf', 'no'].forEach(id => $(id).addEventListener('input', () => { labels(); fill(); }));
+$('fire').addEventListener('click', () => {
+  if (!canReact()) return;
+  burning = true; wait = .2; $('fire').disabled = true; $('step').disabled = true;
+  setMsg('Une étincelle apporte l’énergie nécessaire : la combustion démarre. À chaque réaction, les liaisons se cassent, les atomes se séparent puis se regroupent autrement (atomes entourés d’orange).');
+});
+$('step').addEventListener('click', () => {
+  if (flights.length) return;
+  if (react()) {
+    const R = REAC[cur];
+    setMsg(`Une réaction : ${Object.entries(R.reactifs).map(([t, n]) => `${n} ${t === 'C' ? 'atome de carbone' : 'molécule' + (n > 1 ? 's' : '') + ' de ' + MOL[t].nom}`).join(' + ')} donnent ${Object.entries(R.produits).map(([t, n]) => `${n} molécule${n > 1 ? 's' : ''} de ${MOL[t].nom}`).join(' + ')}. Les atomes ne disparaissent pas : ils changent de partenaires.`);
+    update();
+  } else finish();
+});
+$('reset').addEventListener('click', fill);
+$('t-chaux').addEventListener('click', () => {
+  const n = countMols().CO2;
+  $('tube-chaux').style.background = n ? 'rgba(235,235,235,.95)' : '';
+  $('r-chaux').textContent = n ? 'se trouble !' : 'reste limpide';
+  setMsg(n ? `L'eau de chaux se trouble : le flacon contient du <strong>dioxyde de carbone</strong> CO₂.` : `L'eau de chaux reste limpide : il n'y a pas de dioxyde de carbone dans le flacon.`);
+});
+$('t-cuivre').addEventListener('click', () => {
+  const n = countMols().H2O;
+  $('tube-cuivre').style.background = n ? '#2f7fd6' : '#f4f4f4';
+  $('r-cuivre').textContent = n ? 'devient bleu !' : 'reste blanc';
+  setMsg(n ? `Le sulfate de cuivre anhydre devient bleu : il s'est formé de l'<strong>eau</strong> H₂O.` : `Le sulfate de cuivre anhydre reste blanc : il n'y a pas d'eau dans le flacon.`);
+});
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  tick(dt); draw();
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); fuelButtons(); labels(); fill();
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const { pick, irnd, fmt, res, shuffle, etape, texte, round, expo } = Exo;
+const sub = s => s.replace(/(\d+)/g, '<sub>$1</sub>');
+const FORM = [
+  { f: 'CO2', nom: 'dioxyde de carbone', C: 1, H: 0, O: 2 }, { f: 'H2O', nom: 'eau', C: 0, H: 2, O: 1 },
+  { f: 'CH4', nom: 'méthane', C: 1, H: 4, O: 0 }, { f: 'C3H8', nom: 'propane', C: 3, H: 8, O: 0 },
+  { f: 'C4H10', nom: 'butane', C: 4, H: 10, O: 0 }, { f: 'C2H6O', nom: 'éthanol', C: 2, H: 6, O: 1 },
+  { f: 'C6H12O6', nom: 'glucose', C: 6, H: 12, O: 6 }, { f: 'O2', nom: 'dioxygène', C: 0, H: 0, O: 2 }
+];
+const EQ = [
+  { nom: 'du carbone', r: [[1, 'C'], [1, 'O2']], p: [[1, 'CO2']] },
+  { nom: 'du méthane', r: [[1, 'CH4'], [2, 'O2']], p: [[1, 'CO2'], [2, 'H2O']] },
+  { nom: 'du propane', r: [[1, 'C3H8'], [5, 'O2']], p: [[3, 'CO2'], [4, 'H2O']] },
+  { nom: 'du butane', r: [[2, 'C4H10'], [13, 'O2']], p: [[8, 'CO2'], [10, 'H2O']] },
+  { nom: 'du dihydrogène', r: [[2, 'H2'], [1, 'O2']], p: [[2, 'H2O']] },
+  { nom: "de l'éthanol", r: [[1, 'C2H6O'], [3, 'O2']], p: [[2, 'CO2'], [3, 'H2O']] }
+];
+const nAt = (f, e) => { const m = f.match(new RegExp(e + '(\\d*)(?![a-z])')); return m ? (m[1] ? +m[1] : 1) : 0; };
+const side = s => s.map(([k, f]) => (k > 1 ? k + ' ' : '') + sub(f)).join(' + ');
+const csDec = (x, d) => Math.max(1, expo(round(x, 6)) + 1 + d);   // résultat au dixième : nombre de CS
+const g1 = x => Math.round(x * 10) / 10;
+const RAPPEL = `Dans « 3 CO<sub>2</sub> », le 3 est le nombre de molécules et le petit 2 le nombre d'atomes d'oxygène dans <em>une</em> molécule.
+  Lors d'une transformation chimique, les atomes se conservent : même nombre de chaque sorte d'atomes dans les réactifs et dans les produits,
+  donc <strong>masse des réactifs consommés = masse des produits formés</strong>.`;
+
+Exo.monter('exo-comb', [
+  { id: 'at', label: 'Compter les atomes', rappel: RAPPEL, gen() {
+    const m = pick(FORM), k = irnd(2, 6);
+    const tot = m.C + m.H + m.O;
+    return {
+      enonce: `<p>On dispose de <strong>${k} molécules de ${m.nom}</strong> : on écrit <strong>${k} ${sub(m.f)}</strong>.</p>`,
+      questions: [
+        { label: '1. Combien d’atomes de carbone C au total ?', rep: k * m.C, entier: true },
+        { label: '2. Combien d’atomes d’hydrogène H au total ?', rep: k * m.H, entier: true },
+        { label: '3. Combien d’atomes d’oxygène O au total ?', rep: k * m.O, entier: true },
+        { label: '4. Combien d’atomes en tout ?', rep: k * tot, entier: true }
+      ],
+      correction: texte('', `Une molécule ${sub(m.f)} contient ${m.C} atome${m.C > 1 ? 's' : ''} C, ${m.H} atome${m.H > 1 ? 's' : ''} H et ${m.O} atome${m.O > 1 ? 's' : ''} O, soit ${tot} atomes.`) +
+        texte('1.', `${k} × ${m.C} = <strong>${k * m.C}</strong> atomes de carbone.`) +
+        texte('2.', `${k} × ${m.H} = <strong>${k * m.H}</strong> atomes d'hydrogène.`) +
+        texte('3.', `${k} × ${m.O} = <strong>${k * m.O}</strong> atomes d'oxygène.`) +
+        texte('4.', `${k} × ${tot} = <strong>${k * tot}</strong> atomes en tout.`)
+    };
+  } },
+  { id: 'eq', label: 'Vérifier une équation', rappel: RAPPEL, gen() {
+    const E = pick(EQ), juste = Math.random() < .5;
+    const r = E.r.map(x => x.slice()), p = E.p.map(x => x.slice());
+    if (!juste) { const t = pick([r, p]), i = irnd(0, t.length - 1); t[i][0] = t[i][0] === 1 ? 2 : t[i][0] + pick([-1, 1]); }
+    const cnt = (s, e) => s.reduce((a, [k, f]) => a + k * nAt(f, e), 0);
+    const els = ['C', 'H', 'O'].filter(e => cnt(E.r, e) > 0);
+    const e1 = 'O', ok = els.every(e => cnt(r, e) === cnt(p, e));
+    const det = s => s.map(([k, f]) => `${k} × ${nAt(f, e1)}`).join(' + ');
+    return {
+      enonce: `<p>Un élève propose cette équation pour la combustion ${E.nom} :</p><p style="font-size:1.15rem;text-align:center"><strong>${side(r)} → ${side(p)}</strong></p>`,
+      questions: [
+        { label: '1. Combien d’atomes d’oxygène dans les réactifs (à gauche) ?', rep: cnt(r, e1), entier: true },
+        { label: '2. Combien d’atomes d’oxygène dans les produits (à droite) ?', rep: cnt(p, e1), entier: true },
+        { label: '3. Cette équation respecte-t-elle la conservation des atomes ?', choix: ['Oui', 'Non'], rep: ok ? 0 : 1 }
+      ],
+      correction: texte('1.', `À gauche : ${det(r)} = <strong>${cnt(r, e1)}</strong> atomes O.`) +
+        texte('2.', `À droite : ${det(p)} = <strong>${cnt(p, e1)}</strong> atomes O.`) +
+        texte('3.', `Bilan par élément : ${els.map(e => `${e} : ${cnt(r, e)} à gauche, ${cnt(p, e)} à droite`).join(' ; ')}. ` +
+          (ok ? '<strong>Oui</strong>, il y a autant d’atomes de chaque sorte des deux côtés.' :
+            `<strong>Non</strong>. L'équation correcte est : ${side(E.r)} → ${side(E.p)}.`))
+    };
+  } },
+  { id: 'm', label: 'Conservation de la masse', rappel: RAPPEL, gen() {
+    if (Math.random() < .5) {
+      const mC = g1(Exo.rnd(3, 30, 3)), mO = g1(mC * 32 / 12), mP = g1(mC + mO), n = csDec(mP, 1);
+      return {
+        enonce: `<p>Dans un flacon fermé, <strong>${fmt(mC, csDec(mC, 1))} g de carbone</strong> brûlent entièrement en consommant <strong>${fmt(mO, csDec(mO, 1))} g de dioxygène</strong>. Le seul produit est le dioxyde de carbone.</p>`,
+        questions: [
+          { label: '1. Quelle masse de dioxyde de carbone s’est formée ?', unite: 'g', rep: mP, cs: n },
+          { label: '2. La masse totale du flacon fermé, pendant la combustion…', choix: ['augmente', 'diminue', 'reste la même'], rep: 2 }
+        ],
+        correction: etape({ q: '1.', lit: 'm(dioxyde de carbone) = m(carbone) + m(dioxygène)', an: `m = ${fmt(mC, csDec(mC, 1))} + ${fmt(mO, csDec(mO, 1))}`, res: `m = ${res(mP, n, 'g')}` }) +
+          texte('2.', 'Les atomes se conservent et rien n’entre ni ne sort du flacon : la masse totale <strong>reste la même</strong>.')
+      };
+    }
+    const x = g1(Exo.rnd(4, 20, 3)), mO = g1(4 * x), mCO = g1(2.75 * x), mE = g1(x + mO - mCO), n = csDec(mE, 1);
+    return {
+      enonce: `<p>On fait brûler entièrement <strong>${fmt(x, csDec(x, 1))} g de méthane</strong> avec <strong>${fmt(mO, csDec(mO, 1))} g de dioxygène</strong>.
+        Il se forme <strong>${fmt(mCO, csDec(mCO, 1))} g de dioxyde de carbone</strong> et de l'eau.</p>`,
+      questions: [
+        { label: '1. Quelle est la masse totale des réactifs consommés ?', unite: 'g', rep: g1(x + mO), cs: csDec(g1(x + mO), 1) },
+        { label: '2. Quelle masse d’eau s’est formée ?', unite: 'g', rep: mE, cs: n }
+      ],
+      correction: etape({ q: '1.', lit: 'm(réactifs) = m(méthane) + m(dioxygène)', an: `m = ${fmt(x, csDec(x, 1))} + ${fmt(mO, csDec(mO, 1))}`, res: `m = ${res(g1(x + mO), csDec(g1(x + mO), 1), 'g')}` }) +
+        etape({ q: '2.', note: 'La masse se conserve : m(réactifs) = m(dioxyde de carbone) + m(eau).', lit: 'm(eau) = m(réactifs) − m(dioxyde de carbone)', an: `m = ${fmt(g1(x + mO), csDec(g1(x + mO), 1))} − ${fmt(mCO, csDec(mCO, 1))}`, res: `m = ${res(mE, n, 'g')}` })
+    };
+  } },
+  { id: 'qcm', label: 'Réactifs, produits et tests', gen() {
+    const POOL = [
+      { q: 'Quel test met en évidence le dioxyde de carbone ?', c: ['L’eau de chaux se trouble', 'Le sulfate de cuivre anhydre devient bleu', 'Une allumette se rallume', 'Une petite détonation'], e: 'Le dioxyde de carbone <strong>trouble l’eau de chaux</strong>.' },
+      { q: 'Du sulfate de cuivre anhydre blanc devient bleu. Quel produit s’est formé ?', c: ['De l’eau', 'Du dioxyde de carbone', 'Du dioxygène', 'Du carbone'], e: 'Le sulfate de cuivre anhydre bleuit en présence d’<strong>eau</strong>.' },
+      { q: 'Quels sont les réactifs d’une combustion ?', c: ['Un combustible et le dioxygène', 'Seulement le combustible', 'Le dioxyde de carbone et l’eau', 'Le dioxygène et l’eau'], e: 'Une combustion a besoin d’un <strong>combustible</strong> et d’un comburant, le <strong>dioxygène</strong>.' },
+      { q: 'Quels sont les produits de la combustion complète du méthane ?', c: ['Du dioxyde de carbone et de l’eau', 'Seulement du dioxyde de carbone', 'De l’eau et du dioxygène', 'Du carbone et du dihydrogène'], e: 'CH<sub>4</sub> + 2 O<sub>2</sub> → <strong>CO<sub>2</sub> + 2 H<sub>2</sub>O</strong>.' },
+      { q: 'Lors d’une transformation chimique, les atomes…', c: ['se conservent et se réarrangent', 'disparaissent', 'se transforment en d’autres atomes', 'deviennent plus lourds'], e: 'Les molécules changent, mais les <strong>atomes se conservent</strong> : ils se regroupent autrement.' },
+      { q: 'On brûle du carbone pur. Le sulfate de cuivre anhydre…', c: ['reste blanc : il ne se forme pas d’eau', 'devient bleu : il se forme de l’eau', 'devient noir', 'se trouble'], e: 'Le carbone ne contient pas d’hydrogène : C + O<sub>2</sub> → CO<sub>2</sub>, <strong>pas d’eau</strong>.' },
+      { q: 'Dans la combustion, le dioxygène joue le rôle de…', c: ['comburant', 'combustible', 'produit', 'catalyseur'], e: 'Le dioxygène est le <strong>comburant</strong> : sans lui, pas de combustion.' },
+      { q: 'La combustion du dihydrogène est utilisée dans certaines fusées. Que produit-elle ?', c: ['Seulement de l’eau', 'Du dioxyde de carbone et de l’eau', 'Seulement du dioxyde de carbone', 'Du carbone'], e: '2 H<sub>2</sub> + O<sub>2</sub> → <strong>2 H<sub>2</sub>O</strong> : il n’y a pas de carbone dans les réactifs.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>
