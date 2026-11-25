@@ -206,5 +206,15 @@ window.CATALOGUE = [
     chapitre: "Circuits électriques",
     mots: ["série", "dérivation", "intensité", "tension", "loi des nœuds", "loi d'Ohm", "résistance", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "mecanique-espace",
+    titre: "Mouvements et interactions dans l'espace",
+    resume: "Les planètes autour du Soleil et ce qui arrive si on coupe la gravitation ; poids et masse sur la Terre, la Lune, Mars ou Jupiter (balance, dynamomètre, saut de l'astronaute) ; décrire le mouvement d'une fusée, d'un satellite ou d'une sonde. Exercices corrigés.",
+    theme: "mouvement-4",
+    niveau: "quatrieme",
+    chapitre: "Mouvements, interactions et gravitation",
+    mots: ["gravitation", "Système solaire", "poids", "masse", "P = m × g", "trajectoire", "vitesse", "référentiel", "action à distance", "exercices"],
+    statut: "en-ligne"
   }
 ];
