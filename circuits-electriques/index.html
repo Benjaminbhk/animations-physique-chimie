@@ -350,7 +350,7 @@ function fmtI(i) {
 const fmtR = r => (r >= 1000 ? sig(r / 1000) + ' kΩ' : Math.round(r) + ' Ω');
 
 /* ---------- modèles des dipôles ---------- */
-const RW = 1e-3, RG = 0.01, GMIN = 1e-9;
+const RG = 0.01, GMIN = 1e-9;
 const LAMP_EPS = 0.01, LAMP_A = 0.1 * Math.pow(36 + LAMP_EPS, 0.2) / 6;          // 6 V ; 0,1 A
 const fLamp = u => LAMP_A * u * Math.pow(u * u + LAMP_EPS, -0.2);
 const LED_VN = 0.1, LED_U0 = 2.0, LED_I0 = 0.02, LED_IS = LED_I0 / Math.exp(LED_U0 / LED_VN);
@@ -419,36 +419,63 @@ function gauss(A, b) {
   }
   return x;
 }
+/* Résolution : les fils, ampèremètres et interrupteurs fermés sont des conducteurs parfaits (résistance nulle).
+   1) on fusionne les points reliés par ces conducteurs (un « nœud électrique »),
+   2) analyse nodale (méthode de Newton pour la lampe et la DEL) sur ces nœuds,
+   3) on répartit les courants dans les conducteurs parfaits en respectant la loi des nœuds.
+   Un dipôle court-circuité a donc exactement U = 0 et I = 0. */
+const isCond = it => it.type === 'fil' || it.type === 'amp' || (it.type === 'inter' && it.closed);
 function solve(C) {
   const N = C.cols * C.rows, items = [...C.items.values()];
-  const nl = items.some(it => FN[it.type]);
-  let V = Float64Array.from(C.V);
+  const par = Int32Array.from({ length: N }, (_, k) => k);
+  const find = k => { while (par[k] !== k) { par[k] = par[par[k]]; k = par[k]; } return k; };
+  for (const it of items) if (isCond(it)) { const ra = find(it.a), rb = find(it.b); if (ra !== rb) par[ra] = rb; }
+  const idx = new Int32Array(N).fill(-1); let M = 0;
+  for (let n = 0; n < N; n++) { const r = find(n); if (idx[r] < 0) idx[r] = M++; }
+  const sn = n => idx[find(n)];
+  const elems = items.filter(it => !isCond(it) && it.type !== 'inter' && sn(it.a) !== sn(it.b));
+  const nl = elems.some(it => FN[it.type]);
+  let W = new Float64Array(M); for (let n = 0; n < N; n++) W[sn(n)] = C.V[n] || 0;
   for (let iter = 0; iter < (nl ? 500 : 1); iter++) {
-    const A = Array.from({ length: N }, () => new Float64Array(N)), J = new Float64Array(N);
-    for (let i = 0; i < N; i++) A[i][i] += GMIN;
+    const A = Array.from({ length: M }, () => new Float64Array(M)), J = new Float64Array(M);
+    for (let k = 0; k < M; k++) A[k][k] += GMIN;
     const G = (a, b, g) => { A[a][a] += g; A[b][b] += g; A[a][b] -= g; A[b][a] -= g; };
-    for (const it of items) {
-      const { a, b } = it;
+    for (const it of elems) {
+      const a = sn(it.a), b = sn(it.b);
       switch (it.type) {
-        case 'fil': case 'amp': G(a, b, 1 / RW); break;
-        case 'inter': if (it.closed) G(a, b, 1 / RW); break;
         case 'res': case 'myst': G(a, b, 1 / it.R); break;
         case 'gen': G(a, b, 1 / RG); J[a] += it.E / RG; J[b] -= it.E / RG; break;
         case 'lampe': case 'del': {
-          const f = FN[it.type], u = V[a] - V[b], i = f(u), g = Math.max(dfn(f, u), 1e-12), ieq = i - g * u;
+          const f = FN[it.type], u = W[a] - W[b], i = f(u), g = Math.max(dfn(f, u), 1e-12), ieq = i - g * u;
           G(a, b, g); J[a] -= ieq; J[b] += ieq;
         }
       }
     }
     const X = gauss(A, J);
-    if (!nl) { V = X; break; }
-    let m = 0; for (let i = 0; i < N; i++) m = Math.max(m, Math.abs(X[i] - V[i]));
-    const s = m > 0.4 ? 0.4 / m : 1;
-    for (let i = 0; i < N; i++) V[i] += s * (X[i] - V[i]);
+    if (!nl) { W = X; break; }
+    let m = 0; for (let k = 0; k < M; k++) m = Math.max(m, Math.abs(X[k] - W[k]));
+    const st = m > 0.4 ? 0.4 / m : 1;
+    for (let k = 0; k < M; k++) W[k] += st * (X[k] - W[k]);
     if (m < 1e-11) break;
   }
+  const V = new Float64Array(N); for (let n = 0; n < N; n++) V[n] = W[sn(n)];
   C.V = V;
-  for (const it of items) it.I = Iab(C, it);
+  // courants dans les dipôles (non conducteurs parfaits)
+  const out = new Float64Array(N);
+  for (const it of items) {
+    if (isCond(it)) continue;
+    it.I = Iab(C, it); if (Math.abs(it.I) < 1e-7) it.I = 0;   // fuites numériques
+    out[it.a] += it.I; out[it.b] -= it.I;
+  }
+  // courants dans les conducteurs parfaits : L·φ = −out, un point fixé par nœud électrique
+  const conds = items.filter(isCond);
+  if (conds.length) {
+    const A = Array.from({ length: N }, () => new Float64Array(N)), J = new Float64Array(N);
+    for (const it of conds) { const a = it.a, b = it.b; A[a][a] += 1; A[b][b] += 1; A[a][b] -= 1; A[b][a] -= 1; }
+    for (let n = 0; n < N; n++) { J[n] = -out[n]; if (find(n) === n) A[n][n] += 1; }
+    const phi = gauss(A, J);
+    for (const it of conds) { it.I = phi[it.a] - phi[it.b]; if (Math.abs(it.I) < 1e-7) it.I = 0; }
+  }
   C.warn = [];
   for (const it of items) {
     if (it.type === 'gen' && Math.abs(it.I) > 2) C.warn.push(`Court-circuit ! Le générateur ${it.label} débite ${fmtI(-it.I)} : il risque d'être détérioré.`);
@@ -459,8 +486,7 @@ function solve(C) {
 function Iab(C, it) {   // intensité du courant dans le dipôle, de la borne a vers la borne b
   const u = C.V[it.a] - C.V[it.b];
   switch (it.type) {
-    case 'fil': case 'amp': return u / RW;
-    case 'inter': return it.closed ? u / RW : 0;
+    case 'inter': return 0;
     case 'res': case 'myst': return u / it.R;
     case 'gen': return (u - it.E) / RG;
     case 'lampe': case 'del': return FN[it.type](u);
