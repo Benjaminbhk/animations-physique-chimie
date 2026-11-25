@@ -138,5 +138,14 @@ window.CATALOGUE = [
     chapitre: "Signaux et capteurs",
     mots: ["loi des nœuds", "loi des mailles", "loi d'Ohm", "caractéristique", "ampèremètre", "voltmètre", "DEL", "série", "dérivation"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "forces",
+    titre: "Modéliser une action par une force",
+    resume: "Construire le diagramme objet-interactions, puis tracer à l'échelle les vecteurs forces (poids, réaction, tension, frottements) sur un livre, une lampe, un skieur et un ballon. Exercices d'application corrigés.",
+    theme: "mouvement",
+    chapitre: "Actions mécaniques et forces",
+    mots: ["force", "diagramme objet-interactions", "poids", "réaction du support", "tension d'un fil", "frottements", "échelle", "exercices"],
+    statut: "en-ligne"
   }
 ];

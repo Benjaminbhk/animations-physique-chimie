@@ -20,6 +20,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Transformations nucléaires | https://benjaminbhk.github.io/animations-physique-chimie/transformations-nucleaires/ |
 | Le principe d'inertie | https://benjaminbhk.github.io/animations-physique-chimie/principe-inertie/ |
 | Circuits électriques | https://benjaminbhk.github.io/animations-physique-chimie/circuits-electriques/ |
+| Modéliser une action par une force | https://benjaminbhk.github.io/animations-physique-chimie/forces/ |
 
 ## Organisation
 
