@@ -23,6 +23,7 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Modéliser une action par une force | https://benjaminbhk.github.io/animations-physique-chimie/forces/ |
 | Le vecteur vitesse | https://benjaminbhk.github.io/animations-physique-chimie/vecteur-vitesse/ |
 | Chronophotographie et référentiels | https://benjaminbhk.github.io/animations-physique-chimie/chronophotographie/ |
+| Transformations physiques | https://benjaminbhk.github.io/animations-physique-chimie/transformations-physiques/ |
 
 ## Organisation
 

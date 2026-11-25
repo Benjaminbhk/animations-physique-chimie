@@ -167,5 +167,14 @@ window.CATALOGUE = [
     chapitre: "Décrire un mouvement",
     mots: ["chronophotographie", "trajectoire", "vitesse moyenne", "référentiel", "mouvement rectiligne", "mouvement circulaire", "uniforme", "accéléré", "ralenti", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "transformations-physiques",
+    titre: "Transformations physiques",
+    resume: "Chauffer ou refroidir un corps : particules, courbe de température avec palier (corps pur) ou sans palier (mélange), énergie Q = m × L. Six exercices corrigés pour s'entraîner.",
+    theme: "matiere",
+    chapitre: "Transformations physiques",
+    mots: ["changement d'état", "fusion", "vaporisation", "sublimation", "palier", "corps pur", "mélange", "endothermique", "exothermique", "énergie massique", "exercices"],
+    statut: "en-ligne"
   }
 ];
