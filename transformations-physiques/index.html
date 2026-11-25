@@ -12,7 +12,7 @@
   --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --grid:rgba(90,100,130,0.16);
   --warm:#d6452f; --warm-soft:#fde9e4; --cool:#1f78c8; --cool-soft:#e2effb;
   --ok:#1e8a4c; --ok-soft:#e3f5ea; --ko:#c0392b; --ko-soft:#fbe7e4;
-  --exo-bg:#e3f2fd; --exo-border:#a9d3f2; --exo-ink:#0b5d93;
+  --exo-border:#a9d3f0; --exo-ink:#14659f;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -21,7 +21,7 @@
     --canvas:#141821; --glass:rgba(190,208,235,0.62); --grid:rgba(190,200,230,0.13);
     --warm:#ff7a5e; --warm-soft:#3a1f1a; --cool:#5fb0ff; --cool-soft:#14263a;
     --ok:#4fd08a; --ok-soft:#13291d; --ko:#ff7b6b; --ko-soft:#33191a;
-    --exo-bg:#0f2433; --exo-border:#1f4a66; --exo-ink:#8fd0ff;
+    --exo-border:#284a6a; --exo-ink:#8ccaf5;
   }
 }
 :root[data-theme="dark"]{
@@ -30,7 +30,7 @@
   --canvas:#141821; --glass:rgba(190,208,235,0.62); --grid:rgba(190,200,230,0.13);
   --warm:#ff7a5e; --warm-soft:#3a1f1a; --cool:#5fb0ff; --cool-soft:#14263a;
   --ok:#4fd08a; --ok-soft:#13291d; --ko:#ff7b6b; --ko-soft:#33191a;
-  --exo-bg:#0f2433; --exo-border:#1f4a66; --exo-ink:#8fd0ff;
+  --exo-border:#284a6a; --exo-ink:#8ccaf5;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -94,9 +94,8 @@ svg.tri .arr:focus-visible text{text-decoration:underline}
 .small{font-size:.85rem;color:var(--muted)}
 sub,sup{line-height:0}
 
-/* ---------- exercices (fond bleu ciel) ---------- */
-.exos{background:var(--exo-bg);border:1px solid var(--exo-border);border-radius:14px;padding:18px 16px;margin:0 0 22px}
-.exos > h2{margin:0 0 .2rem;color:var(--exo-ink);font-size:1.35rem}
+/* ---------- exercices : couleurs de section dans ../commun/exercices.css ---------- */
+.exos > h2{margin:0 0 .2rem;font-size:1.2rem}
 .exos > p{margin:0 0 14px;color:var(--muted)}
 .exo{background:var(--surface);border:1px solid var(--exo-border);border-radius:12px;padding:14px 16px;margin:0 0 14px}
 .exo h3{margin:0 0 .5rem;font-size:1.05rem;color:var(--exo-ink)}
@@ -134,6 +133,7 @@ footer strong{color:var(--text)}
   svg.tri{max-width:340px;margin:0 auto}
 }
 </style>
+<link rel="stylesheet" href="../commun/exercices.css">
 </head>
 <body>
 <div class="wrap">
@@ -220,8 +220,8 @@ footer strong{color:var(--text)}
       Pour l'eau salée, le changement d'état est réparti sur un intervalle de température (la composition du liquide change). Valeurs de L et de θ approximatives.</p>
   </section>
 
-  <section class="exos" id="exos" aria-labelledby="t-exos">
-    <h2 id="t-exos">S'entraîner</h2>
+  <section class="scene exercices exos" id="exos" aria-labelledby="t-exos">
+    <h2 id="t-exos"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
     <p>Des petits exercices avec des valeurs tirées au hasard. Réponds, vérifie, puis compare avec la correction. « Nouvel énoncé » en propose un autre.</p>
     <div id="exo-list"></div>
   </section>
