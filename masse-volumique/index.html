@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La masse volumique</title>
+<meta name="description" content="Simulation interactive : mesurer la masse et le volume d'un objet (déplacement d'eau dans une éprouvette), calculer sa masse volumique et identifier le matériau ; masse proportionnelle au volume pour les liquides (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#7a3fd0; --accent-soft:#efe7fd; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lbl{font-weight:600;font-size:.92rem;margin:8px 0 4px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>La masse volumique</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Pèse un objet avec la balance, mesure son volume en le plongeant dans une éprouvette graduée, puis calcule sa
+    <strong>masse volumique ρ = m / V</strong> pour retrouver de quoi il est fait. Avec les liquides, découvre que la masse est
+    <strong>proportionnelle</strong> au volume.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de mesure de masse volumique">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="solide" aria-pressed="true">🧱 Identifier un solide</button>
+      <button type="button" class="seg" data-mode="liquide" aria-pressed="false">💧 Masse et volume d'un liquide</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Balance électronique et éprouvette graduée"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-solide">
+          <h3>1. Choisir un objet</h3>
+          <div class="grid2" id="objs" role="group" aria-label="Objet"></div>
+          <h3 style="margin-top:12px">2. Mesurer</h3>
+          <div class="grid3">
+            <button id="peser" type="button">Peser</button>
+            <button id="plonger" type="button">Plonger</button>
+            <button id="retirer" class="ghost" type="button">Retirer</button>
+          </div>
+          <div class="info" id="mes" style="margin-top:10px"></div>
+          <h3 style="margin-top:12px">3. Identifier le matériau</h3>
+          <div class="row"><select id="mat" aria-label="Matériau"></select><button id="verif" type="button">Vérifier</button></div>
+          <div class="res" id="res" aria-live="polite" hidden></div>
+        </div>
+        <div id="p-liquide" hidden>
+          <h3>1. Choisir un liquide</h3>
+          <div class="grid2" id="liqs" role="group" aria-label="Liquide"></div>
+          <h3 style="margin-top:12px">2. Verser</h3>
+          <div class="row"><label for="vl" style="min-width:5em">Volume</label><input id="vl" type="range" min="0" max="100" step="5" value="40"><output id="vl-out" for="vl" style="min-width:7ch"></output></div>
+          <div class="grid2" style="margin-top:8px">
+            <button id="noter" type="button">Noter la mesure</button>
+            <button id="effacer" class="ghost" type="button">Effacer le graphique</button>
+          </div>
+          <div class="info" id="linfo" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Masse volumique</h3><strong>ρ = m / V</strong>. Avec m en g et V en cm³ (ou mL), ρ est en g/cm³. 1 mL = 1 cm³. L'eau : ρ = 1,00 g/cm³ = 1 000 kg/m³ = 1 000 g/L.</div>
+      <div><h3>Mesurer un volume</h3>Pour un solide de forme quelconque : on lit le volume d'eau V₁, on plonge l'objet, on lit V₂. <strong>V = V₂ − V₁</strong>. On lit le bas du ménisque, l'œil à sa hauteur.</div>
+      <div><h3>Quelques matériaux (g/cm³)</h3>liège 0,24 · bois de chêne 0,75 · verre 2,50 · aluminium 2,70 · fer 7,87 · laiton 8,50 · cuivre 8,96 · plomb 11,3 · or 19,3</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-mv"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Valeurs de ρ à 20 °C, arrondies.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+const { fmt } = Exo;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'solide';
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const MAT = [
+  { nom: 'verre', rho: 2.50, c: '#bfe3e6' }, { nom: 'aluminium', rho: 2.70, c: '#c9ced6' }, { nom: 'fer', rho: 7.87, c: '#7d848e' },
+  { nom: 'laiton', rho: 8.50, c: '#d8b54a' }, { nom: 'cuivre', rho: 8.96, c: '#c8743f' }, { nom: 'plomb', rho: 11.3, c: '#6f7480' }, { nom: 'or', rho: 19.3, c: '#f3c623' }
+];
+const OBJ = [
+  { nom: 'Cube d’aluminium', mat: 1, V: 8, forme: 'cube' }, { nom: 'Bille d’acier (fer)', mat: 2, V: 6, forme: 'bille' },
+  { nom: 'Lest de pêche', mat: 5, V: 4, forme: 'goutte' }, { nom: 'Bille de verre', mat: 0, V: 10, forme: 'bille' },
+  { nom: 'Objet mystère A', mat: null, forme: 'caillou' }, { nom: 'Objet mystère B', mat: null, forme: 'cube' }
+];
+const V1 = 50, PXML = 3.1, EX = 540, EB = 430, EW = 74;      // éprouvette : 0 mL en EB, 3,1 px par mL
+const S = { o: 0, cur: null, pese: false, dedans: false, anim: 0, Vlu: null };
+function nouvelObjet(i) {
+  const O = OBJ[i];
+  let mat = O.mat, V = O.V;
+  if (mat === null) { mat = Math.floor(Math.random() * MAT.length); V = 3 + Math.floor(Math.random() * 14); }
+  S.cur = { O, mat, V, m: Math.round(MAT[mat].rho * V * 10) / 10 };
+  S.pese = false; S.dedans = false; S.anim = 0; $('res').hidden = true; $('mat').value = '';
+  info();
+  $('msg').innerHTML = `${O.nom} : pèse-le d’abord sur la balance, puis plonge-le dans l’éprouvette qui contient ${V1} mL d’eau.`;
+}
+function info() {
+  const c = S.cur, V2 = V1 + c.V;
+  let h = `Masse : <b>${S.pese ? 'm = ' + f(c.m, 1) + ' g' : '?'}</b><br>Volume d’eau avant : V₁ = ${V1} mL<br>Volume après : V₂ = ${S.dedans && S.anim >= 1 ? V2 + ' mL' : '?'}`;
+  if (S.dedans && S.anim >= 1) h += `<br>Volume de l’objet : V = V₂ − V₁ = ${V2} − ${V1} = <b>${c.V} cm³</b>`;
+  if (S.pese && S.dedans && S.anim >= 1) h += `<br>ρ = m / V = ${f(c.m, 1)} / ${c.V} = <b>${fmt(c.m / c.V, 3)} g/cm³</b>`;
+  $('mes').innerHTML = h;
+}
+/* ---------- dessin ---------- */
+function balance(x, y, val, label) {
+  ctx.fillStyle = css('--bg'); ctx.strokeStyle = css('--border'); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(x - 110, y - 50, 220, 60, 10); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(x - 80, y - 60, 160, 10, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(x - 62, y - 40, 124, 32, 6); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 20px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center'; ctx.fillText(val, x, y - 16);
+  ctx.fillStyle = css('--muted'); ctx.font = '12px system-ui, sans-serif'; ctx.fillText(label, x, y + 28);
+}
+function objet(x, y, s, c) {     // y = bas de l'objet
+  const M = MAT[c.mat], r = 9 + 3.2 * Math.cbrt(c.V) * 2.2;
+  ctx.fillStyle = M.c; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1.2;
+  const F = c.O.forme;
+  if (F === 'cube') { ctx.beginPath(); ctx.rect(x - r / 2, y - r, r, r); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(x - r / 2 + 3, y - r + 3, r / 3, r / 3); }
+  else if (F === 'bille') { const g = ctx.createRadialGradient(x - r * .2, y - r * .7, 2, x, y - r / 2, r / 2); g.addColorStop(0, '#fff'); g.addColorStop(1, M.c); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y - r / 2, r / 2, 0, 7); ctx.fill(); ctx.stroke(); }
+  else if (F === 'goutte') { ctx.beginPath(); ctx.moveTo(x, y - r * 1.1); ctx.quadraticCurveTo(x + r * .55, y - r * .3, x, y); ctx.quadraticCurveTo(x - r * .55, y - r * .3, x, y - r * 1.1); ctx.fill(); ctx.stroke(); }
+  else { ctx.beginPath(); ctx.moveTo(x - r * .55, y); ctx.lineTo(x - r * .6, y - r * .5); ctx.lineTo(x - r * .1, y - r * .85); ctx.lineTo(x + r * .5, y - r * .6); ctx.lineTo(x + r * .58, y - r * .1); ctx.lineTo(x + r * .3, y); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+}
+function eprouvette(Vliq, col) {
+  const top = EB - 100 * PXML - 20, ink = css('--text');
+  // liquide
+  const yl = EB - Vliq * PXML;
+  ctx.fillStyle = col; ctx.fillRect(EX - EW / 2 + 2, yl, EW - 4, EB - yl);
+  ctx.strokeStyle = 'rgba(40,90,160,.9)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(EX - EW / 2 + 2, yl - 4); ctx.quadraticCurveTo(EX, yl + 4, EX + EW / 2 - 2, yl - 4); ctx.stroke();
+  // verre
+  ctx.strokeStyle = css('--glass'); ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(EX - EW / 2, top); ctx.lineTo(EX - EW / 2, EB); ctx.lineTo(EX + EW / 2, EB); ctx.lineTo(EX + EW / 2, top); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(EX - EW / 2 - 30, EB + 6); ctx.lineTo(EX + EW / 2 + 30, EB + 6); ctx.stroke();
+  // graduations
+  ctx.fillStyle = ink; ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'right';
+  for (let v = 0; v <= 100; v += 2) {
+    const y = EB - v * PXML, L = v % 10 === 0 ? 16 : 8;
+    ctx.beginPath(); ctx.moveTo(EX - EW / 2, y); ctx.lineTo(EX - EW / 2 + L, y); ctx.stroke();
+    if (v % 10 === 0 && v) ctx.fillText(v, EX - EW / 2 - 4, y + 4);
+  }
+  ctx.textAlign = 'left'; ctx.fillText('mL', EX - EW / 2 - 26, top + 8);
+  return yl;
+}
+function drawSolide() {
+  const c = S.cur, ink = css('--text');
+  balance(200, 420, S.pese && !S.dedans ? f(c.m, 1) + ' g' : '0,0 g', 'balance (précision 0,1 g)');
+  const Vnow = V1 + c.V * Math.min(1, S.dedans ? S.anim : 0);
+  const yl = eprouvette(Vnow, 'rgba(120,180,240,.35)');
+  if (!S.dedans) {
+    if (S.pese) objet(200, 360, 1, c); else objet(380, 430, 1, c);
+  } else {
+    const yb = Math.min(EB - 2, 80 + (EB - 82) * Math.min(1, S.anim * 1.6));
+    objet(EX, yb, 1, c);
+  }
+  // lecture
+  ctx.strokeStyle = '#c0392b'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(EX + EW / 2 + 4, yl); ctx.lineTo(EX + EW / 2 + 70, yl); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#c0392b'; ctx.font = '700 15px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(`${Math.round(Vnow)} mL`, EX + EW / 2 + 74, yl + 5);
+  // œil
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.5; const ex = EX + EW / 2 + 140, ey = yl;
+  ctx.beginPath(); ctx.ellipse(ex, ey, 14, 8, 0, 0, 7); ctx.stroke(); ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(ex - 3, ey, 3.5, 0, 7); ctx.fill();
+  ctx.fillStyle = css('--muted'); ctx.font = '12px system-ui, sans-serif'; ctx.fillText('œil au niveau', ex - 34, ey + 24); ctx.fillText('du ménisque', ex - 30, ey + 38);
+  ctx.fillStyle = ink; ctx.font = '600 14px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('éprouvette graduée', EX, 24);
+}
+/* ---------- liquides ---------- */
+const LIQ = [
+  { nom: 'eau', rho: 1.00, c: 'rgba(120,180,240,.45)', k: '#2c7fd6' }, { nom: 'huile', rho: 0.92, c: 'rgba(235,200,60,.55)', k: '#c99a00' },
+  { nom: 'éthanol', rho: 0.79, c: 'rgba(200,200,220,.4)', k: '#7a7f9a' }, { nom: 'sirop de grenadine', rho: 1.30, c: 'rgba(200,40,70,.55)', k: '#c8283f' }
+];
+const L = { l: 0, pts: [] };
+function linfo() {
+  const Q = LIQ[L.l], V = +$('vl').value, m = Q.rho * V;
+  $('vl-out').textContent = V + ' mL';
+  $('linfo').innerHTML = `La balance a été tarée avec l’éprouvette vide : elle indique la masse du liquide seul.<br>
+    V = ${V} mL ; m = <b>${f(m, 1)} g</b>${V ? `<br>m / V = ${f(m, 1)} / ${V} = <b>${fmt(Q.rho, 3)} g/mL</b>` : ''}<br>
+    <span style="color:var(--muted)">Note plusieurs mesures : les points sont alignés sur une droite passant par l’origine. Son coefficient directeur est la masse volumique.</span>`;
+}
+function drawLiquide() {
+  const Q = LIQ[L.l], V = +$('vl').value, m = Q.rho * V, ink = css('--text'), mut = css('--muted');
+  // éprouvette sur la balance (à gauche)
+  ctx.save(); ctx.translate(-410, -36);
+  eprouvette(V, Q.c);
+  ctx.restore();
+  balance(140, 460, f(m, 1) + ' g', '');
+  // graphique m = f(V)
+  const gx = 400, gy = 420, gw = 380, gh = 340;
+  ctx.strokeStyle = css('--border'); ctx.lineWidth = 1; ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = mut;
+  for (let k = 0; k <= 7; k++) { const y = gy - gh * k / 7; ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke(); ctx.textAlign = 'right'; ctx.fillText(20 * k, gx - 5, y + 4); }
+  for (let k = 0; k <= 5; k++) { const x = gx + gw * k / 5; ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - gh); ctx.stroke(); ctx.textAlign = 'center'; ctx.fillText(20 * k, x, gy + 15); }
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(gx, gy - gh - 6); ctx.lineTo(gx, gy); ctx.lineTo(gx + gw + 6, gy); ctx.stroke();
+  ctx.fillStyle = ink; ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('m (g)', gx - 2, gy - gh - 12);
+  ctx.textAlign = 'right'; ctx.fillText('V (mL)', gx + gw + 4, gy + 32);
+  const X = v => gx + gw * v / 100, Y = mm => gy - gh * mm / 140;
+  LIQ.forEach((q, i) => {
+    const pts = L.pts.filter(p => p.l === i); if (!pts.length) return;
+    if (pts.length >= 2) { ctx.strokeStyle = q.k; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(100), Y(100 * q.rho)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = q.k; ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(q.nom, X(100) - 70, Y(100 * q.rho) - 6); }
+    pts.forEach(p => { ctx.strokeStyle = q.k; ctx.lineWidth = 2.2; const x = X(p.V), y = Y(p.m); ctx.beginPath(); ctx.moveTo(x - 5, y - 5); ctx.lineTo(x + 5, y + 5); ctx.moveTo(x + 5, y - 5); ctx.lineTo(x - 5, y + 5); ctx.stroke(); });
+  });
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Masse du liquide en fonction de son volume', gx + gw / 2, 30);
+}
+/* ---------- interface ---------- */
+$('objs').innerHTML = OBJ.map((o, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === 0}">${o.nom}</button>`).join('');
+$('objs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  S.o = +b.dataset.i; $('objs').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); nouvelObjet(S.o);
+}));
+$('mat').innerHTML = '<option value="">— choisir —</option>' + MAT.map((m, i) => `<option value="${i}">${m.nom} (${fmt(m.rho, 3)} g/cm³)</option>`).join('');
+$('peser').addEventListener('click', () => {
+  if (S.dedans) { $('msg').innerHTML = 'Retire d’abord l’objet de l’éprouvette (et sèche-le !) avant de le peser.'; return; }
+  S.pese = true; info(); $('msg').innerHTML = `La balance indique <strong>m = ${f(S.cur.m, 1)} g</strong>. Plonge maintenant l’objet dans l’éprouvette pour mesurer son volume.`;
+});
+$('plonger').addEventListener('click', () => {
+  if (S.dedans) return;
+  S.dedans = true; S.anim = 0;
+  $('msg').innerHTML = 'L’objet coule au fond : il pousse l’eau, dont le niveau monte. L’augmentation de volume est égale au volume de l’objet.';
+});
+$('retirer').addEventListener('click', () => { S.dedans = false; S.anim = 0; info(); });
+$('verif').addEventListener('click', () => {
+  const r = $('res'), v = $('mat').value; r.hidden = false;
+  if (!S.pese || !S.dedans || S.anim < 1) { r.className = 'res mid'; r.innerHTML = 'Mesure d’abord la masse <strong>et</strong> le volume de l’objet.'; return; }
+  if (v === '') { r.className = 'res mid'; r.innerHTML = 'Choisis un matériau dans la liste.'; return; }
+  const c = S.cur, rho = c.m / c.V, ok = +v === c.mat;
+  r.className = 'res ' + (ok ? 'ok' : 'ko');
+  r.innerHTML = ok ? `<strong>Bravo !</strong> ρ = ${fmt(rho, 3)} g/cm³ : c’est bien du <strong>${MAT[c.mat].nom}</strong> (${fmt(MAT[c.mat].rho, 3)} g/cm³).`
+    : `<strong>Non.</strong> Tu as trouvé ρ = ${fmt(rho, 3)} g/cm³ : cherche dans la liste la valeur la plus proche.`;
+});
+$('liqs').innerHTML = LIQ.map((q, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === 0}">${q.nom}</button>`).join('');
+$('liqs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  L.l = +b.dataset.i; $('liqs').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); linfo();
+}));
+$('vl').addEventListener('input', linfo);
+$('noter').addEventListener('click', () => {
+  const V = +$('vl').value, q = LIQ[L.l];
+  if (L.pts.some(p => p.l === L.l && p.V === V)) return;
+  L.pts.push({ l: L.l, V, m: q.rho * V });
+  $('msg').innerHTML = `Mesure notée pour ${q.nom} : V = ${V} mL, m = ${f(q.rho * V, 1)} g.`;
+});
+$('effacer').addEventListener('click', () => { L.pts = []; });
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('p-solide').hidden = mode !== 'solide'; $('p-liquide').hidden = mode !== 'liquide';
+  if (mode === 'liquide') { linfo(); $('msg').innerHTML = 'Choisis un liquide, verse un volume, note la mesure. Recommence pour plusieurs volumes, puis avec un autre liquide.'; }
+  else nouvelObjet(S.o);
+}));
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (S.dedans && S.anim < 1) { S.anim = Math.min(1, S.anim + dt / 1.4); if (S.anim >= 1) { info(); $('msg').innerHTML = `Le niveau est passé de ${V1} mL à ${V1 + S.cur.V} mL : le volume de l’objet est V = ${S.cur.V} cm³.`; } }
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'solide' ? drawSolide() : drawLiquide();
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); nouvelObjet(0); linfo();
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte, sci } = Exo;
+const MAT = [['l’aluminium', 2.70], ['le fer', 7.87], ['le cuivre', 8.96], ['le plomb', 11.3], ['l’or', 19.3], ['le verre', 2.50], ['le laiton', 8.50]];
+const RAPPEL = `ρ = m / V, donc m = ρ × V et V = m / ρ. 1 mL = 1 cm³ ; 1 L = 1 000 mL = 1 dm³ ; 1 m³ = 1 000 L.
+  1 g/cm³ = 1 000 g/L = 1 000 kg/m³. Un objet coule dans l'eau si sa masse volumique est supérieure à celle de l'eau (1,00 g/cm³).`;
+Exo.monter('exo-mv', [
+  { id: 'id', label: 'Identifier un métal', rappel: RAPPEL, gen() {
+    const choix = shuffle(MAT).slice(0, 4), M = pick(choix), v1 = pick([40, 50, 60]), V = irnd(4, 25), m = Math.round(M[1] * V * 10) / 10, rho = m / V;
+    return {
+      enonce: `<p>Un objet métallique a une masse <strong>m = ${fmt(m, 3)} g</strong>. On le plonge dans une éprouvette contenant <strong>V₁ = ${v1} mL</strong> d'eau : le niveau monte à <strong>V₂ = ${v1 + V} mL</strong>.</p>
+        <p>Données (g/cm³) : ${choix.map(x => `${x[0].replace(/^(le |l’|l')/, '')} ${fmt(x[1], 3)}`).join(' ; ')}.</p>`,
+      questions: [
+        { label: '1. Quel est le volume de l’objet ?', unite: 'cm³', rep: V, cs: 0 },
+        { label: '2. Calcule sa masse volumique.', unite: 'g/cm³', rep: rho, cs: 2, marge: 2 },
+        { label: '3. En quoi est-il fait ?', choix: choix.map(x => x[0].replace(/^(le |l’)/, '').replace(/^./, c => c.toUpperCase())), rep: choix.indexOf(M) }
+      ],
+      correction: etape({ q: '1.', lit: 'V = V₂ − V₁', an: `V = ${v1 + V} − ${v1}`, res: `V = <span class="exo-res">${V} mL = ${V} cm³</span>` }) +
+        etape({ q: '2.', note: 'Le volume est lu au mL près (2 chiffres significatifs) : on garde 2 chiffres significatifs.', lit: 'ρ = m / V', an: `ρ = ${fmt(m, 3)} / ${V}`, res: `ρ = ${res(rho, 2, 'g/cm³')}` }) +
+        texte('3.', `La valeur la plus proche est celle de <strong>${M[0]}</strong> (${fmt(M[1], 3)} g/cm³).`)
+    };
+  } },
+  { id: 'm', label: 'Calculer une masse', rappel: RAPPEL, gen() {
+    const C = pick([['d’huile', 0.920, 'L'], ['d’eau de mer', 1.03, 'L'], ['de lait', 1.03, 'L'], ['d’éthanol', 0.789, 'L']]), VL = rnd(0.250, 2.00, 3), m = C[1] * VL * 1000;
+    return {
+      enonce: `<p>Une bouteille contient <strong>V = ${fmt(VL, 3)} L</strong> ${C[0]}, de masse volumique <strong>ρ = ${fmt(C[1], 3)} g/mL</strong>.</p>`,
+      questions: [
+        { label: '1. Convertis le volume en mL.', unite: 'mL', rep: VL * 1000, cs: 3 },
+        { label: '2. Calcule la masse du liquide, en grammes.', unite: 'g', rep: m, cs: 3 },
+        { label: '3. Exprime cette masse en kilogrammes.', unite: 'kg', rep: m / 1000, cs: 3 }
+      ],
+      correction: etape({ q: '1.', lit: '1 L = 1 000 mL', an: `V = ${fmt(VL, 3)} × 1 000`, res: `V = ${res(VL * 1000, 3, 'mL')}` }) +
+        etape({ q: '2.', lit: 'ρ = m / V donc m = ρ × V', an: `m = ${fmt(C[1], 3)} × ${fmt(VL * 1000, 3)}`, res: `m = ${res(m, 3, 'g')}` }) +
+        etape({ q: '3.', lit: '1 kg = 1 000 g', an: `m = ${fmt(m, 3)} / 1 000`, res: `m = ${res(m / 1000, 3, 'kg')}` })
+    };
+  } },
+  { id: 'u', label: 'Convertir les unités', rappel: RAPPEL, gen() {
+    const M = pick(MAT), r = M[1];
+    return {
+      enonce: `<p>La masse volumique de ${M[0]} est <strong>ρ = ${fmt(r, 3)} g/cm³</strong>.</p>`,
+      questions: [
+        { label: '1. Exprime-la en g/L.', unite: 'g/L', rep: r * 1000, cs: 3 },
+        { label: '2. Exprime-la en kg/m³.', unite: 'kg/m³', rep: r * 1000, cs: 3 },
+        { label: '3. Ce matériau, plongé dans l’eau…', choix: ['coule', 'flotte'], rep: r > 1 ? 0 : 1 }
+      ],
+      correction: etape({ q: '1.', note: '1 L = 1 000 cm³ : 1 L de ce matériau a une masse 1 000 fois plus grande que 1 cm³.', an: `ρ = ${fmt(r, 3)} × 1 000`, res: `ρ = ${res(r * 1000, 3, 'g/L')}` }) +
+        etape({ q: '2.', note: '1 m³ = 1 000 L et 1 kg = 1 000 g : la valeur en kg/m³ est la même qu’en g/L.', res: `ρ = ${res(r * 1000, 3, 'kg/m³')}` }) +
+        texte('3.', `ρ = ${fmt(r, 3)} g/cm³ est plus grande que celle de l’eau (1,00 g/cm³) : il <strong>coule</strong>.`)
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'Avec quel instrument mesure-t-on le volume d’un liquide ?', c: ['Une éprouvette graduée', 'Une balance', 'Un thermomètre'], e: 'Le volume se mesure avec une <strong>éprouvette graduée</strong> (ou une fiole, une burette…).' },
+      { q: 'Comment lit-on le volume dans une éprouvette ?', c: ['Au bas du ménisque, l’œil à sa hauteur', 'En haut du ménisque, en regardant d’en haut', 'Au bord du liquide contre le verre'], e: 'On lit <strong>le bas du ménisque</strong>, l’œil à sa hauteur.' },
+      { q: '1 mL est égal à…', c: ['1 cm³', '1 dm³', '1 m³'], e: '<strong>1 mL = 1 cm³</strong> (et 1 L = 1 dm³).' },
+      { q: 'Si on double le volume d’un liquide, sa masse…', c: ['double', 'reste la même', 'est divisée par 2'], e: 'La masse est <strong>proportionnelle</strong> au volume : elle double.' },
+      { q: 'Un objet de masse volumique 0,75 g/cm³ placé dans l’eau…', c: ['flotte', 'coule', 'se dissout'], e: '0,75 &lt; 1,00 g/cm³ : il <strong>flotte</strong>.' },
+      { q: 'La masse volumique d’un matériau…', c: ['ne dépend pas de la taille de l’objet', 'augmente avec la taille de l’objet', 'diminue avec la taille de l’objet'], e: 'C’est une caractéristique du matériau : un petit et un gros cube d’aluminium ont <strong>la même masse volumique</strong>.' },
+      { q: 'Le graphique m = f(V) pour un liquide est…', c: ['une droite passant par l’origine', 'une droite horizontale', 'une courbe qui redescend'], e: 'm = ρ × V : <strong>droite passant par l’origine</strong>, de coefficient directeur ρ.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

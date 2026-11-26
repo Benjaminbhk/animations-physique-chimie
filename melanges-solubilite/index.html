@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mélanges et solubilité</title>
+<meta name="description" content="Simulation interactive : dissoudre un solide dans l'eau (conservation de la masse, solution saturée, modèle particulaire) et mélanger deux liquides ou un solide à l'eau (miscibilité, mélange homogène ou hétérogène). Physique-chimie, Quatrième.">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#7a3fd0; --accent-soft:#efe7fd; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lbl{font-weight:600;font-size:.92rem;margin:8px 0 4px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Mélanges et solubilité</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Dissous un solide dans l'eau sur une balance : la <strong>masse se conserve</strong>, mais on ne peut pas dissoudre
+    autant qu'on veut, la solution finit par être <strong>saturée</strong>. Mélange ensuite l'eau avec d'autres liquides ou un solide :
+    le mélange obtenu est-il <strong>homogène</strong> ou <strong>hétérogène</strong> ?</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de dissolution et de mélanges">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="dis" aria-pressed="true">🥄 Dissoudre un solide</button>
+      <button type="button" class="seg" data-mode="mel" aria-pressed="false">🧪 Mélanger avec l'eau</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Bécher d'eau sur une balance, avec une loupe montrant les particules"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-dis">
+          <h3>1. Choisir le soluté</h3>
+          <div class="grid2" id="sols" role="group" aria-label="Soluté"></div>
+          <div class="row"><label for="veau" style="min-width:6em">Eau</label><select id="veau"><option value="100">100 mL</option><option value="200">200 mL</option></select></div>
+          <h3 style="margin-top:12px">2. Ajouter, verser, agiter</h3>
+          <div class="grid2">
+            <button id="a1" type="button" class="ghost">+ 1 g sur le verre de montre</button>
+            <button id="a10" type="button" class="ghost">+ 10 g sur le verre de montre</button>
+            <button id="verser" type="button">Verser dans l'eau</button>
+            <button id="agiter" type="button">Agiter</button>
+          </div>
+          <div class="row"><button id="vider" type="button" class="ghost">Recommencer</button>
+            <label class="check" style="min-width:0;font-weight:500"><input type="checkbox" id="loupe" checked> Loupe (particules)</label></div>
+          <div class="info" id="dinfo" style="margin-top:10px"></div>
+        </div>
+        <div id="p-mel" hidden>
+          <h3>1. Que verse-t-on dans l'eau ?</h3>
+          <div class="grid2" id="liqs" role="group" aria-label="Ce qu'on verse"></div>
+          <h3 style="margin-top:12px">2. Mélanger</h3>
+          <div class="grid2">
+            <button id="mverser" type="button">Verser</button>
+            <button id="magiter" type="button">Agiter</button>
+          </div>
+          <h3 style="margin-top:12px">3. Après agitation et repos, le mélange est…</h3>
+          <div class="grid2" id="rep">
+            <button type="button" class="ghost" data-r="1">homogène</button>
+            <button type="button" class="ghost" data-r="0">hétérogène</button>
+          </div>
+          <div class="res" id="mres" aria-live="polite" hidden></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Dissolution</h3>Le <strong>soluté</strong> (sel, sucre…) se disperse dans le <strong>solvant</strong> (l'eau) : on obtient une <strong>solution</strong>. Il ne disparaît pas : <strong>la masse totale se conserve</strong>.</div>
+      <div><h3>Solubilité</h3>Masse maximale de soluté qu'on peut dissoudre dans 1 L de solvant (à 20 °C). Au-delà, le solide ne se dissout plus : la solution est <strong>saturée</strong> et il reste un dépôt.</div>
+      <div><h3>Homogène ou hétérogène ?</h3>Homogène : on ne distingue <strong>qu'une seule phase</strong> à l'œil nu (eau + éthanol). Hétérogène : on distingue <strong>plusieurs phases</strong> (eau + huile). Deux liquides qui donnent un mélange homogène sont <strong>miscibles</strong>.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-ms"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Solubilités dans l'eau à 20 °C, arrondies.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'dis';
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const rand = (a, b) => a + Math.random() * (b - a);
+
+/* ================= Dissoudre ================= */
+// s : solubilité en g/L d'eau à 20 °C
+const SOL = [
+  { nom: 'sel', s: 360, grain: '#ffffff', sol: [150, 200, 240, 0.0], part: '#8a94a6' },
+  { nom: 'sucre', s: 2000, grain: '#fbfaf4', sol: [150, 200, 240, 0.0], part: '#d9a441' },
+  { nom: 'sulfate de cuivre', s: 320, grain: '#2f7fd8', sol: [40, 120, 230, 0.75], part: '#0b2f7a' },
+  { nom: 'bicarbonate de soude', s: 96, grain: '#ffffff', sol: [150, 200, 240, 0.0], part: '#9a7fb8' }
+];
+const MBECHER = 62.4, MVERRE = 18.7;
+const D = { s: 0, V: 100, cup: 0, inB: 0, dis: 0, agit: 0, falling: [], rod: 0 };
+const smax = () => SOL[D.s].s * D.V / 1000;
+const target = () => Math.min(D.inB, smax());
+function reset() {
+  D.cup = 0; D.inB = 0; D.dis = 0; D.agit = 0; D.falling = []; parts.length = 0;
+  dinfo(); $('msg').innerHTML = `Pose du ${SOL[D.s].nom} sur le verre de montre, note l’indication de la balance, puis verse-le dans l’eau.`;
+}
+function total() { return MBECHER + D.V * 1.00 + MVERRE + D.cup + D.inB; }
+function dinfo() {
+  const S = SOL[D.s], dep = D.inB - D.dis, mx = smax();
+  let etat = '—';
+  if (D.inB > 0) etat = dep > 0.05 ? (D.dis >= mx - 0.05 ? `<b>saturée</b> : il reste un dépôt de ${f(dep, 1)} g` : 'dissolution en cours… agite !') : 'non saturée (tout est dissous)';
+  $('dinfo').innerHTML = `Solubilité du ${S.nom} : <b>${S.s.toLocaleString('fr-FR')} g/L</b><br>
+    Dans ${D.V} mL d’eau, on peut dissoudre au maximum <b>${f(mx, 1)} g</b>.<br>
+    Sur le verre de montre : ${f(D.cup, 1)} g · versé : ${f(D.inB, 1)} g<br>
+    Dissous : <b>${f(D.dis, 1)} g</b><br>Solution : ${etat}`;
+}
+// particules de la loupe
+const parts = [];       // {x,y,vx,vy,solid}
+function syncParts() {
+  const mx = smax(), nd = Math.round(Math.min(1, D.dis / Math.max(mx, 1e-9)) * 26 * Math.min(1, D.V ? 1 : 0)), ns = Math.min(30, Math.round((D.inB - D.dis) / Math.max(mx, 1e-9) * 26));
+  let cd = parts.filter(p => !p.solid).length, cs = parts.filter(p => p.solid).length;
+  while (cd < nd) { const sp = parts.findIndex(p => p.solid); if (sp >= 0) { Object.assign(parts[sp], { solid: false, x: rand(-.8, .8), y: rand(-.8, .8) }); cs--; } else parts.push({ x: rand(-.8, .8), y: rand(-.8, .8), solid: false }); cd++; }
+  while (cd > nd) { parts.splice(parts.findIndex(p => !p.solid), 1); cd--; }
+  while (cs < ns) { parts.push({ x: 0, y: 0, solid: true }); cs++; }
+  while (cs > ns) { parts.splice(parts.findIndex(p => p.solid), 1); cs--; }
+  let k = 0; parts.forEach(p => { if (p.solid) { const row = Math.floor(k / 8), col = k % 8; p.gx = -0.42 + col * 0.12 + (row % 2) * 0.06; p.gy = 0.82 - row * 0.105; k++; } });
+}
+const WAT = Array.from({ length: 70 }, () => ({ x: rand(-.9, .9), y: rand(-.9, .9), a: rand(0, 6.3) }));
+function balanceLarge(x, y, w, val) {
+  ctx.fillStyle = css('--bg'); ctx.strokeStyle = css('--border'); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - 46, w, 58, 10); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(x - w / 2 + 20, y - 56, w - 40, 10, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(x - 70, y - 36, 140, 32, 6); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 20px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center'; ctx.fillText(val, x, y - 12);
+}
+function becher(x, yb, w, h, ml) {   // contour d'un bécher, yb = fond
+  ctx.strokeStyle = css('--glass'); ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(x - w / 2 - 6, yb - h - 6); ctx.lineTo(x - w / 2, yb - h); ctx.lineTo(x - w / 2, yb - 6); ctx.quadraticCurveTo(x - w / 2, yb, x - w / 2 + 6, yb);
+  ctx.lineTo(x + w / 2 - 6, yb); ctx.quadraticCurveTo(x + w / 2, yb, x + w / 2, yb - 6); ctx.lineTo(x + w / 2, yb - h); ctx.stroke();
+  if (ml) { ctx.fillStyle = css('--muted'); ctx.strokeStyle = css('--muted'); ctx.lineWidth = 1; ctx.font = '10px system-ui, sans-serif'; ctx.textAlign = 'left';
+    ml.forEach(([v, y]) => { ctx.beginPath(); ctx.moveTo(x - w / 2 + 4, y); ctx.lineTo(x - w / 2 + 14, y); ctx.stroke(); ctx.fillText(v, x - w / 2 + 17, y + 3); }); }
+}
+function tas(x, yb, wmax, m, col) {   // dépôt solide au fond
+  if (m <= 0.05) return;
+  const hh = Math.min(40, 4 + Math.sqrt(m) * 3.2), ww = Math.min(wmax, 30 + Math.sqrt(m) * 14);
+  ctx.fillStyle = col; ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x - ww / 2, yb); ctx.quadraticCurveTo(x, yb - hh * 2, x + ww / 2, yb); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < Math.min(40, m * 2); i++) { const u = (i * 37 % 100) / 100 - .5, v = (i * 53 % 100) / 100; ctx.fillRect(x + u * ww * .8, yb - v * hh * .9 * (1 - Math.abs(u) * 1.6), 2, 2); }
+}
+function drawDis(t) {
+  const S = SOL[D.s], ink = css('--text'), mut = css('--muted');
+  const BX = 175, BY = 400, BW = 150, BH = 210, px = 0.62;   // bécher : 1 mL = 0,62 px de haut (fond plat)
+  balanceLarge(235, 452, 380, f(total(), 1) + ' g');
+  // liquide
+  const yl = BY - D.V * px;
+  const c = S.sol, a = c[3] * Math.min(1, D.dis / Math.max(smax(), 1e-9));
+  ctx.fillStyle = 'rgba(120,180,240,.30)'; ctx.fillRect(BX - BW / 2 + 2, yl, BW - 4, BY - yl - 1);
+  if (a > 0) { ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`; ctx.fillRect(BX - BW / 2 + 2, yl, BW - 4, BY - yl - 1); }
+  ctx.strokeStyle = 'rgba(40,90,160,.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(BX - BW / 2 + 2, yl); ctx.lineTo(BX + BW / 2 - 2, yl); ctx.stroke();
+  // grains en suspension pendant l'agitation / la chute
+  const dep = D.inB - D.dis;
+  if (D.agit > 0 && dep > 0.05) { ctx.fillStyle = S.grain === '#ffffff' || S.grain === '#fbfaf4' ? 'rgba(255,255,255,.95)' : S.grain;
+    for (let i = 0; i < Math.min(60, dep * 3); i++) { const xx = BX + Math.sin(i * 12.9 + t * 3) * BW * .4, yy = yl + 10 + ((i * 41 + t * 60) % (BY - yl - 14)); ctx.fillRect(xx, yy, 2.5, 2.5); } }
+  else tas(BX, BY - 1, BW - 10, dep, S.grain);
+  D.falling.forEach(g => { ctx.fillStyle = S.grain; ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(g.x, g.y, 3, 3); });
+  becher(BX, BY, BW, BH, [[50, BY - 50 * px], [100, BY - 100 * px], [150, BY - 150 * px], [200, BY - 200 * px], [250, BY - 250 * px]]);
+  ctx.fillStyle = mut; ctx.font = '10px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('mL', BX - BW / 2 + 17, BY - BH + 4);
+  // agitateur
+  if (D.agit > 0) { const ax = BX + Math.sin(t * 9) * BW * .3; ctx.strokeStyle = 'rgba(90,110,140,.8)'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(ax + 22, BY - BH - 30); ctx.lineTo(ax, BY - 12); ctx.stroke(); ctx.lineCap = 'butt'; }
+  // verre de montre
+  const VX = 345, VY = 396;
+  ctx.fillStyle = 'rgba(200,220,240,.35)'; ctx.strokeStyle = css('--glass'); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(VX, VY - 6, 46, 10, 0, 0, Math.PI); ctx.fill(); ctx.stroke();
+  if (D.cup > 0) { const hh = Math.min(26, 3 + Math.sqrt(D.cup) * 2.4), ww = Math.min(80, 20 + Math.sqrt(D.cup) * 8);
+    ctx.fillStyle = S.grain; ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(VX - ww / 2, VY - 2); ctx.quadraticCurveTo(VX, VY - hh * 2, VX + ww / 2, VY - 2); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('verre de montre', VX, VY - 62);
+  ctx.fillStyle = ink; ctx.font = '600 13px system-ui, sans-serif'; ctx.fillText(`eau ${D.V} mL`, BX, BY - BH - 12);
+  // loupe
+  if ($('loupe').checked) {
+    const LX = 640, LY = 210, R = 150;
+    syncParts();
+    ctx.save(); ctx.beginPath(); ctx.arc(LX, LY, R, 0, 7); ctx.fillStyle = css('--canvas'); ctx.fill(); ctx.clip();
+    ctx.fillStyle = 'rgba(120,180,240,.18)'; ctx.fillRect(LX - R, LY - R, 2 * R, 2 * R);
+    WAT.forEach((w, i) => { const x = LX + (w.x + Math.sin(t * 1.7 + w.a) * .03) * R, y = LY + (w.y + Math.cos(t * 1.3 + w.a * 2) * .03) * R;
+      ctx.fillStyle = '#5fa8e8'; ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fill(); });
+    parts.forEach((p, i) => {
+      let x, y;
+      if (p.solid) { x = LX + p.gx * R; y = LY + p.gy * R; ctx.fillStyle = S.part; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.rect(x - 7, y - 7, 14, 14); ctx.fill(); ctx.stroke(); }
+      else { x = LX + (p.x + Math.sin(t * 1.1 + i) * .05) * R; y = LY + (p.y + Math.cos(t * .9 + i * 2) * .05) * R; ctx.fillStyle = S.part; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill(); ctx.stroke(); }
+    });
+    ctx.restore();
+    ctx.strokeStyle = css('--text'); ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(LX, LY, R, 0, 7); ctx.stroke();
+    ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(LX - R * .72, LY + R * .72); ctx.lineTo(LX - R * 1.0, LY + R * 1.0); ctx.stroke(); ctx.lineCap = 'butt';
+    // légende
+    const ly = LY + R + 26; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#5fa8e8'; ctx.beginPath(); ctx.arc(LX - 60, ly - 4, 6, 0, 7); ctx.fill(); ctx.fillStyle = mut; ctx.fillText('eau', LX - 50, ly);
+    ctx.fillStyle = S.part; ctx.beginPath(); ctx.arc(LX + 4, ly - 4, 6, 0, 7); ctx.fill(); ctx.fillStyle = mut; ctx.fillText(S.nom.split(' ')[0], LX + 14, ly);
+    ctx.fillText('Modèle : les particules ne sont pas à l’échelle.', LX - 135, ly + 20);
+  }
+}
+function stepDis(dt) {
+  D.falling.forEach(g => { g.vy += 900 * dt; g.y += g.vy * dt; g.x += g.vx * dt; });
+  D.falling = D.falling.filter(g => g.y < 395 - D.V * 0.62);
+  const tg = target(), k = D.agit > 0 ? 3 : 0.08;
+  if (D.dis < tg) { D.dis = Math.min(tg, D.dis + Math.max(k * (tg - D.dis), 4 * k) * dt); }
+  if (D.agit > 0) { D.agit -= dt; if (D.agit <= 0) { D.agit = 0; finAgit(); } }
+  if (Math.random() < dt * 4) dinfo();
+}
+function finAgit() {
+  dinfo(); const dep = D.inB - D.dis;
+  if (D.inB === 0) return;
+  $('msg').innerHTML = dep > 0.05 && D.dis >= smax() - 0.05
+    ? `La solution est <strong>saturée</strong> : ${f(smax(), 1)} g sont dissous et il reste <strong>${f(dep, 1)} g</strong> de solide au fond, même en agitant. La balance indique toujours ${f(total(), 1)} g.`
+    : dep > 0.05 ? 'La dissolution n’est pas finie : agite encore.'
+    : `Tout le ${SOL[D.s].nom} est dissous : on ne le voit plus, mais il est toujours là (la balance indique toujours ${f(total(), 1)} g). Dans la loupe, ses particules sont dispersées entre celles de l’eau.`;
+}
+
+/* ================= Mélanger ================= */
+const MEL = [
+  { nom: 'huile', c: [235, 195, 50], a: .7, type: 'nonmisc', homo: false, txt: 'L’huile et l’eau ne sont pas <strong>miscibles</strong> : après le repos, l’huile, moins dense, remonte au-dessus de l’eau. On voit 2 phases.' },
+  { nom: 'éthanol', c: [225, 225, 240], a: .35, type: 'misc', homo: true, txt: 'L’éthanol et l’eau sont <strong>miscibles</strong> : on ne voit plus qu’une seule phase.' },
+  { nom: 'sirop de menthe', c: [40, 170, 90], a: .8, type: 'misc', dense: true, homo: true, txt: 'Le sirop et l’eau sont <strong>miscibles</strong> : la couleur devient la même partout, il n’y a qu’une seule phase.' },
+  { nom: 'sable', c: [190, 150, 90], a: 1, type: 'solide', homo: false, txt: 'Le sable ne se dissout pas dans l’eau : il retombe au fond. On distingue le sable et l’eau.' },
+  { nom: 'vinaigre', c: [235, 225, 200], a: .35, type: 'misc', homo: true, txt: 'Le vinaigre (déjà de l’eau avec de l’acide acétique) se mélange à l’eau : une seule phase.' },
+  { nom: 'pétrole lampant', c: [210, 220, 180], a: .45, type: 'nonmisc', homo: false, txt: 'Le pétrole et l’eau ne sont pas miscibles : il flotte au-dessus. Deux phases.' }
+];
+const M = { b: 0, verse: false, agit: 0, mix: 0, sep: 1, agite: false, drops: Array.from({ length: 46 }, () => ({ x: rand(-.45, .45), y: rand(0.05, .95), r: rand(3, 7) })) };
+function drawMel(t) {
+  const L = MEL[M.b], ink = css('--text'), mut = css('--muted');
+  const BX = 260, BY = 440, BW = 220, BH = 360, px = 1.5;   // 1 mL = 1,5 px
+  const yw = BY - 100 * px, ytop = BY - (M.verse ? 160 : 100) * px;
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const eau = [150, 200, 240, .32];
+  const rgba = c => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${c[3]})`;
+  // eau seule
+  if (!M.verse) { ctx.fillStyle = rgba(eau); ctx.fillRect(BX - BW / 2 + 2, yw, BW - 4, BY - yw - 1); }
+  else if (L.type === 'misc') {
+    const C2 = [...L.c, L.a], avg = eau.map((v, i) => i < 3 ? (v * 100 + C2[i] * 60) / 160 : (v * 100 + C2[3] * 60) / 160);
+    const hB = 60 * px, low = L.dense ? C2 : eau, up = L.dense ? eau : C2, ysplit = L.dense ? BY - hB : yw;
+    const cl = low.map((v, i) => lerp(v, avg[i], M.mix)), cu = up.map((v, i) => lerp(v, avg[i], M.mix));
+    const g = ctx.createLinearGradient(0, ytop, 0, BY);
+    const fr = (ysplit - ytop) / (BY - ytop), blur = 0.02 + M.mix * 0.5;
+    g.addColorStop(0, rgba(cu)); g.addColorStop(Math.max(0, fr - blur), rgba(cu)); g.addColorStop(Math.min(1, fr + blur), rgba(cl)); g.addColorStop(1, rgba(cl));
+    ctx.fillStyle = g; ctx.fillRect(BX - BW / 2 + 2, ytop, BW - 4, BY - ytop - 1);
+  } else if (L.type === 'nonmisc') {
+    ctx.fillStyle = rgba(eau); ctx.fillRect(BX - BW / 2 + 2, ytop, BW - 4, BY - ytop - 1);
+    const hOil = 60 * px * M.sep, yo = ytop;
+    ctx.fillStyle = rgba([...L.c, L.a]); ctx.fillRect(BX - BW / 2 + 2, yo, BW - 4, hOil);
+    if (M.sep < 1) { ctx.fillStyle = rgba([...L.c, Math.min(1, L.a + .15)]); ctx.strokeStyle = 'rgba(150,110,0,.4)'; ctx.lineWidth = 1;
+      const n = Math.round((1 - M.sep) * M.drops.length);
+      for (let i = 0; i < n; i++) { const d = M.drops[i], y0 = yo + hOil + 4 + d.y * (BY - yo - hOil - 10); const yy = lerp(y0, yo + hOil, Math.pow(M.sep, 1.5));
+        ctx.beginPath(); ctx.arc(BX + d.x * BW + (M.agit > 0 ? Math.sin(t * 8 + i) * 6 : 0), yy, d.r, 0, 7); ctx.fill(); ctx.stroke(); } }
+    if (M.sep > 0.95) { ctx.strokeStyle = 'rgba(150,110,0,.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(BX - BW / 2 + 2, yo + hOil); ctx.lineTo(BX + BW / 2 - 2, yo + hOil); ctx.stroke(); }
+  } else {   // sable
+    ctx.fillStyle = rgba(eau); ctx.fillRect(BX - BW / 2 + 2, ytop + 30 * px, BW - 4, BY - ytop - 30 * px - 1);
+    const turb = 1 - M.sep; if (turb > 0) { ctx.fillStyle = `rgba(190,150,90,${.45 * turb})`; ctx.fillRect(BX - BW / 2 + 2, ytop + 30 * px, BW - 4, BY - ytop - 30 * px - 1); }
+    const hs = 26 * M.sep; ctx.fillStyle = rgba([...L.c, 1]); ctx.beginPath(); ctx.moveTo(BX - BW / 2 + 2, BY - 1); ctx.lineTo(BX - BW / 2 + 2, BY - hs); ctx.quadraticCurveTo(BX, BY - hs - 10 * M.sep, BX + BW / 2 - 2, BY - hs); ctx.lineTo(BX + BW / 2 - 2, BY - 1); ctx.fill();
+    ctx.fillStyle = 'rgba(120,90,40,.9)'; for (let i = 0; i < 80 * turb; i++) { const d = M.drops[i % 46]; ctx.fillRect(BX + Math.sin(i * 7.3 + t * (M.agit > 0 ? 4 : .3)) * BW * .45, ytop + 34 * px + ((i * 37 + d.y * 200) % (BY - ytop - 34 * px - hs - 4)), 2.5, 2.5); }
+  }
+  // surface
+  const ys = L.type === 'solide' && M.verse ? ytop + 30 * px : (M.verse ? ytop : yw);
+  ctx.strokeStyle = 'rgba(40,90,160,.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(BX - BW / 2 + 2, ys); ctx.lineTo(BX + BW / 2 - 2, ys); ctx.stroke();
+  becher(BX, BY, BW, BH, [[50, BY - 50 * px], [100, BY - 100 * px], [150, BY - 150 * px], [200, BY - 200 * px]]);
+  if (M.agit > 0) { const ax = BX + Math.sin(t * 9) * BW * .3; ctx.strokeStyle = 'rgba(90,110,140,.8)'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(ax + 26, BY - BH - 40); ctx.lineTo(ax, BY - 14); ctx.stroke(); ctx.lineCap = 'butt'; }
+  // étiquettes de phases
+  ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'left';
+  const lab = (txt, y) => { ctx.strokeStyle = mut; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(BX + BW / 2 + 6, y); ctx.lineTo(BX + BW / 2 + 40, y); ctx.stroke(); ctx.fillStyle = ink; ctx.fillText(txt, BX + BW / 2 + 46, y + 4); };
+  if (!M.verse) lab('eau', (yw + BY) / 2);
+  else if (M.agit <= 0) {
+    if (L.type === 'nonmisc' && M.sep > .95) { lab(L.nom + ' (phase 1)', ytop + 45); lab('eau (phase 2)', (ytop + 60 * px + BY) / 2); }
+    else if (L.type === 'solide' && M.sep > .95) { lab('eau (phase 1)', (ytop + 30 * px + BY) / 2); lab('sable (phase 2)', BY - 12); }
+    else if (L.type === 'misc' && M.mix > .98) lab('une seule phase', (ytop + BY) / 2);
+    else if (L.type === 'misc') { lab(L.dense ? 'eau' : L.nom, ytop + 40); lab(L.dense ? L.nom : 'eau', BY - 40); }
+  }
+  // flacon
+  ctx.fillStyle = ink; ctx.font = '600 14px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(M.verse ? `100 mL d’eau + ${L.type === 'solide' ? 'une poignée de sable' : '60 mL de ' + L.nom}` : '100 mL d’eau', BX, 34);
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left';
+  const legend = ['Une phase = une partie du mélange', 'qui a partout le même aspect.', '', 'Phases distinctes et visibles :', 'mélange hétérogène.', '', 'Une seule phase visible :', 'mélange homogène.'];
+  legend.forEach((s, i) => ctx.fillText(s, 600, 150 + i * 18));
+}
+function stepMel(dt) {
+  const L = MEL[M.b];
+  if (M.agit > 0) {
+    M.agit -= dt;
+    if (L.type === 'misc') M.mix = Math.min(1, M.mix + dt / 1.6);
+    else M.sep = Math.max(0, M.sep - dt * 2);
+    if (M.agit <= 0) { M.agit = 0; $('msg').innerHTML = L.type === 'misc' ? 'On laisse reposer… Regarde bien : combien de phases vois-tu ?' : 'On laisse reposer quelques secondes… Que se passe-t-il ?'; }
+  } else if (M.verse && L.type !== 'misc' && M.sep < 1) {
+    M.sep = Math.min(1, M.sep + dt / (L.type === 'solide' ? 2.5 : 3.5));
+    if (M.sep >= 1) $('msg').innerHTML = 'Après le repos : combien de phases vois-tu ? Réponds à la question 3.';
+  } else if (M.verse && L.type === 'misc' && M.mix < 1 && M.mix > 0) { M.mix = Math.min(1, M.mix + dt / 40); }
+}
+
+/* ================= interface ================= */
+$('sols').innerHTML = SOL.map((s, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === 0}">${s.nom}</button>`).join('');
+$('sols').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  D.s = +b.dataset.i; $('sols').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); reset();
+}));
+$('veau').addEventListener('change', () => { D.V = +$('veau').value; reset(); });
+const ajout = g => { if (D.cup + D.inB + g > 500) { $('msg').innerHTML = 'Ça suffit : le bécher déborderait !'; return; } D.cup = Math.round((D.cup + g) * 10) / 10; dinfo();
+  $('msg').innerHTML = `${f(D.cup, 1)} g de ${SOL[D.s].nom} sur le verre de montre. La balance indique <strong>${f(total(), 1)} g</strong> : retiens cette valeur, puis verse.`; };
+$('a1').addEventListener('click', () => ajout(1));
+$('a10').addEventListener('click', () => ajout(10));
+$('verser').addEventListener('click', () => {
+  if (D.cup <= 0) { $('msg').innerHTML = 'Le verre de montre est vide : ajoute d’abord du soluté.'; return; }
+  for (let i = 0; i < Math.min(40, 6 + D.cup); i++) D.falling.push({ x: 300 + rand(-10, 10), y: 380, vx: rand(-260, -160), vy: rand(-260, -120) });
+  D.inB += D.cup; D.cup = 0; dinfo();
+  $('msg').innerHTML = `Le soluté est versé dans l’eau. La balance indique toujours <strong>${f(total(), 1)} g</strong> : rien n’a disparu. Agite pour accélérer la dissolution.`;
+});
+$('agiter').addEventListener('click', () => { if (D.inB === 0) { $('msg').innerHTML = 'Verse d’abord le soluté dans l’eau.'; return; } D.agit = 2.2; $('msg').innerHTML = 'On agite…'; });
+$('vider').addEventListener('click', reset);
+$('loupe').addEventListener('change', () => {});
+
+$('liqs').innerHTML = MEL.map((s, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === 0}">${s.nom}</button>`).join('');
+function resetMel() {
+  M.verse = false; M.agit = 0; M.mix = 0; M.sep = 1; M.agite = false; $('mres').hidden = true;
+  $('rep').querySelectorAll('button').forEach(x => x.className = 'ghost');
+  $('msg').innerHTML = `Verse ${MEL[M.b].type === 'solide' ? 'du sable' : 'du ' + MEL[M.b].nom} dans le bécher d’eau.`;
+}
+$('liqs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  M.b = +b.dataset.i; $('liqs').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); resetMel();
+}));
+$('mverser').addEventListener('click', () => {
+  resetMel(); M.verse = true; const L = MEL[M.b];
+  $('msg').innerHTML = L.type === 'solide' ? 'Le sable tombe au fond du bécher. Agite !' : L.type === 'misc' ? `Le ${L.nom} est versé ${L.dense ? 'et reste d’abord au fond' : 'doucement'} : agite pour mélanger.` : `Le ${L.nom} reste au-dessus de l’eau. Agite fort !`;
+});
+$('magiter').addEventListener('click', () => { if (!M.verse) { $('msg').innerHTML = 'Verse d’abord quelque chose dans l’eau.'; return; } M.agit = 2; M.agite = true; $('msg').innerHTML = 'On agite…'; });
+$('rep').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  const r = $('mres'), L = MEL[M.b]; r.hidden = false;
+  $('rep').querySelectorAll('button').forEach(x => x.className = 'ghost');
+  if (!M.verse || !M.agite || M.agit > 0 || (L.type !== 'misc' && M.sep < 1)) { r.className = 'res mid'; r.innerHTML = 'Verse, agite, puis attends la fin du repos avant de répondre.'; return; }
+  const ok = (b.dataset.r === '1') === L.homo; b.className = ok ? '' : 'ghost';
+  r.className = 'res ' + (ok ? 'ok' : 'ko');
+  r.innerHTML = (ok ? '<strong>Bravo !</strong> ' : '<strong>Non.</strong> ') + `Le mélange est <strong>${L.homo ? 'homogène' : 'hétérogène'}</strong>. ` + L.txt;
+}));
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('p-dis').hidden = mode !== 'dis'; $('p-mel').hidden = mode !== 'mel';
+  if (mode === 'dis') reset(); else resetMel();
+}));
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000;
+  mode === 'dis' ? stepDis(dt) : stepMel(dt);
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'dis' ? drawDis(t) : drawMel(t);
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); reset();
+window.__M = { D, M };
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte } = Exo;
+const RAPPEL = `Lors d'une dissolution, la masse se conserve : m(solution) = m(solvant) + m(soluté dissous).
+  Solubilité s (en g/L) : masse maximale de soluté qu'on peut dissoudre dans 1 L de solvant. Dans un volume V : m<sub>max</sub> = s × V.
+  1 L = 1 000 mL.`;
+const SOLU = [['du sel', 360], ['du sulfate de cuivre', 320], ['du bicarbonate de soude', 96], ['du sucre', 2000], ['de l’alun', 140]];
+Exo.monter('exo-ms', [
+  { id: 'cons', label: 'Conservation de la masse', rappel: RAPPEL, gen() {
+    const S = pick([['sucre', 'eau sucrée'], ['sel', 'eau salée'], ['sulfate de cuivre', 'solution de sulfate de cuivre']]), mb = rnd(55, 95, 3), me = irnd(10, 25) * 10, ms = rnd(3, 25, 2), mv = rnd(15, 25, 3);
+    const m1 = Math.round((mb + me + mv + ms) * 10) / 10;
+    return {
+      enonce: `<p>On pose sur une balance un bécher contenant <strong>${me} g</strong> d'eau et un verre de montre portant du ${S[0]}. La balance indique <strong>m₁ = ${fmt(m1, 4)} g</strong>.</p>
+        <p>On verse tout le ${S[0]} dans l'eau (il se dissout entièrement) et on laisse le verre de montre vide sur la balance. Le bécher vide a une masse de ${fmt(mb, 3)} g et le verre de montre de ${fmt(mv, 3)} g.</p>`,
+      questions: [
+        { label: '1. Qu’indique la balance après la dissolution ?', unite: 'g', rep: m1, cs: 0, marge: .2 },
+        { label: `2. Quelle est la masse de ${S[0]} dissous ?`, unite: 'g', rep: ms, cs: 0, marge: .5 },
+        { label: `3. Quelle est la masse de l’${S[1]} obtenue ?`, unite: 'g', rep: me + ms, cs: 0, marge: .3 }
+      ],
+      correction: texte('1.', `Rien n’est entré ni sorti : la masse se conserve. La balance indique toujours <span class="exo-res">${fmt(m1, 4)} g</span>.`) +
+        etape({ q: '2.', lit: `m(${S[0]}) = m₁ − m(bécher) − m(eau) − m(verre)`, an: `m = ${fmt(m1, 4)} − ${fmt(mb, 3)} − ${me} − ${fmt(mv, 3)}`, res: `m = <span class="exo-res">${fmt(ms, 3)} g</span>` }) +
+        etape({ q: '3.', lit: 'm(solution) = m(eau) + m(soluté)', an: `m = ${me} + ${fmt(ms, 3)}`, res: `m = <span class="exo-res">${fmt(me + ms, 4)} g</span>` })
+    };
+  } },
+  { id: 'sat', label: 'Solution saturée', rappel: RAPPEL, gen() {
+    const S = pick(SOLU.slice(0, 3).concat([SOLU[4]])), V = pick([50.0, 100, 150, 200, 250, 500]), mx = S[1] * V / 1000, m = Math.round(mx * rnd(1.2, 1.8, 2));
+    return {
+      enonce: `<p>La solubilité ${S[0].replace(/^du /, 'du ').replace(/^de l’/, 'de l’')} dans l'eau est <strong>s = ${S[1].toLocaleString('fr-FR')} g/L</strong> à 20 °C.</p>
+        <p>On verse <strong>m = ${m} g</strong> de ce solide dans <strong>V = ${V} mL</strong> d'eau et on agite longtemps.</p>`,
+      questions: [
+        { label: '1. Convertis le volume d’eau en litres.', unite: 'L', rep: V / 1000, cs: 2 },
+        { label: '2. Quelle masse maximale peut-on dissoudre dans ce volume ?', unite: 'g', rep: mx, cs: 2 },
+        { label: '3. La solution obtenue est-elle saturée ?', choix: ['oui', 'non'], rep: 0 },
+        { label: '4. Quelle masse de solide reste au fond ?', unite: 'g', rep: m - mx, cs: 2, marge: 3 }
+      ],
+      correction: etape({ q: '1.', lit: '1 L = 1 000 mL', an: `V = ${V} / 1 000`, res: `V = ${res(V / 1000, 2, 'L')}` }) +
+        etape({ q: '2.', lit: 'm<sub>max</sub> = s × V', an: `m<sub>max</sub> = ${S[1].toLocaleString('fr-FR')} × ${fmt(V / 1000, 3)}`, res: `m<sub>max</sub> = ${res(mx, 2, 'g')}` }) +
+        texte('3.', `On a versé ${m} g, c’est plus que ${fmt(mx, 3)} g : <strong>oui</strong>, la solution est saturée.`) +
+        etape({ q: '4.', lit: 'm(dépôt) = m − m<sub>max</sub>', an: `m(dépôt) = ${m} − ${fmt(mx, 3)}`, res: `m(dépôt) = ${res(m - mx, 2, 'g')}` })
+    };
+  } },
+  { id: 'hom', label: 'Homogène ou hétérogène ?', gen() {
+    const POOL = [['eau + huile', 0], ['eau + sirop de menthe', 1], ['eau + sable', 0], ['eau + éthanol', 1], ['eau + sel (peu de sel, bien agité)', 1], ['eau boueuse', 0], ['vinaigrette (huile + vinaigre) au repos', 0], ['eau + sucre (en excès, dépôt au fond)', 0], ['eau + vinaigre', 1], ['jus d’orange avec pulpe', 0]];
+    const qs = shuffle(POOL).slice(0, 4);
+    return {
+      enonce: '<p>Après agitation puis repos, chaque mélange est-il homogène ou hétérogène (observation à l’œil nu) ?</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p[0]}`, choix: ['homogène', 'hétérogène'], rep: p[1] ? 0 : 1 })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, `${p[0]} : <strong>${p[1] ? 'homogène' : 'hétérogène'}</strong> (${p[1] ? 'une seule phase visible' : 'plusieurs phases visibles'}).`)).join('')
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'Dans l’eau salée, le sel est…', c: ['le soluté', 'le solvant', 'la solution'], e: 'Le sel est le <strong>soluté</strong>, l’eau est le solvant, l’eau salée est la solution.' },
+      { q: 'Quand le sucre se dissout dans le thé, il…', c: ['est toujours présent, dispersé dans l’eau', 'disparaît', 'fond'], e: 'Ses particules se <strong>dispersent</strong> entre celles de l’eau : il est toujours là (le thé est sucré !).' },
+      { q: 'Dissoudre et fondre, c’est…', c: ['différent : fondre est un changement d’état', 'la même chose', 'deux mots pour l’évaporation'], e: 'La <strong>fusion</strong> est le passage solide → liquide d’un seul corps. La dissolution mélange un soluté à un solvant.' },
+      { q: 'On dissout 5 g de sel dans 100 g d’eau. La masse de la solution est…', c: ['105 g', '100 g', 'moins de 100 g'], e: 'La masse se conserve : 100 + 5 = <strong>105 g</strong>.' },
+      { q: 'Une solution saturée…', c: ['ne peut plus dissoudre de soluté', 'ne contient pas de soluté', 'contient encore beaucoup de place pour le soluté'], e: 'Saturée : on a atteint la <strong>solubilité</strong> ; le solide ajouté ne se dissout plus.' },
+      { q: 'Deux liquides miscibles donnent un mélange…', c: ['homogène', 'hétérogène', 'solide'], e: 'Miscibles = ils se mélangent : <strong>une seule phase</strong>, mélange homogène.' },
+      { q: 'Dans un mélange eau + huile au repos, l’huile est…', c: ['au-dessus', 'au fond', 'mélangée à l’eau'], e: 'L’huile est moins dense que l’eau : elle est <strong>au-dessus</strong>.' },
+      { q: 'Quelle technique permet de séparer le sable de l’eau ?', c: ['la filtration', 'la dissolution', 'l’agitation'], e: 'La <strong>filtration</strong> (ou la décantation) sépare un solide non dissous d’un liquide.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

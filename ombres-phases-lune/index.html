@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ombres, phases et éclipses</title>
+<meta name="description" content="Simulation interactive : propagation rectiligne de la lumière, ombre propre, ombre portée et pénombre ; phases de la Lune vues de l'espace et depuis la Terre ; éclipses de Lune et de Soleil. Physique-chimie, Quatrième.">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#c0640f; --accent-soft:#fdf0e1; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#f0a85a; --accent-soft:#33240f; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#f0a85a; --accent-soft:#33240f; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lbl{font-weight:600;font-size:.92rem;margin:8px 0 4px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Ombres, phases de la Lune et éclipses</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">La lumière se propage <strong>en ligne droite</strong> : derrière un objet opaque, elle ne passe pas, c'est l'<strong>ombre</strong>.
+    La Lune n'émet pas de lumière : elle est éclairée par le Soleil et on n'en voit qu'une partie, ce sont les <strong>phases</strong>.
+    Quand le Soleil, la Terre et la Lune sont alignés, l'ombre de l'une tombe sur l'autre : c'est une <strong>éclipse</strong>.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation sur les ombres, les phases de la Lune et les éclipses">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="om" aria-pressed="true">🔦 Ombres</button>
+      <button type="button" class="seg" data-mode="ph" aria-pressed="false">🌓 Phases de la Lune</button>
+      <button type="button" class="seg" data-mode="ec" aria-pressed="false">🌑 Éclipses</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Schéma de la source, de l'objet et de l'écran"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-om">
+          <h3>Source de lumière</h3>
+          <div class="row"><label for="ts" style="min-width:6.5em">Taille</label><input id="ts" type="range" min="0" max="60" step="2" value="0"><output id="ts-out" style="min-width:7ch"></output></div>
+          <h3 style="margin-top:12px">Objet opaque (balle)</h3>
+          <div class="row"><label for="dob" style="min-width:6.5em">Distance à la source</label><input id="dob" type="range" min="120" max="520" step="5" value="260"><output id="dob-out" style="min-width:7ch"></output></div>
+          <div class="row"><label for="rob" style="min-width:6.5em">Rayon</label><input id="rob" type="range" min="15" max="60" step="1" value="30"><output id="rob-out" style="min-width:7ch"></output></div>
+          <label class="check"><input type="checkbox" id="rays" checked> Afficher les rayons limites</label>
+          <div class="info" id="oinfo" style="margin-top:10px"></div>
+        </div>
+        <div id="p-ph" hidden>
+          <h3>Jour de la lunaison <small id="j-out"></small></h3>
+          <input id="jour" type="range" min="0" max="29.5" step="0.1" value="4" aria-label="Jour de la lunaison" style="width:100%">
+          <div class="grid2" style="margin-top:8px"><button id="play" type="button">▶ Animer</button><button id="quiz" type="button" class="ghost">Défi : quelle phase ?</button></div>
+          <div id="qbox" hidden>
+            <div class="row"><select id="qsel" aria-label="Nom de la phase" style="flex:1"></select><button id="qverif" type="button">Vérifier</button></div>
+            <div class="res" id="qres" aria-live="polite" hidden></div>
+          </div>
+          <div class="info" id="pinfo" style="margin-top:10px"></div>
+        </div>
+        <div id="p-ec" hidden>
+          <h3>Position de la Lune sur son orbite</h3>
+          <input id="al" type="range" min="0" max="360" step="1" value="180" aria-label="Position de la Lune" style="width:100%">
+          <div class="grid2" style="margin-top:6px"><button type="button" class="ghost" data-al="0">Nouvelle lune</button><button type="button" class="ghost" data-al="180">Pleine lune</button></div>
+          <h3 style="margin-top:12px">Inclinaison de l'orbite (5°)</h3>
+          <div class="row"><label for="nd" style="min-width:5em">Mois</label><input id="nd" type="range" min="0" max="11" step="1" value="0"><output id="nd-out" style="min-width:8ch"></output></div>
+          <div class="res" id="eres" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Ombres</h3><strong>Ombre propre</strong> : partie de l'objet non éclairée. <strong>Ombre portée</strong> : zone de l'écran que la lumière n'atteint pas. Avec une source étendue, une <strong>pénombre</strong> entoure l'ombre.</div>
+      <div><h3>Phases</h3>La moitié de la Lune tournée vers le Soleil est toujours éclairée. Selon sa position autour de la Terre, on voit une partie plus ou moins grande de cette moitié. Une lunaison dure <strong>29,5 jours</strong>.</div>
+      <div><h3>Éclipses</h3><strong>De Lune</strong> : la Lune entre dans l'ombre de la Terre (pleine lune). <strong>De Soleil</strong> : l'ombre de la Lune tombe sur la Terre (nouvelle lune). L'orbite lunaire étant inclinée de 5°, il n'y en a pas tous les mois.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-opl"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Schémas : tailles et distances pas à l'échelle.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const { fmt } = Exo;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'om';
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const JAUNE = 'rgba(255,214,70,', SOMBRE = 'rgba(30,34,48,';
+/* ================= Ombres ================= */
+const SX = 70, CY = 230, EX = 760, PXCM = 5;   // 5 px = 1 cm
+function oinfo() {
+  const s = +$('ts').value / 2, d = +$('dob').value, r = +$('rob').value, k = (EX - SX) / d;
+  $('ts-out').textContent = s ? fmt(2 * s / PXCM, 2) + ' cm' : 'ponctuelle';
+  $('dob-out').textContent = Math.round(d / PXCM) + ' cm'; $('rob-out').textContent = fmt(r / PXCM, 2) + ' cm';
+  const hu = s + (r - s) * k, hp = -s + (s + r) * k, D = (EX - SX) / PXCM;
+  let h = `Distance source–écran : D = ${Math.round(D)} cm<br>`;
+  if (!s) h += `Diamètre de l’ombre portée : <b>${fmt(2 * r * k / PXCM, 3)} cm</b><br><span style="color:var(--muted)">Proportionnalité : ombre / objet = D / d = ${fmt(k, 3)}</span>`;
+  else h += `Ombre portée : ${hu > 0 ? `<b>${fmt(2 * hu / PXCM, 3)} cm</b>` : '<b>aucune</b> (seulement de la pénombre)'}<br>Pénombre jusqu’à : <b>${fmt(2 * hp / PXCM, 3)} cm</b> de diamètre`;
+  $('oinfo').innerHTML = h;
+  $('msg').innerHTML = !s ? 'Source ponctuelle : l’ombre portée a des bords nets. Rapproche la balle de la lampe : l’ombre grandit.'
+    : hu > 0 ? 'Source étendue : chaque point de la source donne sa propre ombre. Au centre, aucun point de la source n’est visible (ombre) ; autour, une partie seulement (pénombre).'
+    : 'La source est si grande, ou l’objet si loin, que l’écran ne voit jamais la source entièrement cachée : il n’y a plus que de la pénombre.';
+}
+function drawOm() {
+  const ink = css('--text'), mut = css('--muted'), s = +$('ts').value / 2, d = +$('dob').value, r = +$('rob').value, OX = SX + d, k = (EX - SX) / d;
+  // fond éclairé
+  const sombre = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+  ctx.fillStyle = JAUNE + (sombre ? '.30)' : '.10)'); ctx.fillRect(SX, 40, EX - SX, 380);
+  const hu = s + (r - s) * k, hp = -s + (s + r) * k;
+  // zones derrière l'objet
+  if (!s) {
+    ctx.fillStyle = SOMBRE + '.55)'; ctx.beginPath(); ctx.moveTo(OX, CY - r); ctx.lineTo(EX, CY - r * k); ctx.lineTo(EX, CY + r * k); ctx.lineTo(OX, CY + r); ctx.closePath(); ctx.fill();
+  } else {
+    ctx.fillStyle = SOMBRE + '.22)'; ctx.beginPath(); ctx.moveTo(OX, CY - r); ctx.lineTo(EX, CY - hp); ctx.lineTo(EX, CY + hp); ctx.lineTo(OX, CY + r); ctx.closePath(); ctx.fill();
+    const tU = hu > 0 ? null : (r / (s - r) > 0 ? SX + d * s / (s - r) : null);   // pointe du cône d'ombre
+    ctx.fillStyle = SOMBRE + '.55)'; ctx.beginPath(); ctx.moveTo(OX, CY - r);
+    if (hu > 0) { ctx.lineTo(EX, CY - hu); ctx.lineTo(EX, CY + hu); } else ctx.lineTo(tU, CY);
+    ctx.lineTo(OX, CY + r); ctx.closePath(); ctx.fill();
+  }
+  // rayons limites
+  if ($('rays').checked) {
+    ctx.strokeStyle = 'rgba(230,170,0,.9)'; ctx.lineWidth = 1.3;
+    const ray = (x1, y1, x2, y2) => { const t = (EX - x1) / (x2 - x1); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(EX, y1 + (y2 - y1) * t); ctx.stroke(); };
+    if (!s) { ray(SX, CY, OX, CY - r); ray(SX, CY, OX, CY + r); }
+    else { ray(SX, CY - s, OX, CY - r); ray(SX, CY + s, OX, CY + r); ctx.setLineDash([5, 4]); ray(SX, CY + s, OX, CY - r); ray(SX, CY - s, OX, CY + r); ctx.setLineDash([]); }
+  }
+  // source
+  const g = ctx.createRadialGradient(SX, CY, 2, SX, CY, 40 + s); g.addColorStop(0, JAUNE + '1)'); g.addColorStop(1, JAUNE + '0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(SX, CY, 40 + s, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ffcf33'; ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 1.5;
+  if (!s) { ctx.beginPath(); ctx.arc(SX, CY, 5, 0, 7); ctx.fill(); ctx.stroke(); } else { ctx.beginPath(); ctx.roundRect(SX - 5, CY - s, 10, 2 * s, 4); ctx.fill(); ctx.stroke(); }
+  // objet : face éclairée / ombre propre
+  ctx.fillStyle = '#4a5368'; ctx.beginPath(); ctx.arc(OX, CY, r, 0, 7); ctx.fill();
+  ctx.fillStyle = '#f4dc7a'; ctx.beginPath(); ctx.arc(OX, CY, r, Math.PI / 2, Math.PI * 1.5); ctx.fill();
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(OX, CY, r, 0, 7); ctx.stroke();
+  // écran
+  ctx.fillStyle = css('--surface'); ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.fillRect(EX, 40, 12, 380); ctx.strokeRect(EX, 40, 12, 380);
+  if (!s) { ctx.fillStyle = SOMBRE + '.9)'; ctx.fillRect(EX, CY - r * k, 12, 2 * r * k); }
+  else { ctx.fillStyle = SOMBRE + '.35)'; ctx.fillRect(EX, CY - hp, 12, 2 * hp); if (hu > 0) { ctx.fillStyle = SOMBRE + '.9)'; ctx.fillRect(EX, CY - hu, 12, 2 * hu); } }
+  // étiquettes
+  ctx.font = '12px system-ui, sans-serif'; ctx.fillStyle = ink; ctx.textAlign = 'center';
+  ctx.fillText(s ? 'source étendue' : 'source ponctuelle', SX + 10, 30);
+  ctx.fillText('objet', OX, CY - r - 12); ctx.fillText('écran', EX + 6, 30);
+  ctx.fillStyle = mut; ctx.textAlign = 'left'; ctx.fillText('ombre propre', OX + r * .5, CY + r + 18);
+  const lbl = (txt, y, col) => { ctx.fillStyle = col; ctx.textAlign = 'right'; ctx.font = '600 12px system-ui, sans-serif'; ctx.fillText(txt, EX - 8, y); };
+  if (!s) lbl('ombre portée', CY + 4, '#fff');
+  else { if (hu > 8) lbl('ombre portée', CY + 4, '#fff'); if (hp - Math.max(hu, 0) > 14) lbl('pénombre', CY - (hp + Math.max(hu, 0)) / 2 + 4, ink); }
+  // vue de face de l'écran
+  const FX = 700, FY = 440;
+  ctx.fillStyle = mut; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillText('écran vu de face →', FX - 40, FY + 4);
+  ctx.save(); ctx.beginPath(); ctx.rect(FX - 34, FY - 30, 68, 60); ctx.fillStyle = '#fffbe8'; ctx.fill(); ctx.clip();
+  const sc = 0.12;
+  if (!s) { ctx.fillStyle = SOMBRE + '.9)'; ctx.beginPath(); ctx.arc(FX, FY, r * k * sc, 0, 7); ctx.fill(); }
+  else { const gg = ctx.createRadialGradient(FX, FY, Math.max(0, hu) * sc, FX, FY, hp * sc); gg.addColorStop(0, SOMBRE + '.9)'); gg.addColorStop(1, SOMBRE + '0)');
+    ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(FX, FY, hp * sc, 0, 7); ctx.fill(); if (hu > 0) { ctx.fillStyle = SOMBRE + '.9)'; ctx.beginPath(); ctx.arc(FX, FY, hu * sc, 0, 7); ctx.fill(); } }
+  ctx.restore(); ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.strokeRect(FX - 34, FY - 30, 68, 60);
+}
+/* ================= Phases ================= */
+const LUN = 29.53;
+const PHASES = ['Nouvelle lune', 'Premier croissant', 'Premier quartier', 'Lune gibbeuse croissante', 'Pleine lune', 'Lune gibbeuse décroissante', 'Dernier quartier', 'Dernier croissant'];
+function nomPhase(j) { const k = Math.round(j / LUN * 8) % 8; return PHASES[k]; }
+function lunePhase(x, y, R, e) {      // e = élongation (rad), 0 = nouvelle lune ; vue depuis l'hémisphère Nord
+  ctx.fillStyle = '#2b3040'; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.fill();
+  e = ((e % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const croiss = e < Math.PI, c = Math.cos(e);   // c = 1 nouvelle, −1 pleine
+  ctx.fillStyle = '#f1edd8'; ctx.beginPath();
+  // demi-disque éclairé
+  if (croiss) ctx.arc(x, y, R, -Math.PI / 2, Math.PI / 2); else ctx.arc(x, y, R, Math.PI / 2, Math.PI * 1.5);
+  // terminateur : demi-ellipse
+  const rx = R * Math.abs(c);
+  if (croiss) ctx.ellipse(x, y, rx, R, 0, Math.PI / 2, -Math.PI / 2, c > 0);
+  else ctx.ellipse(x, y, rx, R, 0, -Math.PI / 2, Math.PI / 2, c > 0);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(120,120,140,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.stroke();
+}
+const PH = { j: 4, play: false, q: null };
+function pinfo() {
+  const j = PH.q !== null ? PH.q : PH.j, f = (1 - Math.cos(2 * Math.PI * j / LUN)) / 2;
+  $('j-out').textContent = PH.q !== null ? '?' : `jour ${fmt(j, 2).replace(/,0$/, '')}`;
+  $('pinfo').innerHTML = PH.q !== null ? 'Regarde la position de la Lune et son aspect depuis la Terre, puis choisis le nom de la phase.'
+    : `Phase : <b>${nomPhase(j)}</b><br>Partie visible éclairée : <b>${Math.round(f * 100)} %</b><br><span style="color:var(--muted)">${j < LUN / 2 ? 'Lune croissante : la partie éclairée grandit (vue de l’hémisphère Nord : à droite).' : 'Lune décroissante : la partie éclairée diminue (à gauche).'}</span>`;
+}
+function drawPh(now) {
+  const ink = css('--text'), mut = css('--muted'), j = PH.q !== null ? PH.q : PH.j, a = 2 * Math.PI * j / LUN;
+  const TX = 250, TY = 240, RO = 160;
+  // lumière du Soleil (venant de la droite)
+  ctx.fillStyle = JAUNE + '.08)'; ctx.fillRect(0, 0, 500, H);
+  ctx.strokeStyle = JAUNE + '.8)'; ctx.lineWidth = 2;
+  for (let k = 0; k < 7; k++) { const y = 50 + k * 63; ctx.beginPath(); ctx.moveTo(498, y); ctx.lineTo(450, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(450, y); ctx.lineTo(458, y - 5); ctx.moveTo(450, y); ctx.lineTo(458, y + 5); ctx.stroke(); }
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('lumière du Soleil →', 440, 24); ctx.fillText('(le Soleil est loin, à droite)', 440, 38);
+  // orbite
+  ctx.strokeStyle = css('--border'); ctx.setLineDash([4, 5]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(TX, TY, RO, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  // repères des 8 phases
+  for (let k = 0; k < 8; k++) { const b = k * Math.PI / 4, x = TX + Math.cos(b) * RO, y = TY - Math.sin(b) * RO; ctx.fillStyle = css('--border'); ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); }
+  // Terre : jour / nuit
+  ctx.fillStyle = '#1d3b6e'; ctx.beginPath(); ctx.arc(TX, TY, 30, 0, 7); ctx.fill();
+  ctx.fillStyle = '#4a90e2'; ctx.beginPath(); ctx.arc(TX, TY, 30, -Math.PI / 2, Math.PI / 2); ctx.fill();
+  ctx.fillStyle = ink; ctx.font = '600 12px system-ui, sans-serif'; ctx.fillText('Terre', TX, TY + 48);
+  // Lune (vue de dessus)
+  const LX = TX + Math.cos(a) * RO, LY = TY - Math.sin(a) * RO;
+  ctx.fillStyle = '#2b3040'; ctx.beginPath(); ctx.arc(LX, LY, 16, 0, 7); ctx.fill();
+  ctx.fillStyle = '#f1edd8'; ctx.beginPath(); ctx.arc(LX, LY, 16, -Math.PI / 2, Math.PI / 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(120,120,140,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(LX, LY, 16, 0, 7); ctx.stroke();
+  // regard depuis la Terre
+  ctx.strokeStyle = 'rgba(192,100,15,.7)'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(TX + Math.cos(a) * 32, TY - Math.sin(a) * 32); ctx.lineTo(LX - Math.cos(a) * 18, LY + Math.sin(a) * 18); ctx.stroke(); ctx.setLineDash([]);
+  // partie visible depuis la Terre : arc tourné vers la Terre
+  ctx.strokeStyle = css('--accent'); ctx.lineWidth = 3; const dir = Math.atan2(TY - LY, TX - LX); ctx.beginPath(); ctx.arc(LX, LY, 20, dir - Math.PI / 2, dir + Math.PI / 2); ctx.stroke();
+  ctx.fillStyle = mut; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('— face visible depuis la Terre', 14, 462);
+  ctx.fillStyle = css('--accent'); ctx.fillRect(14, 457, 10, 3);
+  ctx.fillStyle = mut; ctx.textAlign = 'center'; ctx.fillText('Vue de dessus (pôle Nord), pas à l’échelle', TX, 24);
+  // vue depuis la Terre
+  const VX = 660, VY = 200;
+  ctx.fillStyle = '#0d1424'; ctx.beginPath(); ctx.roundRect(VX - 130, VY - 140, 260, 300, 14); ctx.fill();
+  for (let k = 0; k < 30; k++) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(VX - 125 + (k * 97 % 250), VY - 135 + (k * 53 % 290), 1.5, 1.5); }
+  lunePhase(VX, VY - 10, 82, a);
+  ctx.fillStyle = '#fff'; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Vue depuis la Terre', VX, VY - 116);
+  ctx.font = '700 15px system-ui, sans-serif'; ctx.fillText(PH.q !== null ? '?' : nomPhase(j), VX, VY + 110);
+  ctx.font = '12px system-ui, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillText(PH.q !== null ? '' : `jour ${fmt(j, 2).replace(/,0$/, '')} sur 29,5`, VX, VY + 132);
+}
+/* ================= Éclipses ================= */
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+function eclipse() {
+  const al = +$('al').value * Math.PI / 180, nd = +$('nd').value;
+  // hauteur de la Lune au-dessus du plan Terre-Soleil (unités : rayons d'ombre), nœuds alignés en janvier et juillet (≈)
+  const node = nd * Math.PI / 6, z = Math.sin(5 * Math.PI / 180) * 60 * Math.sin(al - node + Math.PI / 2 * 0);
+  const ang = ((al % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const pleine = Math.abs(ang - Math.PI) < 0.09, nouvelle = Math.min(ang, 2 * Math.PI - ang) < 0.09;
+  return { al, z, pleine, nouvelle };
+}
+function eres() {
+  const E = eclipse(), r = $('eres'); $('nd-out').textContent = MOIS[+$('nd').value];
+  if (!E.pleine && !E.nouvelle) { r.className = 'res mid'; r.innerHTML = 'Soleil, Terre et Lune ne sont pas alignés : <strong>pas d’éclipse</strong>. Place la Lune en nouvelle lune ou en pleine lune.'; return; }
+  const dans = Math.abs(E.z) < 1.6;
+  if (E.pleine) { r.className = 'res ' + (dans ? 'ok' : 'mid'); r.innerHTML = dans ? '🌕 <strong>Éclipse de Lune</strong> : la Lune passe dans l’ombre de la Terre. Elle devient sombre et rougeâtre. Tout le monde la voit depuis la face nuit de la Terre.'
+    : `Pleine lune, mais la Lune passe ${E.z > 0 ? 'au-dessus' : 'au-dessous'} de l’ombre de la Terre (orbite inclinée) : <strong>pas d’éclipse</strong> ce mois-ci. Change de mois.`; }
+  else { r.className = 'res ' + (dans ? 'ok' : 'mid'); r.innerHTML = dans ? '🌑 <strong>Éclipse de Soleil</strong> : l’ombre de la Lune tombe sur une petite zone de la Terre. Là, le Soleil est caché en plein jour.'
+    : `Nouvelle lune, mais l’ombre de la Lune passe ${E.z > 0 ? 'au-dessus' : 'au-dessous'} de la Terre : <strong>pas d’éclipse</strong> ce mois-ci.`; }
+  $('msg').innerHTML = 'En haut : vue de dessus. En bas : vue de côté, inclinaison exagérée. Une éclipse demande un alignement parfait, dans les trois dimensions.';
+}
+function drawEc() {
+  const ink = css('--text'), mut = css('--muted'), E = eclipse();
+  // ---- vue de dessus
+  const SXs = 40, TX = 470, TY = 150, RT = 22, RL = 8, RO = 120;
+  const gS = ctx.createRadialGradient(SXs, TY, 10, SXs, TY, 110); gS.addColorStop(0, '#fff3b0'); gS.addColorStop(.5, '#ffd23f'); gS.addColorStop(1, 'rgba(255,210,63,0)');
+  ctx.fillStyle = gS; ctx.beginPath(); ctx.arc(SXs, TY, 110, 0, 7); ctx.fill(); ctx.fillStyle = '#ffcf33'; ctx.beginPath(); ctx.arc(SXs - 20, TY, 70, 0, 7); ctx.fill();
+  ctx.fillStyle = ink; ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Soleil', SXs, TY + 4);
+  // ombre de la Terre (cône)
+  ctx.fillStyle = SOMBRE + '.45)'; ctx.beginPath(); ctx.moveTo(TX, TY - RT); ctx.lineTo(800, TY - RT * .55); ctx.lineTo(800, TY + RT * .55); ctx.lineTo(TX, TY + RT); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = css('--border'); ctx.setLineDash([4, 5]); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(TX, TY, RO, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#1d3b6e'; ctx.beginPath(); ctx.arc(TX, TY, RT, 0, 7); ctx.fill(); ctx.fillStyle = '#4a90e2'; ctx.beginPath(); ctx.arc(TX, TY, RT, Math.PI / 2, Math.PI * 1.5); ctx.fill();
+  // Lune : al = 0 -> entre Terre et Soleil (nouvelle lune)
+  const LX = TX - Math.cos(E.al) * RO, LY = TY - Math.sin(E.al) * RO;
+  ctx.fillStyle = SOMBRE + '.4)'; ctx.beginPath(); ctx.moveTo(LX, LY - RL); ctx.lineTo(LX + 90, LY); ctx.lineTo(LX, LY + RL); ctx.closePath(); ctx.fill();
+  const eclL = E.pleine && Math.abs(E.z) < 1.6;
+  ctx.fillStyle = eclL ? '#9b3b2a' : '#e8e4d0'; ctx.beginPath(); ctx.arc(LX, LY, RL, 0, 7); ctx.fill();
+  if (!eclL) { ctx.fillStyle = '#3a4050'; ctx.beginPath(); ctx.arc(LX, LY, RL, -Math.PI / 2, Math.PI / 2); ctx.fill(); }
+  ctx.fillStyle = ink; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('Terre', TX, TY + RT + 16); ctx.fillText('Lune', LX, LY - RL - 6);
+  ctx.fillStyle = mut; ctx.fillText('Vue de dessus', 640, 24); ctx.fillText('ombre de la Terre', 700, TY - 26);
+  // ---- vue de côté (inclinaison exagérée)
+  const BY = 380, Z = 14;
+  ctx.strokeStyle = css('--border'); ctx.beginPath(); ctx.moveTo(30, 300); ctx.lineTo(790, 300); ctx.stroke();
+  ctx.fillStyle = mut; ctx.textAlign = 'left'; ctx.fillText('Vue de côté (inclinaison de l’orbite très exagérée)', 30, 318);
+  ctx.strokeStyle = mut; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(30, BY); ctx.lineTo(790, BY); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillText('plan de l’orbite de la Terre', 110, BY - 6);
+  ctx.fillStyle = '#ffcf33'; ctx.beginPath(); ctx.arc(60, BY, 34, 0, 7); ctx.fill();
+  const TXs = 470; ctx.fillStyle = SOMBRE + '.45)'; ctx.beginPath(); ctx.moveTo(TXs, BY - 16); ctx.lineTo(800, BY - 9); ctx.lineTo(800, BY + 9); ctx.lineTo(TXs, BY + 16); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#4a90e2'; ctx.beginPath(); ctx.arc(TXs, BY, 16, 0, 7); ctx.fill();
+  // lune projetée : x le long de l'axe Soleil-Terre, z vertical
+  const lx = TXs - Math.cos(E.al) * 120, lz = BY - E.z * Z * .5;
+  ctx.fillStyle = SOMBRE + '.35)'; ctx.beginPath(); ctx.moveTo(lx, lz - 6); ctx.lineTo(lx + 80, lz); ctx.lineTo(lx, lz + 6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = eclL ? '#9b3b2a' : '#e8e4d0'; ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(lx, lz, 6, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(192,100,15,.6)'; ctx.beginPath(); ctx.moveTo(lx, BY); ctx.lineTo(lx, lz); ctx.stroke();
+  ctx.fillStyle = mut; ctx.textAlign = 'center'; ctx.fillText(`Lune ${E.z > 1.6 ? 'au-dessus du plan' : E.z < -1.6 ? 'au-dessous du plan' : 'dans le plan'}`, lx, Math.min(lz, BY) - 14 - (E.z > 0 ? 0 : 0));
+  if (E.nouvelle && Math.abs(E.z) < 1.6) { ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.beginPath(); ctx.arc(TX - RT + 4, TY, 4, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(TXs - 13, BY, 3.5, 0, 7); ctx.fill(); }
+}
+/* ================= interface ================= */
+['ts', 'dob', 'rob'].forEach(id => $(id).addEventListener('input', oinfo));
+$('rays').addEventListener('change', () => {});
+$('jour').addEventListener('input', () => { PH.j = +$('jour').value; PH.q = null; $('qbox').hidden = true; pinfo(); });
+$('play').addEventListener('click', () => { PH.play = !PH.play; PH.q = null; $('qbox').hidden = true; $('play').textContent = PH.play ? '⏸ Pause' : '▶ Animer'; pinfo(); });
+$('qsel').innerHTML = '<option value="">— nom de la phase —</option>' + PHASES.map((p, i) => `<option value="${i}">${p}</option>`).join('');
+$('quiz').addEventListener('click', () => {
+  PH.play = false; $('play').textContent = '▶ Animer';
+  PH.q = Math.round(Math.random() * 7) * LUN / 8; $('qbox').hidden = false; $('qres').hidden = true; $('qsel').value = ''; pinfo();
+  $('msg').innerHTML = 'Défi : la Lune a été placée au hasard. Quel est le nom de cette phase ?';
+});
+$('qverif').addEventListener('click', () => {
+  const r = $('qres'), v = $('qsel').value; r.hidden = false;
+  if (v === '') { r.className = 'res mid'; r.innerHTML = 'Choisis un nom dans la liste.'; return; }
+  const bon = PHASES.indexOf(nomPhase(PH.q)), ok = +v === bon;
+  r.className = 'res ' + (ok ? 'ok' : 'ko');
+  r.innerHTML = ok ? `<strong>Bravo !</strong> C’est bien : ${PHASES[bon]}. Clique encore sur « Défi » pour une autre.` : `<strong>Non.</strong> Observe de quel côté la Lune est éclairée et si la partie éclairée est plus ou moins grande que la moitié.`;
+  if (ok) { PH.j = PH.q; $('jour').value = PH.j; PH.q = null; pinfo(); }
+});
+$('al').addEventListener('input', eres); $('nd').addEventListener('input', eres);
+document.querySelectorAll('[data-al]').forEach(b => b.addEventListener('click', () => { $('al').value = b.dataset.al; eres(); }));
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  ['om', 'ph', 'ec'].forEach(m => $('p-' + m).hidden = mode !== m);
+  if (mode === 'om') oinfo(); else if (mode === 'ph') { pinfo(); $('msg').innerHTML = 'Fais avancer les jours : la moitié éclairée de la Lune est toujours tournée vers le Soleil, mais on ne la voit pas toujours en entier depuis la Terre.'; } else eres();
+}));
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (mode === 'ph' && PH.play) { PH.j = (PH.j + dt * 2.5) % LUN; $('jour').value = PH.j; if (Math.random() < .2) pinfo(); }
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'om' ? drawOm() : mode === 'ph' ? drawPh(now) : drawEc();
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); oinfo();
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte } = Exo;
+const RAPPEL = `Avec une source ponctuelle, la taille de l'ombre est proportionnelle à la distance : h' / h = D / d
+  (h : taille de l'objet, d : distance source–objet, D : distance source–écran). Une lunaison dure 29,5 jours ;
+  on passe d'une phase principale à la suivante en 29,5 / 4 ≈ 7,4 jours.`;
+const PHASES = ['Nouvelle lune', 'Premier croissant', 'Premier quartier', 'Lune gibbeuse croissante', 'Pleine lune', 'Lune gibbeuse décroissante', 'Dernier quartier', 'Dernier croissant'];
+Exo.monter('exo-opl', [
+  { id: 'ombre', label: 'Taille d’une ombre', rappel: RAPPEL, gen() {
+    const h = rnd(4.0, 12, 2), d = irnd(4, 12) * 10, D = d + irnd(5, 20) * 10, hp = h * D / d;
+    return {
+      enonce: `<p>Une petite lampe (source ponctuelle) éclaire une figurine de hauteur <strong>h = ${fmt(h, 2)} cm</strong> placée à <strong>d = ${d} cm</strong> de la lampe. L’écran est à <strong>D = ${D} cm</strong> de la lampe.</p>`,
+      questions: [
+        { label: '1. Calcule la hauteur de l’ombre portée sur l’écran.', unite: 'cm', rep: hp, cs: 2 },
+        { label: '2. Si on rapproche la figurine de la lampe, l’ombre…', choix: ['grandit', 'rétrécit', 'ne change pas'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', note: 'Les rayons partent tous du même point : les triangles sont semblables, on utilise la proportionnalité.', lit: 'h′ / h = D / d donc h′ = h × D / d', an: `h′ = ${fmt(h, 2)} × ${D} / ${d}`, res: `h′ = ${res(hp, 2, 'cm')}` }) +
+        texte('2.', 'd diminue, donc D / d augmente : l’ombre <strong>grandit</strong>.')
+    };
+  } },
+  { id: 'phase', label: 'Les phases de la Lune', rappel: RAPPEL, gen() {
+    const k0 = irnd(0, 7), n = pick([2, 4, 6]), k1 = (k0 + n) % 8, j = n * 29.5 / 8, ch = shuffle([PHASES[k1], PHASES[(k1 + 2) % 8], PHASES[(k1 + 6) % 8], PHASES[(k1 + 4) % 8]]);
+    return {
+      enonce: `<p>Ce soir, on observe : <strong>${PHASES[k0]}</strong>.</p>`,
+      questions: [
+        { label: `1. Quelle phase observera-t-on environ ${fmt(j, 2)} jours plus tard ?`, choix: ch, rep: ch.indexOf(PHASES[k1]) },
+        { label: '2. Combien de jours sépare deux pleines lunes ?', unite: 'jours', rep: 29.5, cs: 3 },
+        { label: '3. Combien de jours sépare une nouvelle lune de la pleine lune suivante ?', unite: 'jours', rep: 14.75, cs: 3, marge: 1 }
+      ],
+      correction: texte('1.', `En ${fmt(j, 2)} jours, la Lune avance de ${n} huitièmes de son orbite : on passe de « ${PHASES[k0]} » à « <strong>${PHASES[k1]}</strong> ».`) +
+        texte('2.', 'Une lunaison complète : <span class="exo-res">29,5 jours</span>.') +
+        etape({ q: '3.', note: 'La pleine lune est à la moitié de la lunaison.', an: '29,5 / 2', res: '<span class="exo-res">14,8 jours</span>' })
+    };
+  } },
+  { id: 'ecl', label: 'Les éclipses', gen() {
+    const POOL = [
+      { q: 'Soleil – Terre – Lune sont alignés dans cet ordre. Il peut se produire…', c: ['une éclipse de Lune', 'une éclipse de Soleil', 'aucune éclipse, jamais'], e: 'La Lune est derrière la Terre, dans son ombre : <strong>éclipse de Lune</strong> (pleine lune).' },
+      { q: 'Soleil – Lune – Terre sont alignés dans cet ordre. Il peut se produire…', c: ['une éclipse de Soleil', 'une éclipse de Lune', 'une pleine lune'], e: 'L’ombre de la Lune tombe sur la Terre : <strong>éclipse de Soleil</strong> (nouvelle lune).' },
+      { q: 'Une éclipse de Lune ne peut se produire que…', c: ['à la pleine lune', 'à la nouvelle lune', 'au premier quartier'], e: 'Il faut que la Lune soit derrière la Terre : <strong>pleine lune</strong>.' },
+      { q: 'Une éclipse de Soleil ne peut se produire que…', c: ['à la nouvelle lune', 'à la pleine lune', 'au dernier quartier'], e: 'Il faut que la Lune soit entre le Soleil et la Terre : <strong>nouvelle lune</strong>.' },
+      { q: 'Pourquoi n’y a-t-il pas une éclipse chaque mois ?', c: ['L’orbite de la Lune est inclinée d’environ 5°', 'La Lune s’éloigne trop de la Terre', 'Le Soleil s’éteint parfois'], e: 'L’orbite lunaire est <strong>inclinée</strong> : en général, la Lune passe au-dessus ou au-dessous de l’ombre.' },
+      { q: 'Pendant une éclipse totale de Lune, la Lune paraît…', c: ['sombre et rougeâtre', 'plus brillante que d’habitude', 'verte'], e: 'Un peu de lumière, déviée par l’atmosphère terrestre, l’éclaire en <strong>rouge</strong>.' },
+      { q: 'Une éclipse de Soleil totale est visible…', c: ['seulement dans une petite zone de la Terre', 'depuis toute la face jour de la Terre', 'depuis toute la Terre'], e: 'L’ombre de la Lune ne couvre qu’une <strong>petite zone</strong> de la Terre.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'Dans un milieu homogène et transparent, la lumière se propage…', c: ['en ligne droite', 'en zigzag', 'en suivant des courbes'], e: 'Propagation <strong>rectiligne</strong> : on la représente par des rayons (droites fléchées).' },
+      { q: 'La Lune est…', c: ['un objet diffusant (éclairé)', 'une source primaire de lumière', 'une étoile'], e: 'La Lune ne produit pas de lumière : elle <strong>diffuse</strong> celle du Soleil.' },
+      { q: 'L’ombre propre d’un objet, c’est…', c: ['la partie de l’objet qui n’est pas éclairée', 'l’ombre sur l’écran', 'la zone autour de la lampe'], e: 'Ombre propre : sur l’objet. Ombre <strong>portée</strong> : sur l’écran.' },
+      { q: 'La pénombre apparaît quand…', c: ['la source est étendue', 'la source est ponctuelle', 'l’objet est transparent'], e: 'Avec une <strong>source étendue</strong>, certains points de l’écran ne voient qu’une partie de la source : pénombre.' },
+      { q: 'Quelle est la vitesse de la lumière dans le vide ?', c: ['3,00 × 10⁸ m/s', '340 m/s', '3,00 × 10⁵ m/s'], e: 'c = <strong>3,00 × 10⁸ m/s</strong> (300 000 km/s).' },
+      { q: 'On voit toujours la même face de la Lune parce qu’elle…', c: ['tourne sur elle-même en autant de temps qu’autour de la Terre', 'ne tourne pas sur elle-même', 'est plate'], e: 'Sa rotation et sa révolution durent toutes deux environ <strong>27 jours</strong> : elle nous montre toujours la même face.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

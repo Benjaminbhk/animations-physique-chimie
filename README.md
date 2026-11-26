@@ -29,6 +29,11 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Série, dérivation et loi d'Ohm (4e) | https://benjaminbhk.github.io/animations-physique-chimie/circuits-serie-derivation/ |
 | Mouvements et interactions dans l'espace (4e) | https://benjaminbhk.github.io/animations-physique-chimie/mecanique-espace/ |
 | La rétrogradation de Mars (4e) | https://benjaminbhk.github.io/animations-physique-chimie/retrogradation-mars/ |
+| La masse volumique (4e) | https://benjaminbhk.github.io/animations-physique-chimie/masse-volumique/ |
+| Mélanges et solubilité (4e) | https://benjaminbhk.github.io/animations-physique-chimie/melanges-solubilite/ |
+| Chaînes énergétiques (4e) | https://benjaminbhk.github.io/animations-physique-chimie/chaines-energetiques/ |
+| Le son (4e) | https://benjaminbhk.github.io/animations-physique-chimie/le-son/ |
+| Ombres, phases de la Lune et éclipses (4e) | https://benjaminbhk.github.io/animations-physique-chimie/ombres-phases-lune/ |
 
 ## Organisation
 
