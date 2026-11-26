@@ -14,10 +14,10 @@ window.CATALOGUE = [
   {
     dossier: "dissolution-dilution",
     titre: "Dissolution et dilution",
-    resume: "Dissoudre un solide dans un solvant, puis diluer une solution mère avec une pipette jaugée : voir pourquoi la concentration diminue.",
+    resume: "Dissoudre un solide dans une fiole jaugée (entonnoir), puis diluer une solution mère avec une pipette jaugée et une fiole jaugée au choix : voir pourquoi la concentration diminue.",
     theme: "matiere",
     chapitre: "Solutions aqueuses",
-    mots: ["concentration en masse", "facteur de dilution", "soluté", "solvant"],
+    mots: ["concentration en masse", "facteur de dilution", "soluté", "solvant", "fiole jaugée", "pipette jaugée", "entonnoir"],
     statut: "en-ligne"
   },
   {
