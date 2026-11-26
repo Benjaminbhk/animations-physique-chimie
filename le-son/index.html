@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le son</title>
+<meta name="description" content="Simulation interactive : propagation du son dans l'air, l'eau, l'acier et le vide (modèle particulaire, vitesse), fréquence, période, domaines audibles, infrasons et ultrasons, niveau sonore en décibels. Physique-chimie, Quatrième.">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#c0640f; --accent-soft:#fdf0e1; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#f0a85a; --accent-soft:#33240f; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#f0a85a; --accent-soft:#33240f; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lbl{font-weight:600;font-size:.92rem;margin:8px 0 4px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Le son</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Un son est une <strong>vibration</strong> qui se propage de proche en proche dans un milieu matériel : les particules
+    se poussent les unes les autres. Il ne se propage <strong>pas dans le vide</strong>. Plus la fréquence est grande, plus le son est
+    <strong>aigu</strong>.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation sur le son">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="pr" aria-pressed="true">🔊 Propagation</button>
+      <button type="button" class="seg" data-mode="fr" aria-pressed="false">〰️ Fréquence et niveau sonore</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Haut-parleur, particules du milieu et oreille"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-pr">
+          <h3>1. Choisir le milieu</h3>
+          <div class="grid2" id="mil" role="group" aria-label="Milieu"></div>
+          <h3 style="margin-top:12px">2. Distance entre la source et l'oreille</h3>
+          <div class="grid4" id="dist" role="group" aria-label="Distance"></div>
+          <h3 style="margin-top:12px">3. Émettre</h3>
+          <div class="grid2">
+            <button id="clap" type="button">Émettre un clap</button>
+            <button id="cont" type="button" class="ghost" aria-pressed="false">Son continu</button>
+          </div>
+          <div class="info" id="pinfo" style="margin-top:10px"></div>
+        </div>
+        <div id="p-fr" hidden>
+          <h3>1. Fréquence <small id="f-out"></small></h3>
+          <input id="f" type="range" min="0" max="1000" step="1" value="500" aria-label="Fréquence" style="width:100%">
+          <div class="grid4" style="margin-top:6px">
+            <button type="button" class="ghost" data-f="10">10 Hz</button><button type="button" class="ghost" data-f="440">440 Hz</button>
+            <button type="button" class="ghost" data-f="5000">5 kHz</button><button type="button" class="ghost" data-f="40000">40 kHz</button>
+          </div>
+          <h3 style="margin-top:12px">2. Niveau sonore <small id="l-out"></small></h3>
+          <input id="lv" type="range" min="0" max="130" step="5" value="60" aria-label="Niveau sonore" style="width:100%">
+          <div class="row"><button id="ecouter" type="button">▶ Écouter (son doux)</button></div>
+          <div class="info" id="finfo" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Propagation</h3>Le son a besoin d'un <strong>milieu matériel</strong> (solide, liquide, gaz). Vitesse : air ≈ 340 m/s, eau ≈ 1 500 m/s, acier ≈ 5 000 m/s. Dans le vide : pas de son. <strong>d = v × t</strong>.</div>
+      <div><h3>Fréquence</h3>Nombre de vibrations par seconde, en hertz (Hz). <strong>f = 1 / T</strong> (T : période en s). Grave = basse fréquence, aigu = haute fréquence. L'oreille humaine entend de <strong>20 Hz à 20 000 Hz</strong>.</div>
+      <div><h3>Niveau sonore</h3>Mesuré en décibels (dB) avec un sonomètre. Danger pour l'oreille à partir d'environ <strong>85 dB</strong> ; seuil de douleur vers 120 dB.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-son"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Vitesses du son à 20 °C, arrondies.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const { fmt, sci } = Exo;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'pr';
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+/* ================= Propagation ================= */
+const MIL = [
+  { nom: 'air', v: 340, col: '#7fb6e6', n: 1, bg: 'rgba(150,200,240,.10)' },
+  { nom: 'eau', v: 1500, col: '#2f86d6', n: 1.4, bg: 'rgba(60,140,230,.16)' },
+  { nom: 'acier', v: 5000, col: '#7c8796', n: 1.9, bg: 'rgba(120,130,150,.18)' },
+  { nom: 'vide', v: 0, col: '#999', n: 0, bg: 'rgba(0,0,0,0)' }
+];
+const DIST = [34, 340, 1000, 3400];
+const P = { m: 0, d: 1, pulse: null, cont: false, tc: 0, recu: null };
+const X0 = 150, X1 = 690, Y0 = 150, Y1 = 330, COLS = 40, ROWS = 9;
+const pts = []; for (let i = 0; i < COLS; i++) for (let j = 0; j < ROWS; j++) pts.push({ i, j, dx: Math.random() - .5, dy: Math.random() - .5 });
+const TANIM_AIR = 3.2;   // durée (s) de l'animation dans l'air ; les autres milieux à la même échelle
+function treel() { const M = MIL[P.m]; return M.v ? DIST[P.d] / M.v : Infinity; }
+function tanim() { const M = MIL[P.m]; return M.v ? TANIM_AIR * 340 / M.v : Infinity; }
+function pinfo() {
+  const M = MIL[P.m], d = DIST[P.d];
+  $('pinfo').innerHTML = M.v ? `Vitesse du son dans ${M.nom === 'eau' ? 'l’' : 'l’'}${M.nom} : <b>v = ${M.v.toLocaleString('fr-FR')} m/s</b><br>
+    Distance : d = ${d.toLocaleString('fr-FR')} m<br>Durée du trajet : t = d / v = ${d.toLocaleString('fr-FR')} / ${M.v.toLocaleString('fr-FR')} = <b>${fmt(d / M.v, 3)} s</b>`
+    : 'Dans le <b>vide</b>, il n’y a aucune particule pour transmettre la vibration : <b>le son ne se propage pas</b>.';
+}
+function hp(x, y, t, amp) {   // haut-parleur
+  const ink = css('--text'); ctx.fillStyle = css('--surface'); ctx.strokeStyle = ink; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.rect(x - 46, y - 26, 26, 52); ctx.fill(); ctx.stroke();
+  const off = amp; ctx.beginPath(); ctx.moveTo(x - 20, y - 22); ctx.lineTo(x + off, y - 52); ctx.lineTo(x + off, y + 52); ctx.lineTo(x - 20, y + 22); ctx.closePath(); ctx.fill(); ctx.stroke();
+}
+function oreille(x, y, lvl) {
+  const ink = css('--text');
+  ctx.strokeStyle = ink; ctx.lineWidth = 3; ctx.fillStyle = '#f4c7a1';
+  ctx.beginPath(); ctx.moveTo(x, y - 40); ctx.bezierCurveTo(x + 50, y - 50, x + 50, y + 10, x + 22, y + 22); ctx.quadraticCurveTo(x + 10, y + 34, x + 14, y + 46); ctx.quadraticCurveTo(x - 4, y + 50, x - 4, y + 30); ctx.quadraticCurveTo(x - 10, y - 10, x, y - 40); ctx.fill(); ctx.stroke();
+  ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + 18, y - 6, 12, Math.PI * 1.1, Math.PI * .4); ctx.stroke();
+  if (lvl > 0) { ctx.strokeStyle = css('--accent'); for (let k = 1; k <= 3; k++) { ctx.globalAlpha = lvl * (1 - k * .25); ctx.beginPath(); ctx.arc(x + 50, y, 10 + k * 10, -.6, .6); ctx.stroke(); } ctx.globalAlpha = 1; }
+}
+function drawPr(now) {
+  const t = now / 1000, M = MIL[P.m], ink = css('--text'), mut = css('--muted');
+  ctx.fillStyle = M.bg; ctx.fillRect(X0 - 20, Y0 - 30, X1 - X0 + 40, Y1 - Y0 + 60);
+  ctx.strokeStyle = css('--border'); ctx.lineWidth = 1; ctx.strokeRect(X0 - 20, Y0 - 30, X1 - X0 + 40, Y1 - Y0 + 60);
+  ctx.fillStyle = mut; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(M.v ? `milieu : ${M.nom} (modèle : chaque point représente des particules)` : 'vide : aucune particule', (X0 + X1) / 2, Y0 - 40);
+  // déplacement des particules
+  const span = X1 - X0, va = M.v ? span / tanim() : 0;   // px/s
+  let front = null, memb = 0, lvl = 0;
+  if (P.pulse !== null && M.v) {
+    const el = t - P.pulse; front = X0 + el * va;
+    memb = el < .15 ? Math.sin(el / .15 * Math.PI) * 10 : 0;
+    if (front > X1 + 40 && !P.recu) { P.recu = true; $('msg').innerHTML = `Le son est arrivé à l’oreille après <strong>t = ${fmt(treel(), 3)} s</strong> (${DIST[P.d].toLocaleString('fr-FR')} m dans ${M.nom === 'air' ? 'l’air' : M.nom === 'eau' ? 'l’eau' : 'l’acier'}). Les particules n’ont pas voyagé : elles ont seulement vibré sur place.`; }
+    if (front > X1 && front < X1 + 60) lvl = 1;
+  } else if (P.pulse !== null && t - P.pulse < .3) memb = Math.sin((t - P.pulse) / .15 * Math.PI) * 10;
+  if (P.cont) memb = Math.sin(t * 2 * Math.PI * 1.2) * 8;
+  const cw = va / 1.2;
+  const puls = g => -12 * (g / 18) * Math.exp(-(g / 18) * (g / 18) / 2) * 1.65;
+  if (front !== null && front > X0 - 10 && front < X1 + 10) { ctx.fillStyle = 'rgba(192,100,15,.13)'; ctx.fillRect(Math.max(X0 - 20, front - 26), Y0 - 30, 52, Y1 - Y0 + 60); ctx.fillStyle = css('--accent'); ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('compression', front, Y0 - 14); }    // longueur d'onde visuelle (px) pour le son continu à 1,2 Hz « ralenti »
+  if (M.v) {
+    const dx = span / (COLS - 1), dy = (Y1 - Y0) / (ROWS - 1);
+    ctx.fillStyle = M.col;
+    pts.forEach(p => {
+      const xe = X0 + p.i * dx, ye = Y0 + p.j * dy; let u = 0;
+      if (front !== null) u = puls(xe - front);
+      if (P.cont) { const el = t - P.tc, xr = xe - X0; if (xr < el * va) u += 8 * Math.sin(2 * Math.PI * (1.2 * t - xr / cw)); }
+      ctx.beginPath(); ctx.arc(xe + u + p.dx * 3, ye + p.dy * 3, M.n > 1.5 ? 4.2 : 3.6, 0, 7); ctx.fill();
+    });
+    // particule témoin
+    const pi = 20, xe = X0 + pi * dx; let u = 0;
+    if (front !== null) u = puls(xe - front);
+    if (P.cont) { const el = t - P.tc, xr = xe - X0; if (xr < el * va) u += 8 * Math.sin(2 * Math.PI * (1.2 * t - xr / cw)); }
+    ctx.fillStyle = '#d23c3c'; ctx.beginPath(); ctx.arc(xe + u, Y0 + 4 * dy, 6, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#d23c3c'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(xe, Y1 + 12); ctx.lineTo(xe, Y1 + 26); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#d23c3c'; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('particule témoin : elle vibre sur place', xe, Y1 + 40);
+    if (P.cont) lvl = Math.max(lvl, (t - P.tc) * va > span ? .8 : 0);
+  }
+  hp(X0 - 50, (Y0 + Y1) / 2, t, memb);
+  oreille(X1 + 50, (Y0 + Y1) / 2 - 4, lvl);
+  // chronomètre
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(300, 410, 220, 44, 8); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 22px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center';
+  let tr = 0;
+  if (P.pulse !== null && M.v) tr = Math.min(treel(), (t - P.pulse) / tanim() * treel() * (span + 40) / span);
+  ctx.fillText(M.v ? tr.toFixed(tr < 1 ? 3 : 2).replace('.', ',') + ' s' : '— s', 410, 440);
+  ctx.fillStyle = mut; ctx.font = '11px system-ui, sans-serif'; ctx.fillText('durée réelle du trajet', 410, 404);
+  ctx.fillText(`distance réelle : ${DIST[P.d].toLocaleString('fr-FR')} m (dessin pas à l’échelle)`, (X0 + X1) / 2, Y1 + 56 + 0);
+}
+/* ================= Fréquence ================= */
+const FMIN = 1, FMAX = 200000;
+const fFromSlider = v => { const lf = Math.log10(5) + (Math.log10(50000) - Math.log10(5)) * v / 1000; return Math.pow(10, lf); };
+const sliderFromF = f => Math.round((Math.log10(f) - Math.log10(5)) / (Math.log10(50000) - Math.log10(5)) * 1000);
+function niceF(f) { const e = Math.floor(Math.log10(f)), m = f / Math.pow(10, e); const r = m < 1.5 ? 1 : m < 2.25 ? 2 : m < 3.5 ? 3 : m < 4.5 ? 4 : m < 5.5 ? 5 : m < 7 ? 6 : m < 9 ? 8 : 10; return r * Math.pow(10, e); }
+const F = { f: 440, L: 60 };
+const ANIM = [['éléphant', 14, 12000], ['humain', 20, 20000], ['chien', 65, 45000], ['chat', 50, 64000], ['chauve-souris', 2000, 110000], ['dauphin', 75, 150000]];
+function domaine(f) { return f < 20 ? 'infrason' : f > 20000 ? 'ultrason' : 'son audible'; }
+const fmtHz = f => f >= 1000 ? fmt(f / 1000, f >= 10000 ? 2 : 2) + ' kHz' : fmt(f, f >= 100 ? 3 : 2) + ' Hz';
+function finfo() {
+  const f = F.f, T = 1 / f, d = domaine(f);
+  $('f-out').textContent = fmtHz(f); $('l-out').textContent = F.L + ' dB';
+  const Tt = T >= 1e-3 ? fmt(T * 1000, 2) + ' ms' : fmt(T * 1e6, 2) + ' µs';
+  $('finfo').innerHTML = `f = <b>${fmtHz(f)}</b> → période T = 1 / f = <b>${Tt}</b><br>Domaine : <b>${d}</b>${d === 'son audible' ? ` (${f < 200 ? 'grave' : f < 2000 ? 'médium' : 'aigu'})` : ''}<br>
+    Niveau sonore : <b>${F.L} dB</b>${F.L >= 120 ? ' : seuil de douleur !' : F.L >= 85 ? ' : dangereux si l’exposition dure' : ''}`;
+  $('msg').innerHTML = d === 'infrason' ? 'Infrason : trop grave pour l’oreille humaine. Les éléphants communiquent avec des infrasons.'
+    : d === 'ultrason' ? 'Ultrason : trop aigu pour nous, mais les chauves-souris et les dauphins l’entendent (écholocation). On l’utilise en échographie et dans les sonars.'
+    : `Son audible. Sur l’écran, compte les motifs qui se répètent : la durée d’un motif est la période T.`;
+}
+function drawFr(now) {
+  const t = now / 1000, ink = css('--text'), mut = css('--muted'), f = F.f;
+  // oscillogramme
+  const gx = 50, gy = 30, gw = 480, gh = 200, win = niceF(5 / f);    // fenêtre ≈ 5 périodes
+  ctx.fillStyle = '#0e1a14'; ctx.beginPath(); ctx.roundRect(gx, gy, gw, gh, 8); ctx.fill();
+  ctx.strokeStyle = 'rgba(93,255,156,.15)'; ctx.lineWidth = 1;
+  for (let k = 1; k < 10; k++) { ctx.beginPath(); ctx.moveTo(gx + gw * k / 10, gy); ctx.lineTo(gx + gw * k / 10, gy + gh); ctx.stroke(); }
+  for (let k = 1; k < 8; k++) { ctx.beginPath(); ctx.moveTo(gx, gy + gh * k / 8); ctx.lineTo(gx + gw, gy + gh * k / 8); ctx.stroke(); }
+  const A = (gh / 2 - 10) * Math.max(.04, F.L / 130);
+  ctx.strokeStyle = '#5dff9c'; ctx.lineWidth = 2.2; ctx.beginPath();
+  for (let i = 0; i <= gw; i++) { const tt = i / gw * win; const y = gy + gh / 2 - A * Math.sin(2 * Math.PI * f * tt + t * 2); i ? ctx.lineTo(gx + i, y) : ctx.moveTo(gx + i, y); }
+  ctx.stroke();
+  // période
+  const Tpx = gw / (win * f), y0 = gy + gh - 14;
+  if (Tpx > 30) { ctx.strokeStyle = '#ffd84d'; ctx.fillStyle = '#ffd84d'; ctx.lineWidth = 1.5; const xa = gx + 10; ctx.beginPath(); ctx.moveTo(xa, y0); ctx.lineTo(xa + Tpx, y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(xa, y0 - 5); ctx.lineTo(xa, y0 + 5); ctx.moveTo(xa + Tpx, y0 - 5); ctx.lineTo(xa + Tpx, y0 + 5); ctx.stroke(); ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('T', xa + Tpx / 2, y0 - 6); }
+  const div = win / 10, ud = div >= 1e-3 ? fmt(div * 1000, 1) + ' ms' : fmt(div * 1e6, 1) + ' µs';
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`Signal capté par un micro · 1 division = ${ud}`, gx, gy + gh + 18);
+  // échelle des décibels
+  const sx = 600, sy0 = 230, sy1 = 30, yL = L => sy0 - (sy0 - sy1) * L / 130;
+  const g = ctx.createLinearGradient(0, sy0, 0, sy1); g.addColorStop(0, '#3fae5a'); g.addColorStop(.6, '#e0c040'); g.addColorStop(.68, '#e08a30'); g.addColorStop(.92, '#d23c3c'); g.addColorStop(1, '#a01818');
+  ctx.fillStyle = g; ctx.fillRect(sx, sy1, 16, sy0 - sy1);
+  ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'left';
+  [[0, 'seuil d’audition'], [30, 'chuchotement'], [60, 'conversation'], [85, 'danger'], [100, 'concert'], [120, 'douleur'], [130, 'avion au décollage']].forEach(([L, s]) => {
+    ctx.fillStyle = L === 85 ? '#d23c3c' : mut; ctx.fillRect(sx + 16, yL(L), 6, 1); ctx.fillText(`${L} dB ${s}`, sx + 26, yL(L) + 4); });
+  ctx.fillStyle = ink; ctx.beginPath(); ctx.moveTo(sx - 4, yL(F.L)); ctx.lineTo(sx - 14, yL(F.L) - 6); ctx.lineTo(sx - 14, yL(F.L) + 6); ctx.closePath(); ctx.fill();
+  ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('sonomètre', sx + 8, sy1 - 10);
+  // domaines d'audition (échelle log)
+  const ax = 140, aw = 640, ay = 300, X = fr => ax + aw * (Math.log10(fr) - Math.log10(FMIN)) / (Math.log10(FMAX) - Math.log10(FMIN));
+  ctx.fillStyle = 'rgba(120,120,140,.10)'; ctx.fillRect(X(FMIN), ay - 22, X(20) - X(FMIN), 172); ctx.fillRect(X(20000), ay - 22, X(FMAX) - X(20000), 172);
+  ctx.fillStyle = mut; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('infrasons', (X(FMIN) + X(20)) / 2, ay - 8); ctx.fillText('sons audibles (humain)', (X(20) + X(20000)) / 2, ay - 8); ctx.fillText('ultrasons', (X(20000) + X(FMAX)) / 2, ay - 8);
+  ANIM.forEach(([n, a, b], i) => {
+    const y = ay + 6 + i * 20; ctx.fillStyle = n === 'humain' ? css('--accent') : 'rgba(140,150,170,.55)'; ctx.beginPath(); ctx.roundRect(X(a), y, X(b) - X(a), 12, 6); ctx.fill();
+    ctx.fillStyle = ink; ctx.font = (n === 'humain' ? '600 ' : '') + '12px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillText(n, ax - 8, y + 10); });
+  ctx.strokeStyle = mut; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay + 128); ctx.lineTo(ax + aw, ay + 128); ctx.stroke();
+  ctx.fillStyle = mut; ctx.textAlign = 'center'; ctx.font = '11px system-ui, sans-serif';
+  [[1, '1 Hz'], [10, '10 Hz'], [100, '100 Hz'], [1000, '1 kHz'], [10000, '10 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { ctx.fillRect(X(v), ay + 125, 1, 6); ctx.fillText(s, X(v), ay + 144); });
+  ctx.strokeStyle = '#d23c3c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(f), ay - 2); ctx.lineTo(X(f), ay + 132); ctx.stroke();
+  ctx.fillStyle = '#d23c3c'; ctx.font = '700 12px system-ui, sans-serif'; ctx.fillText(fmtHz(f), Math.min(ax + aw - 30, Math.max(ax + 30, X(f))), ay + 162);
+}
+/* ================= interface ================= */
+$('mil').innerHTML = MIL.map((m, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === 0}">${m.nom}</button>`).join('');
+$('mil').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  P.m = +b.dataset.i; $('mil').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); P.pulse = null; P.recu = false; P.tc = performance.now() / 1000; pinfo();
+  $('msg').innerHTML = MIL[P.m].v ? `Milieu : ${MIL[P.m].nom}. Émets un clap et regarde le son avancer.` : 'Le vide : essaie d’émettre un son…';
+}));
+$('dist').innerHTML = DIST.map((d, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === P.d}">${d >= 1000 ? fmt(d / 1000, 2) + ' km' : d + ' m'}</button>`).join('');
+$('dist').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  P.d = +b.dataset.i; $('dist').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); P.pulse = null; pinfo();
+}));
+$('clap').addEventListener('click', () => {
+  P.pulse = performance.now() / 1000; P.recu = false;
+  $('msg').innerHTML = MIL[P.m].v ? 'Clap ! La membrane pousse les particules voisines, qui poussent leurs voisines… la vibration se propage de proche en proche.'
+    : 'La membrane vibre, mais il n’y a aucune particule à pousser : <strong>aucun son n’arrive à l’oreille</strong>. Le son ne se propage pas dans le vide.';
+});
+$('cont').addEventListener('click', () => {
+  P.cont = !P.cont; P.tc = performance.now() / 1000; $('cont').setAttribute('aria-pressed', P.cont); $('cont').className = P.cont ? '' : 'ghost';
+  if (P.cont) $('msg').innerHTML = MIL[P.m].v ? 'Son continu (ralenti énormément) : on voit des zones où les particules sont serrées (compressions) et d’autres où elles sont écartées.' : 'Rien ne se propage dans le vide.';
+});
+$('f').addEventListener('input', () => { F.f = Number(fFromSlider(+$('f').value).toPrecision(2)); finfo(); });
+document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { F.f = +b.dataset.f; $('f').value = sliderFromF(F.f); finfo(); }));
+$('lv').addEventListener('input', () => { F.L = +$('lv').value; finfo(); });
+let actx = null;
+$('ecouter').addEventListener('click', () => {
+  if (F.f < 20 || F.f > 20000) { $('msg').innerHTML = `${fmtHz(F.f)} : ${domaine(F.f)}, ton oreille ne peut pas l’entendre (et le haut-parleur de l’ordinateur non plus !).`; return; }
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime, vol = 0.02 + 0.10 * Math.min(1, F.L / 100);
+    o.frequency.value = F.f; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + .05); g.gain.setValueAtTime(vol, t0 + .9); g.gain.linearRampToValueAtTime(0, t0 + 1);
+    o.start(t0); o.stop(t0 + 1.05);
+    $('msg').innerHTML = `Son de ${fmtHz(F.f)} joué pendant 1 s (volume volontairement faible). Le niveau réel dépend de ton appareil.`;
+  } catch (e) { $('msg').innerHTML = 'Ton navigateur ne permet pas de jouer le son.'; }
+});
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('p-pr').hidden = mode !== 'pr'; $('p-fr').hidden = mode !== 'fr';
+  if (mode === 'fr') finfo(); else { pinfo(); $('msg').innerHTML = 'Choisis un milieu et une distance, puis émets un clap.'; }
+}));
+function loop(now) {
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'pr' ? drawPr(now) : drawFr(now);
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+$('f').value = sliderFromF(440);
+resize(); pinfo(); $('msg').innerHTML = 'Choisis un milieu et une distance, puis émets un clap.';
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte, sci } = Exo;
+const RAPPEL = `d = v × t, donc t = d / v et v = d / t. Pour un écho, le son fait l’aller-retour : la distance parcourue est 2 × d.
+  f = 1 / T (f en Hz, T en s). 1 ms = 10<sup>−3</sup> s. Audible pour l’humain : de 20 Hz à 20 000 Hz.`;
+Exo.monter('exo-son', [
+  { id: 'echo', label: 'Écho et sonar', rappel: RAPPEL, gen() {
+    if (Math.random() < .5) {
+      const dt = rnd(0.0400, 0.800, 3), p = 1500 * dt / 2;
+      return {
+        enonce: `<p>Le sonar d’un bateau émet un ultrason vers le fond. L’écho revient au bout de <strong>Δt = ${fmt(dt, 3)} s</strong>. Dans l’eau de mer, <strong>v = 1,50 × 10<sup>3</sup> m/s</strong>.</p>`,
+        questions: [
+          { label: '1. Quelle distance totale le son a-t-il parcourue ?', unite: 'm', rep: 1500 * dt, cs: 3 },
+          { label: '2. Quelle est la profondeur sous le bateau ?', unite: 'm', rep: p, cs: 3 }
+        ],
+        correction: etape({ q: '1.', lit: 'd<sub>totale</sub> = v × Δt', an: `d<sub>totale</sub> = 1,50 × 10<sup>3</sup> × ${fmt(dt, 3)}`, res: `d<sub>totale</sub> = ${res(1500 * dt, 3, 'm')}` }) +
+          etape({ q: '2.', note: 'Le son fait l’aller et le retour : la profondeur est la moitié de la distance totale.', lit: 'p = d<sub>totale</sub> / 2', an: `p = ${fmt(1500 * dt, 3)} / 2`, res: `p = ${res(p, 3, 'm')}` })
+      };
+    }
+    const t = rnd(1.5, 12, 2), d = 340 * t;
+    return {
+      enonce: `<p>Pendant un orage, on voit l’éclair puis on entend le tonnerre <strong>t = ${fmt(t, 2)} s</strong> plus tard. La lumière arrive presque instantanément ; dans l’air, <strong>v = 340 m/s</strong>.</p>`,
+      questions: [
+        { label: '1. À quelle distance l’éclair est-il tombé ?', unite: 'm', rep: d, cs: 2 },
+        { label: '2. Exprime cette distance en km.', unite: 'km', rep: d / 1000, cs: 2 }
+      ],
+      correction: etape({ q: '1.', lit: 'd = v × t', an: `d = 340 × ${fmt(t, 2)}`, res: `d = ${res(d, 2, 'm')}` }) +
+        etape({ q: '2.', lit: '1 km = 1 000 m', an: `d = ${fmt(d, 2)} / 1 000`, res: `d = ${res(d / 1000, 2, 'km')}` })
+    };
+  } },
+  { id: 'freq', label: 'Période et fréquence', rappel: RAPPEL, gen() {
+    const cas = pick([['ms', 0.0500, 80.0], ['ms', 0.0300, 5.00], ['µs', 5.00, 40.0], ['s', 0.0800, 0.500]]);
+    const n = irnd(2, 5), Ttot = rnd(n * cas[1], n * cas[2], 3), Tu = Ttot / n, mult = cas[0] === 'ms' ? 1e-3 : cas[0] === 'µs' ? 1e-6 : 1, T = Tu * mult, f = 1 / T;
+    const dom = f < 20 ? 0 : f > 20000 ? 2 : 1;
+    return {
+      enonce: `<p>Sur l’écran d’un oscilloscope, on mesure que <strong>${n} motifs</strong> durent en tout <strong>${fmt(Ttot, 3)} ${cas[0]}</strong>.</p>`,
+      questions: [
+        { label: `1. Quelle est la période T, en ${cas[0]} ?`, unite: cas[0], rep: Tu, cs: 3 },
+        { label: '2. Calcule la fréquence f.', unite: 'Hz', rep: f, cs: 3 },
+        { label: '3. Ce son est…', choix: ['un infrason', 'un son audible par l’humain', 'un ultrason'], rep: dom }
+      ],
+      correction: etape({ q: '1.', lit: `T = durée / nombre de motifs`, an: `T = ${fmt(Ttot, 3)} / ${n}`, res: `T = <span class="exo-res">${fmt(Tu, 3)} ${cas[0]}</span>` }) +
+        etape({ q: '2.', lit: 'f = 1 / T (T en s)', an: `f = 1 / (${sci(T, 3)})`, res: `f = ${res(f, 3, 'Hz')}` }) +
+        texte('3.', `${fmt(f, 3)} Hz est ${dom === 0 ? 'inférieur à 20 Hz : <strong>infrason</strong>' : dom === 2 ? 'supérieur à 20 000 Hz : <strong>ultrason</strong>' : 'entre 20 Hz et 20 000 Hz : <strong>son audible</strong>'}.`)
+    };
+  } },
+  { id: 'rail', label: 'Vitesse dans les solides', rappel: RAPPEL, gen() {
+    const d = irnd(5, 30) * 100, ta = d / 340, tr = d / 5000;
+    return {
+      enonce: `<p>Un élève colle son oreille contre un rail. À <strong>d = ${d.toLocaleString('fr-FR')} m</strong>, un ouvrier frappe le rail avec un marteau. Le son se propage dans l’acier (<strong>5,00 × 10<sup>3</sup> m/s</strong>) et dans l’air (<strong>340 m/s</strong>).</p>`,
+      questions: [
+        { label: '1. Durée du trajet dans l’acier ?', unite: 's', rep: tr, cs: 3 },
+        { label: '2. Durée du trajet dans l’air ?', unite: 's', rep: ta, cs: 3 },
+        { label: '3. Combien de temps sépare les deux sons entendus ?', unite: 's', rep: ta - tr, cs: 3 }
+      ],
+      correction: etape({ q: '1.', lit: 't = d / v', an: `t<sub>acier</sub> = ${d.toLocaleString('fr-FR')} / (5,00 × 10<sup>3</sup>)`, res: `t<sub>acier</sub> = ${res(tr, 3, 's')}` }) +
+        etape({ q: '2.', lit: 't = d / v', an: `t<sub>air</sub> = ${d.toLocaleString('fr-FR')} / 340`, res: `t<sub>air</sub> = ${res(ta, 3, 's')}` }) +
+        etape({ q: '3.', lit: 'Δt = t<sub>air</sub> − t<sub>acier</sub>', an: `Δt = ${fmt(ta, 3)} − ${fmt(tr, 3)}`, res: `Δt = ${res(ta - tr, 3, 's')}`, note: 'On entend d’abord le son venu par le rail, puis celui venu par l’air.' })
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'Le son peut-il se propager dans le vide ?', c: ['Non, il lui faut un milieu matériel', 'Oui, comme la lumière', 'Oui, mais plus lentement'], e: 'Le son est la vibration d’un milieu matériel : <strong>pas de son dans le vide</strong> (l’espace est silencieux).' },
+      { q: 'Dans quel milieu le son va-t-il le plus vite ?', c: ['l’acier', 'l’eau', 'l’air'], e: 'Acier ≈ 5 000 m/s &gt; eau ≈ 1 500 m/s &gt; air ≈ 340 m/s : <strong>le plus vite dans les solides</strong>.' },
+      { q: 'Un son de fréquence élevée est…', c: ['aigu', 'grave', 'fort'], e: 'Haute fréquence = son <strong>aigu</strong>. Le niveau sonore (fort/faible) est autre chose.' },
+      { q: 'Un ultrason a une fréquence…', c: ['supérieure à 20 000 Hz', 'inférieure à 20 Hz', 'comprise entre 20 et 20 000 Hz'], e: 'Ultrason : <strong>f &gt; 20 kHz</strong>. Infrason : f &lt; 20 Hz.' },
+      { q: 'Quand un son se propage, les particules du milieu…', c: ['vibrent sur place', 'voyagent de la source jusqu’à l’oreille', 'restent immobiles'], e: 'Elles <strong>vibrent autour de leur position</strong> et transmettent la vibration à leurs voisines.' },
+      { q: 'Le niveau sonore se mesure avec…', c: ['un sonomètre, en décibels', 'un ampèremètre, en ampères', 'un oscilloscope, en hertz'], e: 'Niveau sonore : <strong>sonomètre</strong>, en <strong>dB</strong>.' },
+      { q: 'À partir de quel niveau sonore l’oreille est-elle en danger ?', c: ['environ 85 dB', 'environ 30 dB', 'environ 10 dB'], e: 'Une exposition prolongée au-delà de <strong>85 dB</strong> abîme l’oreille ; 120 dB est le seuil de douleur.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

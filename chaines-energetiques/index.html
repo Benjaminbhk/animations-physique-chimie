@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chaînes énergétiques</title>
+<meta name="description" content="Simulation interactive : construire la chaîne énergétique d'un convertisseur (lampe, moteur, panneau solaire, éolienne, pile…), visualiser l'énergie utile et l'énergie perdue (conservation de l'énergie), et calculer l'énergie consommée E = P × t. Physique-chimie, Quatrième.">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#b8382a; --accent-soft:#fbe9e6; --accent-ink:#ffffff;
+  --canvas:#fbfcff; --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#ff8a7a; --accent-soft:#3a1d1a; --accent-ink:#14111f;
+    --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#ff8a7a; --accent-soft:#3a1d1a; --accent-ink:#14111f;
+  --canvas:#141821; --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+</style>
+<style>
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lbl{font-weight:600;font-size:.92rem;margin:8px 0 4px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+.chain{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;align-items:center}
+.chain label{font-weight:600;font-size:.9rem}
+.chain select{width:100%}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Chaînes énergétiques</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Un convertisseur reçoit de l'énergie sous une forme et la restitue sous d'autres formes : une partie est
+    <strong>utile</strong>, le reste est <strong>perdu</strong> (le plus souvent sous forme thermique). Rien ne se crée, rien ne se perd :
+    <strong>E<sub>reçue</sub> = E<sub>utile</sub> + E<sub>perdue</sub></strong>.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de chaînes énergétiques">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="ch" aria-pressed="true">🔗 Construire la chaîne</button>
+      <button type="button" class="seg" data-mode="pt" aria-pressed="false">⚡ Puissance et énergie</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Diagramme des énergies reçue, utile et perdue par un convertisseur"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-ch">
+          <h3>1. Choisir un convertisseur</h3>
+          <select id="conv" aria-label="Convertisseur" style="width:100%"></select>
+          <h3 style="margin-top:12px">2. Compléter la chaîne</h3>
+          <div class="chain">
+            <label for="fin">Énergie reçue</label><select id="fin"></select>
+            <label for="fut">Énergie utile</label><select id="fut"></select>
+            <label for="fpe">Énergie perdue</label><select id="fpe"></select>
+          </div>
+          <div class="row"><button id="verif" type="button">Vérifier</button><button id="sol" type="button" class="ghost">Voir la solution</button></div>
+          <div class="res" id="res" aria-live="polite" hidden></div>
+          <div class="info" id="cinfo" style="margin-top:10px"></div>
+        </div>
+        <div id="p-pt" hidden>
+          <h3>1. Choisir un appareil</h3>
+          <div class="grid2" id="apps" role="group" aria-label="Appareil"></div>
+          <h3 style="margin-top:12px">2. Durée de fonctionnement</h3>
+          <div class="row"><label for="dur" style="min-width:4em">Durée</label><input id="dur" type="range" min="0" max="12" step="1" value="6"><output id="dur-out" for="dur" style="min-width:8ch"></output></div>
+          <div class="info" id="pinfo" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Formes d'énergie</h3>électrique · lumineuse · thermique · mécanique (cinétique) · chimique · nucléaire. Unité : le <strong>joule (J)</strong>.</div>
+      <div><h3>Conservation</h3>L'énergie ne disparaît pas : elle est <strong>convertie</strong>. E<sub>reçue</sub> = E<sub>utile</sub> + E<sub>perdue</sub>. L'énergie perdue (souvent thermique) chauffe l'appareil et l'air autour.</div>
+      <div><h3>Puissance</h3><strong>E = P × t</strong> : E en J, P en W, t en s. Avec P en kW et t en h, E est en kWh. 1 kWh = 3,6 × 10<sup>6</sup> J.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-ce"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Rendements donnés à titre indicatif.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const { fmt, sci } = Exo;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'ch';
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const FORMES = ['électrique', 'lumineuse', 'thermique', 'mécanique', 'chimique', 'nucléaire'];
+const COUL = { 'électrique': '#e0a800', 'lumineuse': '#f2d43a', 'thermique': '#e2553f', 'mécanique': '#3a86d4', 'chimique': '#3fae5a', 'nucléaire': '#8e5bd6', 'aucune': '#999' };
+// in, ut, pe (null = aucune), rendement, source, icône, phrase
+const CONV = [
+  { nom: 'Lampe à incandescence', ic: '💡', src: 'le secteur', in: 'électrique', ut: 'lumineuse', pe: 'thermique', r: .05, txt: 'Une lampe à incandescence chauffe beaucoup : 95 % de l’énergie part en chaleur !' },
+  { nom: 'Lampe DEL (LED)', ic: '💡', src: 'le secteur', in: 'électrique', ut: 'lumineuse', pe: 'thermique', r: .35, txt: 'Une DEL donne autant de lumière en recevant bien moins d’énergie : elle perd moins sous forme thermique.' },
+  { nom: 'Moteur de ventilateur', ic: '🌀', src: 'le secteur', in: 'électrique', ut: 'mécanique', pe: 'thermique', r: .75, txt: 'Le moteur fait tourner les pales ; il chauffe un peu (frottements, effet Joule).' },
+  { nom: 'Panneau solaire photovoltaïque', ic: '☀️', src: 'le Soleil (renouvelable)', in: 'lumineuse', ut: 'électrique', pe: 'thermique', r: .20, txt: 'Seule une petite partie de la lumière reçue est convertie en électricité ; le reste chauffe le panneau.' },
+  { nom: 'Éolienne', ic: '🌬️', src: 'le vent (renouvelable)', in: 'mécanique', ut: 'électrique', pe: 'thermique', r: .40, txt: 'Le vent (énergie mécanique) fait tourner les pales et l’alternateur produit de l’électricité.' },
+  { nom: 'Dynamo de vélo', ic: '🚲', src: 'les muscles du cycliste', in: 'mécanique', ut: 'électrique', pe: 'thermique', r: .60, txt: 'La roue entraîne la dynamo (un petit alternateur) qui alimente la lampe du vélo.' },
+  { nom: 'Pile', ic: '🔋', src: 'les réactifs de la pile', in: 'chimique', ut: 'électrique', pe: 'thermique', r: .90, txt: 'Une transformation chimique dans la pile fournit l’énergie électrique.' },
+  { nom: 'Moteur de voiture à essence', ic: '🚗', src: 'le pétrole (non renouvelable)', in: 'chimique', ut: 'mécanique', pe: 'thermique', r: .30, txt: 'La combustion de l’essence libère de l’énergie ; 70 % partent en chaleur (pot d’échappement, radiateur).' },
+  { nom: 'Centrale nucléaire', ic: '⚛️', src: 'l’uranium (non renouvelable)', in: 'nucléaire', ut: 'électrique', pe: 'thermique', r: .33, txt: 'Les deux tiers de l’énergie sont perdus en chaleur, évacuée par les tours de refroidissement.' },
+  { nom: 'Centrale hydroélectrique', ic: '💧', src: 'l’eau du barrage (renouvelable)', in: 'mécanique', ut: 'électrique', pe: 'thermique', r: .90, txt: 'L’eau qui tombe fait tourner une turbine reliée à un alternateur : très bon rendement.' },
+  { nom: 'Radiateur électrique', ic: '♨️', src: 'le secteur', in: 'électrique', ut: 'thermique', pe: null, r: 1, txt: 'Pour un radiateur, l’énergie thermique est justement l’énergie utile : il n’y a pratiquement pas de perte !' },
+  { nom: 'Muscles (corps humain)', ic: '🏃', src: 'les aliments', in: 'chimique', ut: 'mécanique', pe: 'thermique', r: .25, txt: 'Les muscles convertissent l’énergie chimique des aliments ; c’est pour cela qu’on a chaud en faisant du sport.' }
+];
+const C = { i: 0, ok: false, rep: { in: '', ut: '', pe: '' }, t0: 0 };
+function remplir() {
+  const opt = '<option value="">— ? —</option>' + FORMES.map(x => `<option>${x}</option>`).join('');
+  $('fin').innerHTML = opt; $('fut').innerHTML = opt; $('fpe').innerHTML = opt + '<option value="aucune">aucune (pas de perte)</option>';
+}
+function choisir(i) {
+  C.i = i; C.ok = false; remplir(); $('res').hidden = true; C.t0 = performance.now();
+  const c = CONV[i];
+  $('cinfo').innerHTML = `Source d’énergie : <b>${c.src}</b>`;
+  $('msg').innerHTML = `${c.nom} : choisis les formes de l’énergie reçue, utile et perdue, puis vérifie.`;
+}
+function verifier(force) {
+  const c = CONV[C.i], r = $('res'), a = $('fin').value, b = $('fut').value, p = $('fpe').value, pe = c.pe || 'aucune';
+  r.hidden = false;
+  if (force) { $('fin').value = c.in; $('fut').value = c.ut; $('fpe').value = pe; }
+  else if (!a || !b || !p) { r.className = 'res mid'; r.innerHTML = 'Choisis une forme d’énergie dans chacune des trois listes.'; return; }
+  const good = [($('fin').value === c.in), ($('fut').value === c.ut), ($('fpe').value === pe)], n = good.filter(Boolean).length;
+  [['fin', 0], ['fut', 1], ['fpe', 2]].forEach(([id, k]) => $(id).style.borderColor = good[k] ? '#1f8a52' : '#c8323a');
+  if (n === 3) {
+    C.ok = true; r.className = 'res ok';
+    r.innerHTML = (force ? '' : '<strong>Bravo !</strong> ') + c.txt + ` Rendement : environ <strong>${Math.round(c.r * 100)} %</strong>.`;
+    $('msg').innerHTML = `Sur 100 J reçus sous forme ${c.in}, ${Math.round(c.r * 100)} J sont utiles (${c.ut}) et ${100 - Math.round(c.r * 100)} J sont perdus${c.pe ? ' (' + c.pe + ')' : ''}. Total : 100 J, l’énergie se conserve.`;
+  } else { C.ok = false; r.className = 'res ' + (n ? 'mid' : 'ko'); r.innerHTML = `<strong>${n} bonne${n > 1 ? 's' : ''} réponse${n > 1 ? 's' : ''} sur 3.</strong> Les listes en rouge sont à corriger. Indice : que fait l’appareil ? Qu’est-ce qui chauffe ?`; }
+}
+function fleche(x1, x2, y, w, col, sens) {   // bande horizontale terminée par une pointe
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x1, y - w / 2); ctx.lineTo(x2 - 18, y - w / 2); ctx.lineTo(x2 - 18, y - w / 2 - 8); ctx.lineTo(x2, y); ctx.lineTo(x2 - 18, y + w / 2 + 8); ctx.lineTo(x2 - 18, y + w / 2); ctx.lineTo(x1, y + w / 2); ctx.closePath(); ctx.fill();
+}
+function drawCh(now) {
+  const c = CONV[C.i], ink = css('--text'), mut = css('--muted'), gris = 'rgba(140,150,170,.45)';
+  const BX = 410, BY = 190, WIN = 120, k = C.ok ? Math.min(1, (now - C.t1) / 900) : 0;
+  const r = c.r, wu = Math.max(4, WIN * r), wp = c.pe ? Math.max(4, WIN * (1 - r)) : 0;
+  const cin = C.ok ? COUL[c.in] : gris, cut = C.ok ? COUL[c.ut] : gris, cpe = C.ok ? COUL[c.pe] : gris;
+  // entrée
+  fleche(40, BX - 80, BY, WIN, cin);
+  // sortie utile (en haut de la bande)
+  const yU = BY - WIN / 2 + wu / 2;
+  ctx.fillStyle = cut; ctx.fillRect(BX + 80, yU - wu / 2, 0, wu);
+  fleche(BX + 80, 780, yU, wu, cut);
+  // sortie perdue : courbe vers le bas
+  if (wp > 0) {
+    const x0 = BX + 80, y0 = BY + WIN / 2 - wp / 2, R = 60 + wp / 2;
+    ctx.strokeStyle = cpe; ctx.lineWidth = wp; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.arc(x0, y0 + R, R, -Math.PI / 2, 0); ctx.lineTo(x0 + R, 410); ctx.stroke();
+    ctx.fillStyle = cpe; ctx.beginPath(); ctx.moveTo(x0 + R - wp / 2 - 8, 410); ctx.lineTo(x0 + R + wp / 2 + 8, 410); ctx.lineTo(x0 + R, 432); ctx.closePath(); ctx.fill();
+    // vaguelettes de chaleur
+    if (C.ok && c.pe === 'thermique') { ctx.strokeStyle = 'rgba(226,85,63,.6)'; ctx.lineWidth = 2; for (let j = 0; j < 3; j++) { const xx = x0 + R - 24 + j * 24, ph = now / 300 + j; ctx.beginPath(); for (let s = 0; s <= 20; s++) { const yy = 470 - s * 1.6; ctx.lineTo(xx + Math.sin(ph + s * .5) * 4, yy); } ctx.stroke(); } }
+  }
+  // convertisseur
+  ctx.fillStyle = css('--surface'); ctx.strokeStyle = ink; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(BX - 80, BY - 90, 160, 180, 16); ctx.fill(); ctx.stroke();
+  ctx.font = '58px system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = ink; ctx.fillText(c.ic, BX, BY + 10);
+  ctx.font = '600 13px system-ui, sans-serif'; const mots = c.nom.split(' '), l1 = [], l2 = []; mots.forEach(m => ((l1.join(' ') + ' ' + m).length < 18 && !l2.length ? l1 : l2).push(m));
+  ctx.fillText(l1.join(' '), BX, BY + 50); if (l2.length) ctx.fillText(l2.join(' '), BX, BY + 68);
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('convertisseur', BX, BY - 100);
+  // étiquettes
+  const lab = (t1, t2, x, y, col, al) => { ctx.textAlign = al; ctx.fillStyle = col; ctx.font = '700 15px system-ui, sans-serif'; ctx.fillText(t1, x, y); ctx.fillStyle = mut; ctx.font = '13px system-ui, sans-serif'; ctx.fillText(t2, x, y + 18); };
+  lab('Énergie ' + (C.ok ? c.in : '?'), C.ok ? '100 J reçus' : 'reçue', 50, BY - WIN / 2 - 30, ink, 'left');
+  lab('Énergie ' + (C.ok ? c.ut : '?'), C.ok ? `utile : ${Math.round(r * 100)} J` : 'utile', 775, yU - wu / 2 - 30, ink, 'right');
+  if (wp > 0) lab('Énergie ' + (C.ok ? c.pe : '?'), C.ok ? `perdue : ${100 - Math.round(r * 100)} J` : 'perdue', BX + 80 + 60 + wp + 20, 360, ink, 'left');
+  else if (C.ok) lab('Pas de perte', 'toute l’énergie est utile', BX + 100, 330, ink, 'left');
+  // source
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('Source : ' + c.src, 40, 460);
+  // particules d'énergie qui circulent
+  if (C.ok) { ctx.fillStyle = 'rgba(255,255,255,.75)'; for (let j = 0; j < 8; j++) { const u = ((now / 1600) + j / 8) % 1; ctx.beginPath(); ctx.arc(40 + u * (BX - 120 - 40), BY + Math.sin(j * 2.3) * WIN * .3, 3, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(BX + 80 + u * (780 - BX - 100), yU, 2.5, 0, 7); ctx.fill(); } }
+}
+
+/* ---------- puissance et énergie ---------- */
+const APP = [
+  { nom: 'Lampe DEL', P: 8, ic: '💡' }, { nom: 'Lampe à incandescence', P: 60, ic: '💡' }, { nom: 'Chargeur de téléphone', P: 20, ic: '🔌' },
+  { nom: 'Téléviseur', P: 100, ic: '📺' }, { nom: 'Ordinateur portable', P: 45, ic: '💻' }, { nom: 'Bouilloire', P: 2000, ic: '🫖' },
+  { nom: 'Radiateur', P: 1500, ic: '♨️' }, { nom: 'Réfrigérateur', P: 150, ic: '🧊' }
+];
+const DUR = [[1, 'min', 60], [5, 'min', 300], [10, 'min', 600], [15, 'min', 900], [30, 'min', 1800], [45, 'min', 2700], [1, 'h', 3600], [2, 'h', 7200], [3, 'h', 10800], [4, 'h', 14400], [6, 'h', 21600], [8, 'h', 28800], [10, 'h', 36000]];
+const P = { a: 0 };
+const kwh = (a, d) => APP[a].P * DUR[d][2] / 3.6e6;
+function pinfo() {
+  const a = APP[P.a], d = DUR[+$('dur').value], E = a.P * d[2];
+  $('dur-out').textContent = d[0] + ' ' + d[1];
+  $('pinfo').innerHTML = `P = <b>${a.P} W</b> ; t = ${d[0]} ${d[1]} = ${d[2].toLocaleString('fr-FR')} s<br>
+    E = P × t = ${a.P} × ${d[2].toLocaleString('fr-FR')} = <b>${sci(E, 3)} J</b><br>
+    soit E = ${a.P / 1000 < 1 ? fmt(a.P / 1000, 2) : fmt(a.P / 1000, 2)} kW × ${fmt(d[2] / 3600, 3)} h = <b>${fmt(E / 3.6e6, 3)} kWh</b>`;
+  $('msg').innerHTML = `${a.nom} (${a.P} W) pendant ${d[0]} ${d[1]} : ${fmt(E / 3.6e6, 3)} kWh. Compare avec les autres appareils sur le graphique.`;
+}
+function drawPt(now) {
+  const ink = css('--text'), mut = css('--muted'), d = +$('dur').value;
+  const vals = APP.map((x, i) => kwh(i, d)), mx = Math.max(...vals);
+  ctx.fillStyle = ink; ctx.font = '600 14px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(`Énergie consommée en ${DUR[d][0]} ${DUR[d][1]} (kWh)`, 30, 32);
+  const x0 = 250, wmax = 420, h = 40;
+  APP.forEach((a, i) => {
+    const y = 56 + i * 50, w = Math.max(2, wmax * vals[i] / mx), sel = i === P.a;
+    ctx.font = '22px system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = ink; ctx.fillText(a.ic, 30, y + 28);
+    ctx.font = (sel ? '700 ' : '') + '13px system-ui, sans-serif'; ctx.fillText(a.nom, 62, y + 18); ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.fillText(a.P + ' W', 62, y + 34);
+    ctx.fillStyle = sel ? css('--accent') : 'rgba(140,150,170,.45)'; ctx.beginPath(); ctx.roundRect(x0, y + 6, w, h - 12, 5); ctx.fill();
+    ctx.fillStyle = sel ? css('--accent') : mut; ctx.font = (sel ? '700 ' : '') + '13px system-ui, sans-serif';
+    ctx.fillText(fmt(vals[i], 3) + ' kWh', x0 + w + 8, y + 25);
+  });
+  // compteur
+  const E = vals[P.a], cx = 700, cy = 440;
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(cx - 100, cy - 28, 200, 40, 8); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 20px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center';
+  const prog = Math.min(1, (now - P.t0) / 1500); ctx.fillText((E * prog).toFixed(3).replace('.', ',') + ' kWh', cx, cy);
+  ctx.fillStyle = mut; ctx.font = '11px system-ui, sans-serif'; ctx.fillText('compteur électrique', cx, cy - 34);
+}
+$('conv').innerHTML = CONV.map((c, i) => `<option value="${i}">${c.nom}</option>`).join('');
+$('conv').addEventListener('change', () => choisir(+$('conv').value));
+['fin', 'fut', 'fpe'].forEach(id => $(id).addEventListener('change', () => { $(id).style.borderColor = ''; }));
+$('verif').addEventListener('click', () => { verifier(false); C.t1 = performance.now(); });
+$('sol').addEventListener('click', () => { verifier(true); C.t1 = performance.now(); });
+$('apps').innerHTML = APP.map((a, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === 0}">${a.nom}</button>`).join('');
+$('apps').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  P.a = +b.dataset.i; $('apps').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); P.t0 = performance.now(); pinfo();
+}));
+$('dur').addEventListener('input', () => { P.t0 = performance.now(); pinfo(); });
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('p-ch').hidden = mode !== 'ch'; $('p-pt').hidden = mode !== 'pt';
+  if (mode === 'pt') { P.t0 = performance.now(); pinfo(); } else choisir(C.i);
+}));
+function loop(now) {
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'ch' ? drawCh(now) : drawPt(now);
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); choisir(0); P.t0 = 0;
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte, sci } = Exo;
+const RAPPEL = `Conservation de l'énergie : E<sub>reçue</sub> = E<sub>utile</sub> + E<sub>perdue</sub>.
+  Énergie et puissance : E = P × t (E en J, P en W, t en s). 1 kWh = 3,6 × 10<sup>6</sup> J ; 1 h = 3 600 s.`;
+const CV = [
+  ['une lampe à incandescence', 'électrique', 'lumineuse', 'thermique'], ['une lampe DEL', 'électrique', 'lumineuse', 'thermique'],
+  ['un moteur électrique', 'électrique', 'mécanique', 'thermique'], ['un panneau solaire photovoltaïque', 'lumineuse', 'électrique', 'thermique'],
+  ['une éolienne', 'mécanique', 'électrique', 'thermique'], ['une pile', 'chimique', 'électrique', 'thermique'],
+  ['un moteur à essence', 'chimique', 'mécanique', 'thermique'], ['une centrale nucléaire', 'nucléaire', 'électrique', 'thermique'],
+  ['une dynamo de vélo', 'mécanique', 'électrique', 'thermique']
+];
+const F = ['électrique', 'lumineuse', 'thermique', 'mécanique', 'chimique', 'nucléaire'];
+const opts = (bonne) => { const c = shuffle([bonne, ...shuffle(F.filter(x => x !== bonne)).slice(0, 3)]); return { choix: c, rep: c.indexOf(bonne) }; };
+Exo.monter('exo-ce', [
+  { id: 'cons', label: 'Énergie perdue', rappel: RAPPEL, gen() {
+    const c = pick(CV), Er = rnd(200, 9000, 3), r = pick([0.05, 0.20, 0.25, 0.30, 0.35, 0.40, 0.60, 0.75, 0.80, 0.90]), Eu = Math.round(Er * r);
+    return {
+      enonce: `<p>Pendant une certaine durée, ${c[0]} reçoit une énergie <strong>E<sub>reçue</sub> = ${fmt(Er, 3)} J</strong> sous forme ${c[1]}. Elle fournit une énergie utile <strong>E<sub>utile</sub> = ${fmt(Eu, 3)} J</strong> sous forme ${c[2]}.</p>`,
+      questions: [
+        { label: '1. Calcule l’énergie perdue.', unite: 'J', rep: Er - Eu, cs: 3 },
+        { label: '2. Sous quelle forme cette énergie est-elle principalement perdue ?', ...opts(c[3]) },
+        { label: '3. Quelle fraction de l’énergie reçue est utile (en %) ?', unite: '%', rep: Eu / Er * 100, cs: 2 }
+      ],
+      correction: etape({ q: '1.', lit: 'E<sub>reçue</sub> = E<sub>utile</sub> + E<sub>perdue</sub> donc E<sub>perdue</sub> = E<sub>reçue</sub> − E<sub>utile</sub>', an: `E<sub>perdue</sub> = ${fmt(Er, 3)} − ${fmt(Eu, 3)}`, res: `E<sub>perdue</sub> = ${res(Er - Eu, 3, 'J')}` }) +
+        texte('2.', `L’appareil chauffe : l’énergie est perdue sous forme <strong>${c[3]}</strong>.`) +
+        etape({ q: '3.', lit: 'η = E<sub>utile</sub> / E<sub>reçue</sub> × 100', an: `η = ${fmt(Eu, 3)} / ${fmt(Er, 3)} × 100`, res: `η = ${res(Eu / Er * 100, 2, '%')}` })
+    };
+  } },
+  { id: 'ept', label: 'E = P × t', rappel: RAPPEL, gen() {
+    const A = pick([['une bouilloire', 2000, 'min', 3, 8], ['un sèche-cheveux', 1200, 'min', 5, 20], ['un téléviseur', 120, 'h', 2, 5], ['une lampe DEL', 9.0, 'h', 3, 10], ['un radiateur', 1500, 'h', 2, 8], ['un four', 2500, 'min', 30, 60]]);
+    const t = irnd(A[3], A[4]), ts = A[2] === 'min' ? t * 60 : t * 3600, E = A[1] * ts;
+    return {
+      enonce: `<p>${A[0].replace(/^./, c => c.toUpperCase())} de puissance <strong>P = ${fmt(A[1], 2)} W</strong> fonctionne pendant <strong>t = ${t} ${A[2]}</strong>.</p>`,
+      questions: [
+        { label: '1. Convertis la durée en secondes.', unite: 's', rep: ts, cs: 0 },
+        { label: '2. Calcule l’énergie électrique reçue, en joules.', unite: 'J', rep: E, cs: 2 },
+        { label: '3. Exprime cette énergie en kWh.', unite: 'kWh', rep: E / 3.6e6, cs: 2 }
+      ],
+      correction: etape({ q: '1.', lit: A[2] === 'min' ? '1 min = 60 s' : '1 h = 3 600 s', an: `t = ${t} × ${A[2] === 'min' ? 60 : '3 600'}`, res: `t = <span class="exo-res">${ts.toLocaleString('fr-FR')} s</span>` }) +
+        etape({ q: '2.', note: 'La puissance est donnée avec 2 chiffres significatifs.', lit: 'E = P × t', an: `E = ${fmt(A[1], 2)} × ${ts.toLocaleString('fr-FR')}`, res: `E = ${res(E, 2, 'J')}` }) +
+        etape({ q: '3.', lit: '1 kWh = 3,6 × 10<sup>6</sup> J', an: `E = ${sci(E, 2)} / (3,6 × 10<sup>6</sup>)`, res: `E = ${res(E / 3.6e6, 2, 'kWh')}` })
+    };
+  } },
+  { id: 'chaine', label: 'Compléter une chaîne', gen() {
+    const c = pick(CV);
+    return {
+      enonce: `<p>On étudie la chaîne énergétique de <strong>${c[0]}</strong>.</p><p class="exo-small">Réservoir / source → <strong>convertisseur</strong> → énergie utile, + énergie perdue.</p>`,
+      questions: [
+        { label: '1. Sous quelle forme reçoit-il de l’énergie ?', ...opts(c[1]) },
+        { label: '2. Quelle est l’énergie utile ?', ...opts(c[2]) },
+        { label: '3. Quelle est l’énergie perdue ?', ...opts(c[3]) }
+      ],
+      correction: texte('', `${c[0].replace(/^./, x => x.toUpperCase())} : énergie <strong>${c[1]}</strong> → [convertisseur] → énergie <strong>${c[2]}</strong> (utile) + énergie <strong>${c[3]}</strong> (perdue).`)
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'Laquelle de ces sources d’énergie est renouvelable ?', c: [pick(['le vent', 'le Soleil', 'la chaleur de la Terre (géothermie)', 'l’eau des barrages']), pick(['le pétrole', 'le charbon']), pick(['le gaz naturel', 'l’uranium'])], e: 'Le vent, le Soleil, la géothermie, l’eau des barrages, la biomasse sont <strong>renouvelables</strong> ; pétrole, charbon, gaz, uranium ne le sont pas.' },
+      { q: 'L’unité de l’énergie dans le Système international est…', c: ['le joule (J)', 'le watt (W)', 'le volt (V)'], e: 'Énergie : <strong>joule</strong>. Puissance : watt. Tension : volt.' },
+      { q: 'Dans un convertisseur, l’énergie totale sortante est…', c: ['égale à l’énergie reçue', 'plus grande que l’énergie reçue', 'toujours nulle'], e: '<strong>Conservation de l’énergie</strong> : E<sub>reçue</sub> = E<sub>utile</sub> + E<sub>perdue</sub>.' },
+      { q: 'Une pile stocke de l’énergie sous forme…', c: ['chimique', 'électrique', 'lumineuse'], e: 'La pile est un <strong>réservoir d’énergie chimique</strong>, qu’elle convertit en énergie électrique.' },
+      { q: 'Pourquoi une lampe DEL consomme-t-elle moins qu’une lampe à incandescence ?', c: ['Elle perd beaucoup moins d’énergie sous forme thermique', 'Elle produit moins de lumière', 'Elle ne reçoit pas d’énergie électrique'], e: 'Pour la même lumière, la DEL <strong>chauffe beaucoup moins</strong> : moins de pertes thermiques.' },
+      { q: 'Un alternateur convertit de l’énergie…', c: ['mécanique en énergie électrique', 'électrique en énergie mécanique', 'chimique en énergie lumineuse'], e: 'L’alternateur (dans une centrale, une éolienne, une dynamo) convertit l’énergie <strong>mécanique en électrique</strong>. Le moteur fait l’inverse.' },
+      { q: 'Un appareil de 1 000 W fonctionnant 1 h consomme…', c: ['1 kWh', '1 000 J', '1 W'], e: 'E = P × t = 1 kW × 1 h = <strong>1 kWh</strong> (= 3,6 × 10<sup>6</sup> J).' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

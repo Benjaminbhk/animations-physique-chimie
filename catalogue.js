@@ -226,5 +226,55 @@ window.CATALOGUE = [
     chapitre: "Mouvements dans le Système solaire",
     mots: ["rétrogradation", "Mars", "référentiel", "héliocentrique", "géocentrique", "ligne de visée", "opposition", "exercices"],
     statut: "en-ligne"
+  },
+  {
+    dossier: "masse-volumique",
+    titre: "La masse volumique",
+    resume: "Peser un objet, mesurer son volume par déplacement d'eau dans une éprouvette, calculer ρ = m / V et identifier le matériau. Pour les liquides : la masse est proportionnelle au volume. Exercices corrigés.",
+    theme: "matiere-4",
+    niveau: "quatrieme",
+    chapitre: "Masse volumique",
+    mots: ["masse volumique", "éprouvette", "balance", "volume", "proportionnalité", "flotter", "couler", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "melanges-solubilite",
+    titre: "Mélanges et solubilité",
+    resume: "Dissoudre un solide dans l'eau sur une balance : conservation de la masse, solubilité, solution saturée, modèle particulaire. Mélanger l'eau avec d'autres liquides ou du sable : homogène ou hétérogène, miscibilité. Exercices corrigés.",
+    theme: "matiere-4",
+    niveau: "quatrieme",
+    chapitre: "Mélanges et dissolution",
+    mots: ["dissolution", "solubilité", "saturée", "soluté", "solvant", "miscible", "homogène", "hétérogène", "conservation de la masse", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "chaines-energetiques",
+    titre: "Chaînes énergétiques",
+    resume: "Construire la chaîne énergétique d'un convertisseur (lampe, moteur, panneau solaire, éolienne, pile…) : énergie reçue, utile et perdue, conservation de l'énergie. Puissance et énergie consommée E = P × t. Exercices corrigés.",
+    theme: "energie-4",
+    niveau: "quatrieme",
+    chapitre: "Formes et conversions d'énergie",
+    mots: ["énergie", "convertisseur", "chaîne énergétique", "conservation", "rendement", "puissance", "kWh", "renouvelable", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "le-son",
+    titre: "Le son",
+    resume: "Propagation du son de proche en proche dans l'air, l'eau, l'acier, pas dans le vide. Fréquence, période, sons graves et aigus, infrasons et ultrasons, domaines d'audition, niveau sonore en décibels. Exercices corrigés.",
+    theme: "signaux-4",
+    niveau: "quatrieme",
+    chapitre: "Signaux sonores",
+    mots: ["son", "vibration", "propagation", "vitesse du son", "vide", "fréquence", "période", "ultrasons", "décibels", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "ombres-phases-lune",
+    titre: "Ombres, phases de la Lune et éclipses",
+    resume: "Propagation rectiligne de la lumière : ombre propre, ombre portée et pénombre. Les phases de la Lune vues de l'espace et depuis la Terre, puis les éclipses de Lune et de Soleil. Exercices corrigés.",
+    theme: "signaux-4",
+    niveau: "quatrieme",
+    chapitre: "Signaux lumineux",
+    mots: ["lumière", "propagation rectiligne", "ombre", "pénombre", "phases de la Lune", "éclipse", "Soleil", "Terre", "exercices"],
+    statut: "en-ligne"
   }
 ];
