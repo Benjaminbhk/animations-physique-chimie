@@ -557,13 +557,25 @@ function withWob(c, f, a, fn) {
 }
 
 /* ---------- bécher de solvant qu'on incline ---------- */
+/* position du bécher pour que, une fois incliné, son bec soit juste au-dessus de la cible (filet vertical) */
+function pourSpot(t, gap = 38) { const p = rot2(-36, -82, -Math.PI / 3); return { x: t.x - p.x, y: t.y - gap - p.y }; }
+/* déplacer le bécher, l'incliner, verser, le redresser et le ramener */
+function pourMove(seq, S, home, to, tiltSet, pourStepObj) {
+  let a, b;
+  seq.add({ dur: .9, start() { a = { x: S.x, y: S.y }; b = pourSpot(to()); },
+            fn(k) { const e = ease(k); S.x = lerp(a.x, b.x, e); S.y = lerp(a.y, b.y, e) - Math.sin(Math.PI * k) * 25; } })
+     .add({ dur: .7, fn(k) { tiltSet(ease(k)); } })
+     .add(pourStepObj)
+     .add({ dur: .7, fn(k) { tiltSet(1 - ease(k)); } })
+     .add({ dur: .9, start() { a = { x: S.x, y: S.y }; },
+            fn(k) { const e = ease(k); S.x = lerp(a.x, home.x, e); S.y = lerp(a.y, home.y, e) - Math.sin(Math.PI * k) * 25; } });
+}
 function sourceSpout(bx, by, tilt) { const a = -tilt * Math.PI / 3, p = rot2(-36, -82, a); return { x: bx + p.x, y: by + p.y }; }
 function drawSource(c, bx, by, tilt, rem, pouring, target) {
   const a = -tilt * Math.PI / 3, sp = rot2(-36, -82, a);
   if (pouring) {
     c.strokeStyle = `rgba(${C.water},0.75)`; c.lineWidth = 6; c.lineCap = 'round';
-    c.beginPath(); c.moveTo(bx + sp.x, by + sp.y + 2);
-    c.quadraticCurveTo(bx + sp.x - 14, by + sp.y + 30, target.x, target.y); c.stroke(); c.lineCap = 'butt';
+    c.beginPath(); c.moveTo(bx + sp.x, by + sp.y + 2); c.lineTo(bx + sp.x, target.y); c.stroke(); c.lineCap = 'butt';
   }
   c.save(); c.translate(bx, by); c.rotate(a);
   c.save(); c.beginPath(); c.rect(-34, -82, 68, 82); c.clip();
@@ -592,7 +604,7 @@ const SRC_D = { x: 735, y: 330 };
 const FLY = .9;                    // durée de chute d'un grain (s)
 const D = { N: 150, phase: 'dish', dish: { x: DISH.x, y: DISH.y, a: 0 }, funnel: 1, fOff: 0,
             stopper: false, stir: false, homog: false, wa: 0, wt: 0, wob: 0,
-            tilt: 0, rem: 1, pouring: false, pourTo: null, acc: 0, seq: new Seq(), order: [] };
+            tilt: 0, rem: 1, pouring: false, pourTo: null, acc: 0, seq: new Seq(), order: [], src: { x: SRC_D.x, y: SRC_D.y } };
 
 function funnelGeo() {
   const T = bD.base - bD.top + D.fOff;
@@ -620,7 +632,7 @@ function dReset() {
   D.seq.clear(); bD.setVol(+$('d-vf').value); bD.V = 0; bD.agit = 0; bD.agitMin = 0; bD.swirl = 0;
   D.N = +$('d-n').value;
   Object.assign(D, { phase: 'dish', dish: { x: DISH.x, y: DISH.y, a: 0 }, funnel: 1, fOff: 0, stopper: false, stir: false,
-    homog: false, wa: 0, wob: 0, tilt: 0, rem: 1, pouring: false, acc: 0 });
+    homog: false, wa: 0, wob: 0, tilt: 0, rem: 1, pouring: false, acc: 0, src: { x: SRC_D.x, y: SRC_D.y } });
   dPile(); dUI(true);
 }
 const dCount = st => bD.parts.reduce((n, p) => n + (p.st === st), 0);
@@ -658,16 +670,15 @@ $('d-b1').addEventListener('click', () => {
 });
 function pourStep(seq, v1, dur, to, remEnd, endFn) {
   let v0, r0;
-  seq.add({ dur: .7, fn(k) { D.tilt = ease(k); } })
-     .add({ dur, start() { D.pouring = true; D.pourTo = to; v0 = bD.V; r0 = D.rem; },
-            fn(k) { bD.V = lerp(v0, v1, k); D.rem = lerp(r0, remEnd, k); bD.agit = Math.max(bD.agit, .7); },
-            end() { D.pouring = false; } })
-     .add({ dur: .7, fn(k) { D.tilt = 1 - ease(k); }, end: endFn });
+  pourMove(seq, D.src, SRC_D, to, t => { D.tilt = t; },
+    { dur, start() { D.pouring = true; D.pourTo = to; v0 = bD.V; r0 = D.rem; },
+      fn(k) { bD.V = lerp(v0, v1, k); D.rem = lerp(r0, remEnd, k); bD.agit = Math.max(bD.agit, .7); },
+      end() { D.pouring = false; } });
 }
 $('d-b2').addEventListener('click', () => {
   if (D.phase !== 'solid' || D.seq.busy) return;
   D.phase = 'pour1'; dUI(true);
-  pourStep(D.seq, bD.Vf * .55, 3.2, () => ({ x: bD.cx + 6, y: funnelGeo().mouth }), .55);
+  pourStep(D.seq, bD.Vf * .55, 3.2, () => ({ x: bD.cx, y: funnelGeo().mouth }), .55);
   D.seq.add({ dur: .9, fn(k) { D.fOff = -70 * ease(k); D.funnel = 1 - k; },
               end() { D.funnel = 0; D.phase = dSolid() ? 'dissolving' : 'dissolved'; dUI(true); } });
 });
@@ -679,7 +690,7 @@ $('d-b3').addEventListener('click', () => {
 $('d-b4').addEventListener('click', () => {
   if (D.phase !== 'dissolved' || D.seq.busy) return;
   D.stir = false; bD.agitMin = 0; bD.swirl = 0; D.stopper = false; D.phase = 'fill'; dUI(true);
-  pourStep(D.seq, bD.Vf, 3.4, () => ({ x: bD.cx + 2, y: bD.base - bD.top - 2 }), .15);
+  pourStep(D.seq, bD.Vf, 3.4, () => ({ x: bD.cx, y: bD.base - bD.top - 2 }), .15);
   D.seq.add({ dur: 1.8, start() { D.stopper = true; D.homog = true; bD.swirl = 2; },
               fn() { bD.agit = Math.max(bD.agit, 1); },
               end() { D.homog = false; bD.swirl = 0; D.phase = 'done'; dUI(true); } });
@@ -771,8 +782,8 @@ function dDraw() {
     label(c, 'Soluté (solide)', DISH.x, DISH.y - 70, C.text, 14);
   }
   // bécher d'eau distillée
-  drawSource(c, SRC_D.x, SRC_D.y, D.tilt, D.rem, D.pouring, D.pourTo ? D.pourTo() : { x: 0, y: 0 });
-  label(c, 'Eau distillée = solvant', SRC_D.x, SRC_D.y - 108, C.muted, 13, 500);
+  drawSource(c, D.src.x, D.src.y, D.tilt, D.rem, D.pouring, D.pourTo ? D.pourTo() : { x: 0, y: 0 });
+  if (Math.hypot(D.src.x - SRC_D.x, D.src.y - SRC_D.y) < 1) label(c, 'Eau distillée = solvant', SRC_D.x, SRC_D.y - 108, C.muted, 13, 500);
   const st = { dish: 'Fiole jaugée vide', moving: 'Le solide passe par l\'entonnoir', solid: 'Soluté seul (solide)', pour1: 'Rinçage : soluté + solvant',
                dissolving: 'Dissolution en cours…', dissolved: 'Tout est dissous, mais V < volume de la fiole',
                fill: 'On complète jusqu\'au trait de jauge', done: 'Solution homogène' }[D.phase];
@@ -821,7 +832,7 @@ const PIP_L = 280, TIP_M = 700 - 18, OUT = .75;
 const restY = () => Math.min(430, bF.base - bF.top - 18);
 const tipF = () => bF.base - (bF.mark - 40);            // pointe de la pipette dans le col, sous le trait de jauge
 const Ld = { N: 200, Vp: 20, phase: 'idle', pip: { x: 220, y: 430, fill: 0 }, pp: [], pending: [], n: 0, cap: 0, rel: 0,
-             tilt: 0, rem: 1, pouring: false, stopper: false, homog: false, wa: 0, wt: 0, wob: 0, seq: new Seq() };
+             tilt: 0, rem: 1, pouring: false, stopper: false, homog: false, wa: 0, wt: 0, wob: 0, seq: new Seq(), src: { x: SRC_L.x, y: SRC_L.y } };
 const bulb = () => ({ w: 16 + Ld.Vp * .6, h: 50 + Ld.Vp * 1.0 });
 
 function lSyncVp() {                 // la pipette doit être plus petite que la fiole
@@ -836,7 +847,7 @@ function lReset() {
   bM.V = 100; bM.parts = []; for (let i = 0; i < Ld.N; i++) bM.parts.push(bM.randomPoint(bM.h));
   bF.V = 0; bF.parts = []; bF.agit = 0; bF.swirl = 0; bM.agit = 0;
   Ld.pip = { x: bM.cx, y: restY(), fill: 0 }; Ld.pp = []; Ld.pending = []; Ld.n = 0; Ld.cap = 0; Ld.rel = 0;
-  Object.assign(Ld, { tilt: 0, rem: 1, pouring: false, stopper: false, homog: false, wa: 0, wob: 0, phase: 'idle' });
+  Object.assign(Ld, { tilt: 0, rem: 1, pouring: false, stopper: false, homog: false, wa: 0, wob: 0, phase: 'idle', src: { x: SRC_L.x, y: SRC_L.y } });
   lUI(true);
 }
 $('l-n').addEventListener('input', () => { if (!Ld.seq.busy) lReset(); });
@@ -894,15 +905,16 @@ $('l-b2').addEventListener('click', () => {
     .add({ dur: 1.0, fn(k) { Ld.pip.y = lerp(T, R, ease(k)); } })
     .add({ dur: .8, fn(k) { Ld.pip.x = lerp(bF.cx, 425, ease(k)); }, end() { Ld.phase = 'transferred'; lUI(true); } });
 });
+const lTarget = () => ({ x: bF.cx, y: bF.base - bF.top - 2 });
 $('l-b3').addEventListener('click', () => {
   if (Ld.phase !== 'transferred' || Ld.seq.busy) return;
   let v0;
-  Ld.seq
-    .add({ dur: .7, start() { Ld.phase = 'pour'; lUI(true); }, fn(k) { Ld.tilt = ease(k); } })
-    .add({ dur: 3.6, start() { Ld.pouring = true; v0 = bF.V; },
+  Ld.phase = 'pour'; lUI(true);
+  pourMove(Ld.seq, Ld.src, SRC_L, lTarget, t => { Ld.tilt = t; },
+    { dur: 3.6, start() { Ld.pouring = true; v0 = bF.V; },
       fn(k) { bF.V = lerp(v0, bF.Vf, k); Ld.rem = 1 - .75 * k; bF.agit = Math.max(bF.agit, 1); },
-      end() { Ld.pouring = false; } })
-    .add({ dur: .7, fn(k) { Ld.tilt = 1 - ease(k); } })
+      end() { Ld.pouring = false; } });
+  Ld.seq
     .add({ dur: 1.8, start() { Ld.stopper = true; Ld.homog = true; bF.swirl = 2; }, fn() { bF.agit = Math.max(bF.agit, 1); },
       end() { Ld.homog = false; bF.swirl = 0; Ld.phase = 'done'; lUI(true); } });
 });
@@ -992,8 +1004,8 @@ function lDraw() {
   drawPipette(c);
   bM.drawSurface(c); bM.drawFront(c);
   withWob(c, bF, Ld.wob, () => { bF.drawSurface(c); bF.drawFront(c); if (Ld.stopper) bF.drawStopper(c); });
-  drawSource(c, SRC_L.x, SRC_L.y, Ld.tilt, Ld.rem, Ld.pouring, { x: bF.cx + 2, y: bF.base - bF.top - 2 });
-  label(c, 'Eau distillée', SRC_L.x - 10, SRC_L.y - 108, C.muted, 13, 500);
+  drawSource(c, Ld.src.x, Ld.src.y, Ld.tilt, Ld.rem, Ld.pouring, lTarget());
+  if (Math.hypot(Ld.src.x - SRC_L.x, Ld.src.y - SRC_L.y) < 1) label(c, 'Eau distillée', SRC_L.x - 10, SRC_L.y - 108, C.muted, 13, 500);
   label(c, 'Solution mère (bécher)', bM.cx, 758);
   label(c, bF.V > 0 ? `Solution fille (fiole jaugée ${fmt(bF.Vf, 1)} mL)` : `Fiole jaugée vide (${fmt(bF.Vf, 1)} mL)`, bF.cx, 758);
 }
