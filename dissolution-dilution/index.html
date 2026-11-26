@@ -52,7 +52,7 @@ header.top a{font-size:.95rem;text-decoration:none}
 .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
 canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);
   touch-action:pan-y;cursor:grab;border:1px solid var(--border)}
-canvas.diss{aspect-ratio:900/600} canvas.dil{aspect-ratio:900/720}
+canvas.diss{aspect-ratio:900/600} canvas.dil{aspect-ratio:900/780}
 .controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:12px 0 6px}
 .ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ctrl label{font-weight:600;font-size:.95rem}
@@ -452,10 +452,10 @@ class Flask extends Beaker {
   constructor(sc, o) { super(sc, o); this.setVol(this.Vf || 100); }
   setVol(Vf) {
     this.Vf = Vf;
-    const s = Math.cbrt(Vf / 100), Rb = 70 * s;
+    const s = Math.cbrt(Vf / 100), Rb = 86 * s;
     this.Rb = this.R = Rb; this.c = .62 * Rb; this.rn = 9 + 3 * s;
     this.yj = this.c + Math.sqrt(Rb * Rb - this.rn * this.rn);   // raccord boule / col
-    this.mark = this.yj + 60; this.top = this.mark + 40; this.H = this.top;
+    this.mark = this.yj + 62; this.top = this.mark + 42; this.H = this.top;
     const dy = this.dy = .5, n = Math.ceil(this.top / dy) + 2;
     this.tab = new Float64Array(n);
     for (let i = 1; i < n; i++) { const r = this.prof((i - .5) * dy); this.tab[i] = this.tab[i - 1] + Math.PI * r * r * dy; }
@@ -813,14 +813,14 @@ function dUI(force) {
 /* =====================================================================
    2. DILUTION
    ===================================================================== */
-const lsc = new Scene($('cv-dil'), 900, 720, $('l-rot'));
-const bM = new Beaker(lsc, { cx: 240, base: 640, R: 100, H: 225, V: 100 });
-const bF = new Flask(lsc, { cx: 640, base: 640, Vf: 100 });
-const SRC_L = { x: 838, y: 330 };
-const PIP_L = 280, TIP_M = 640 - 18, OUT = .75;
-const restY = () => Math.min(370, bF.base - bF.top - 18);
+const lsc = new Scene($('cv-dil'), 900, 780, $('l-rot'));
+const bM = new Beaker(lsc, { cx: 220, base: 700, R: 100, H: 225, V: 100 });
+const bF = new Flask(lsc, { cx: 630, base: 700, Vf: 100 });
+const SRC_L = { x: 845, y: 390 };
+const PIP_L = 280, TIP_M = 700 - 18, OUT = .75;
+const restY = () => Math.min(430, bF.base - bF.top - 18);
 const tipF = () => bF.base - (bF.mark - 40);            // pointe de la pipette dans le col, sous le trait de jauge
-const Ld = { N: 200, Vp: 20, phase: 'idle', pip: { x: 240, y: 370, fill: 0 }, pp: [], pending: [], n: 0, cap: 0, rel: 0,
+const Ld = { N: 200, Vp: 20, phase: 'idle', pip: { x: 220, y: 430, fill: 0 }, pp: [], pending: [], n: 0, cap: 0, rel: 0,
              tilt: 0, rem: 1, pouring: false, stopper: false, homog: false, wa: 0, wt: 0, wob: 0, seq: new Seq() };
 const bulb = () => ({ w: 16 + Ld.Vp * .6, h: 50 + Ld.Vp * 1.0 });
 
@@ -892,7 +892,7 @@ $('l-b2').addEventListener('click', () => {
         }
       } })
     .add({ dur: 1.0, fn(k) { Ld.pip.y = lerp(T, R, ease(k)); } })
-    .add({ dur: .8, fn(k) { Ld.pip.x = lerp(bF.cx, 440, ease(k)); }, end() { Ld.phase = 'transferred'; lUI(true); } });
+    .add({ dur: .8, fn(k) { Ld.pip.x = lerp(bF.cx, 425, ease(k)); }, end() { Ld.phase = 'transferred'; lUI(true); } });
 });
 $('l-b3').addEventListener('click', () => {
   if (Ld.phase !== 'transferred' || Ld.seq.busy) return;
@@ -994,8 +994,8 @@ function lDraw() {
   withWob(c, bF, Ld.wob, () => { bF.drawSurface(c); bF.drawFront(c); if (Ld.stopper) bF.drawStopper(c); });
   drawSource(c, SRC_L.x, SRC_L.y, Ld.tilt, Ld.rem, Ld.pouring, { x: bF.cx + 2, y: bF.base - bF.top - 2 });
   label(c, 'Eau distillée', SRC_L.x - 10, SRC_L.y - 108, C.muted, 13, 500);
-  label(c, 'Solution mère (bécher)', bM.cx, 698);
-  label(c, bF.V > 0 ? `Solution fille (fiole jaugée ${fmt(bF.Vf, 1)} mL)` : `Fiole jaugée vide (${fmt(bF.Vf, 1)} mL)`, bF.cx, 698);
+  label(c, 'Solution mère (bécher)', bM.cx, 758);
+  label(c, bF.V > 0 ? `Solution fille (fiole jaugée ${fmt(bF.Vf, 1)} mL)` : `Fiole jaugée vide (${fmt(bF.Vf, 1)} mL)`, bF.cx, 758);
 }
 function lUI(force) {
   const nM = bM.parts.length, nF = bF.parts.length, nP = Ld.pp.length, Vf = bF.Vf;
