@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'air qui nous entoure</title>
+<meta name="description" content="Simulation interactive : composition de l'air (diazote, dioxygène), air inspiré et expiré, l'air a une masse (1 L d'air ≈ 1,2 g), compression de l'air dans une seringue et pression (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#7a3fd0; --accent-soft:#efe7fd; --accent-ink:#ffffff; --canvas:#fbfcff;
+  --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f; --canvas:#141821;
+    --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#b48cff; --accent-soft:#2a2042; --accent-ink:#14111f; --canvas:#141821;
+  --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+.leg{display:flex;flex-wrap:wrap;gap:10px;font-size:.88rem;color:var(--muted);margin-top:6px}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>L'air qui nous entoure</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">L'air est un <strong>mélange de gaz</strong>, surtout du diazote et du dioxygène. Zoome sur ses molécules,
+    compare l'air que l'on inspire et celui que l'on expire, découvre que <strong>l'air a une masse</strong>, puis
+    comprime-le dans une seringue pour voir pourquoi un gaz est <strong>compressible</strong>.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation sur l'air">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="comp" aria-pressed="true">🔬 Composition de l'air</button>
+      <button type="button" class="seg" data-mode="masse" aria-pressed="false">⚖ L'air a une masse</button>
+      <button type="button" class="seg" data-mode="comp2" aria-pressed="false">💉 Comprimer l'air</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Modèle moléculaire de l'air"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-comp">
+          <h3>Quel air ?</h3>
+          <div class="grid2" role="group" aria-label="Air">
+            <button type="button" class="seg" data-air="in" aria-pressed="true">Air inspiré</button>
+            <button type="button" class="seg" data-air="ex" aria-pressed="false">Air expiré</button>
+          </div>
+          <h3 style="margin-top:12px">Observer les molécules</h3>
+          <div class="grid2">
+            <button type="button" id="trier">Trier les molécules</button>
+            <button type="button" id="melanger" class="ghost">Les mélanger</button>
+          </div>
+          <label class="check"><input type="checkbox" id="lent"> Ralentir l'agitation</label>
+          <div class="info" id="cinfo" style="margin-top:10px"></div>
+          <div class="leg"><span><i style="background:#3b7dd8"></i>diazote N₂</span><span><i style="background:#e0453a"></i>dioxygène O₂</span>
+            <span><i style="background:#3a3f4a"></i>dioxyde de carbone CO₂</span><span><i style="background:#c9a227"></i>argon Ar</span></div>
+        </div>
+        <div id="p-masse" hidden>
+          <h3>Une bouteille rigide fermée par une valve</h3>
+          <p class="sub" style="margin:0">Chaque coup de pompe fait entrer 0,25 L d'air (pris à la pression de la pièce).</p>
+          <div class="grid2" style="margin-top:8px">
+            <button type="button" id="pomper">Un coup de pompe</button>
+            <button type="button" id="valve" class="ghost">Ouvrir la valve</button>
+          </div>
+          <table class="t" style="margin-top:10px" aria-label="Mesures">
+            <thead><tr><th>Coups</th><th>Air ajouté</th><th>Masse</th><th>Δm</th></tr></thead>
+            <tbody id="mtab"></tbody>
+          </table>
+          <div class="info" id="minfo" style="margin-top:10px"></div>
+          <h3 style="margin-top:12px">Ta conclusion</h3>
+          <div class="row"><label for="mq" style="min-width:auto">1 L d'air a une masse d'environ</label>
+            <input id="mq" type="text" inputmode="decimal" style="width:7ch;font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)"> g
+            <button type="button" id="mverif">Vérifier</button></div>
+          <div class="res" id="mres" aria-live="polite" hidden></div>
+        </div>
+        <div id="p-comp2" hidden>
+          <h3>Contenu de la seringue</h3>
+          <div class="grid2" role="group" aria-label="Contenu">
+            <button type="button" class="seg" data-fl="air" aria-pressed="true">Air</button>
+            <button type="button" class="seg" data-fl="eau" aria-pressed="false">Eau</button>
+          </div>
+          <label class="check"><input type="checkbox" id="bouche" checked> Embout bouché (relié au manomètre)</label>
+          <div class="row"><label for="vs" style="min-width:5em">Piston</label><input id="vs" type="range" min="10" max="60" step="1" value="60"><output id="vs-out" for="vs" style="min-width:6ch"></output></div>
+          <div class="info" id="sinfo" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Composition de l'air</h3>Environ <strong>78 % de diazote N₂</strong> (≈ 4/5) et <strong>21 % de dioxygène O₂</strong> (≈ 1/5), plus 1 % d'autres gaz (argon, dioxyde de carbone, vapeur d'eau…). C'est un <strong>mélange</strong>.</div>
+      <div><h3>L'air a une masse</h3>Dans les conditions habituelles, <strong>1 L d'air a une masse d'environ 1,2 g</strong>. Un gaz est fait de molécules : plus on en met dans un récipient, plus il est lourd.</div>
+      <div><h3>Un gaz est compressible</h3>Les molécules d'un gaz sont <strong>éloignées</strong> et agitées : on peut les rapprocher. Elles frappent plus souvent les parois : la <strong>pression augmente</strong>. Un liquide (molécules au contact) est quasi incompressible.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-air"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Modèle simplifié : 1 molécule dessinée représente un très grand nombre de molécules.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'comp';
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const SP = {
+  N2: { c: '#3b7dd8', n: 'diazote N₂', at: 2 }, O2: { c: '#e0453a', n: 'dioxygène O₂', at: 2 },
+  CO2: { c: '#3a3f4a', n: 'dioxyde de carbone CO₂', at: 3 }, Ar: { c: '#c9a227', n: 'argon Ar', at: 1 }
+};
+const AIRS = { in: { N2: 78, O2: 21, Ar: 1, CO2: 0 }, ex: { N2: 78, O2: 17, CO2: 4, Ar: 1 } };
+function molecule(x, y, a, sp, r = 7) {
+  const S = SP[sp];
+  ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.35)';
+  const ball = (bx, by, c, rr) => { const g = ctx.createRadialGradient(bx - rr * .35, by - rr * .35, 1, bx, by, rr); g.addColorStop(0, '#ffffffcc'); g.addColorStop(.35, c); g.addColorStop(1, c);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, rr, 0, 7); ctx.fill(); ctx.stroke(); };
+  const dx = Math.cos(a) * r * .8, dy = Math.sin(a) * r * .8;
+  if (sp === 'Ar') ball(x, y, S.c, r * 1.05);
+  else if (sp === 'CO2') { ball(x - dx * 1.5, y - dy * 1.5, '#e0453a', r * .85); ball(x + dx * 1.5, y + dy * 1.5, '#e0453a', r * .85); ball(x, y, '#3a3f4a', r); }
+  else { ball(x - dx, y - dy, S.c, r); ball(x + dx, y + dy, S.c, r); }
+}
+/* ---------- composition ---------- */
+const BX = 30, BY = 30, BW = 500, BH = 420;
+const C = { air: 'in', mols: [], tri: false };
+function remplir() {
+  const comp = AIRS[C.air], L = [];
+  for (const sp of ['N2', 'O2', 'CO2', 'Ar']) for (let i = 0; i < comp[sp]; i++) L.push(sp);
+  const old = C.mols;
+  C.mols = L.map((sp, i) => old[i] ? { ...old[i], sp } : {
+    sp, x: BX + 20 + Math.random() * (BW - 40), y: BY + 20 + Math.random() * (BH - 40),
+    vx: (Math.random() - .5) * 220, vy: (Math.random() - .5) * 220, a: Math.random() * 6.3, va: (Math.random() - .5) * 6
+  });
+  cibles();
+  cinfo();
+}
+function cibles() {
+  // rangées par espèce : 10 par ligne
+  let row = 0;
+  for (const sp of ['N2', 'O2', 'CO2', 'Ar']) {
+    const L = C.mols.filter(m => m.sp === sp);
+    L.forEach((m, i) => { m.tx = BX + 34 + (i % 10) * 47; m.ty = BY + 28 + (row + Math.floor(i / 10)) * 34; });
+    if (L.length) row += Math.ceil(L.length / 10) + .4;
+  }
+}
+function cinfo() {
+  const c = AIRS[C.air];
+  $('cinfo').innerHTML = `Sur <b>100 molécules</b> d'${C.air === 'in' ? 'air inspiré' : 'air expiré'} :<br>
+    diazote N₂ : <b>${c.N2}</b> · dioxygène O₂ : <b>${c.O2}</b>${c.CO2 ? ` · dioxyde de carbone CO₂ : <b>${c.CO2}</b>` : ''} · argon : <b>${c.Ar}</b><br>
+    <span style="color:var(--muted)">${C.air === 'in' ? 'Environ 4 molécules sur 5 sont du diazote, 1 sur 5 du dioxygène.' : 'Les poumons ont gardé une partie du dioxygène et rejeté du dioxyde de carbone.'}</span>`;
+}
+function drawComp(dt) {
+  const ink = css('--text'), mut = css('--muted');
+  ctx.fillStyle = css('--bg'); ctx.strokeStyle = css('--border'); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(BX, BY, BW, BH, 12); ctx.fill(); ctx.stroke();
+  const k = $('lent').checked ? .25 : 1;
+  for (const m of C.mols) {
+    if (C.tri) { m.x += (m.tx - m.x) * Math.min(1, dt * 4); m.y += (m.ty - m.y) * Math.min(1, dt * 4); m.a += (0 - m.a) * Math.min(1, dt * 4); }
+    else {
+      m.x += m.vx * dt * k; m.y += m.vy * dt * k; m.a += m.va * dt * k;
+      if (m.x < BX + 14) { m.x = BX + 14; m.vx = Math.abs(m.vx); } if (m.x > BX + BW - 14) { m.x = BX + BW - 14; m.vx = -Math.abs(m.vx); }
+      if (m.y < BY + 14) { m.y = BY + 14; m.vy = Math.abs(m.vy); } if (m.y > BY + BH - 14) { m.y = BY + BH - 14; m.vy = -Math.abs(m.vy); }
+    }
+    molecule(m.x, m.y, m.a, m.sp);
+  }
+  // diagramme en barres empilées
+  const c = AIRS[C.air], gx = 600, gy = 70, gh = 340, gw = 70;
+  let y = gy + gh;
+  ctx.font = '600 13px system-ui, sans-serif';
+  for (const sp of ['N2', 'O2', 'CO2', 'Ar']) {
+    if (!c[sp]) continue;
+    const h = gh * c[sp] / 100; y -= h;
+    ctx.fillStyle = SP[sp].c; ctx.fillRect(gx, y, gw, h);
+    ctx.fillStyle = ink; ctx.textAlign = 'left';
+    if (h > 12 && sp !== 'Ar') ctx.fillText(`${c[sp]} % ${sp.replace('2', '₂')}`, gx + gw + 10, y + h / 2 + 5);
+  }
+  ctx.fillStyle = ink; ctx.textAlign = 'left'; ctx.fillText(`${c.Ar} % argon…`, gx + gw + 10, gy + 4);
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.strokeRect(gx, gy, gw, gh);
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('Proportions', gx + gw / 2, gy - 28); ctx.fillText('(en volume)', gx + gw / 2, gy - 12);
+  ctx.fillText('Zoom × 10 000 000 : les molécules ne sont pas à l’échelle de leurs distances.', BX + BW / 2, H - 10);
+}
+/* ---------- masse ---------- */
+const M = { coups: 0, m0: 0, dots: [], hist: [] };
+function initMasse() {
+  M.coups = 0; M.m0 = Math.round((46 + Math.random() * 10) * 10) / 10; M.hist = [{ c: 0, m: M.m0 }];
+  M.dots = []; for (let i = 0; i < 22; i++) M.dots.push(newDot());
+  tabMasse();
+}
+function newDot() { return { u: Math.random(), v: Math.random(), vu: (Math.random() - .5) * 1.6, vv: (Math.random() - .5) * 1.6, a: Math.random() * 6, sp: Math.random() < .79 ? 'N2' : 'O2' }; }
+const masse = () => M.m0 + 0.30 * M.coups;
+function tabMasse() {
+  $('mtab').innerHTML = M.hist.map(h => `<tr><td>${h.c}</td><td>${f(h.c * .25, 2)} L</td><td>${f(h.m, 1)} g</td><td>${f(h.m - M.m0, 1)} g</td></tr>`).join('');
+  const V = M.coups * .25, dm = masse() - M.m0;
+  $('minfo').innerHTML = M.coups ? `Air ajouté : V = ${f(V, 2)} L ; masse ajoutée : Δm = ${f(dm, 1)} g.<br>Δm / V = ${f(dm, 1)} / ${f(V, 2)} = <b>${f(dm / V, 2)} g/L</b>`
+    : 'La bouteille contient déjà de l’air (à la pression de la pièce). Pompe pour en faire entrer davantage.';
+}
+function drawMasse(dt) {
+  const ink = css('--text'), mut = css('--muted'), bx = 250, by = 380;
+  // balance
+  ctx.fillStyle = css('--bg'); ctx.strokeStyle = css('--border'); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(bx - 130, by, 260, 70, 10); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(bx - 95, by - 10, 190, 10, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(bx - 70, by + 16, 140, 36, 6); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 22px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center'; ctx.fillText(f(masse(), 1) + ' g', bx, by + 42);
+  // bouteille
+  const top = 110, bot = by - 10, L = bx - 70, R = bx + 70;
+  ctx.fillStyle = 'rgba(120,170,230,.08)'; ctx.strokeStyle = css('--glass'); ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(bx - 18, top - 40); ctx.lineTo(bx - 18, top - 10); ctx.quadraticCurveTo(L, top, L, top + 40); ctx.lineTo(L, bot - 12);
+  ctx.quadraticCurveTo(L, bot, L + 12, bot); ctx.lineTo(R - 12, bot); ctx.quadraticCurveTo(R, bot, R, bot - 12); ctx.lineTo(R, top + 40);
+  ctx.quadraticCurveTo(R, top, bx + 18, top - 10); ctx.lineTo(bx + 18, top - 40); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#5a6478'; ctx.fillRect(bx - 22, top - 56, 44, 18); ctx.fillStyle = '#c9a227'; ctx.fillRect(bx - 5, top - 70, 10, 14);
+  // molécules
+  const n = 22 + M.coups * 11;
+  while (M.dots.length < n) M.dots.push(newDot()); if (M.dots.length > n) M.dots.length = n;
+  const iw = R - L - 24, ih = bot - top - 30;
+  for (const d of M.dots) {
+    d.u += d.vu * dt * .35; d.v += d.vv * dt * .35; d.a += dt * 3;
+    if (d.u < 0 || d.u > 1) { d.vu *= -1; d.u = Math.max(0, Math.min(1, d.u)); }
+    if (d.v < 0 || d.v > 1) { d.vv *= -1; d.v = Math.max(0, Math.min(1, d.v)); }
+    molecule(L + 12 + d.u * iw, top + 22 + d.v * ih, d.a, d.sp, 4.2);
+  }
+  // pompe
+  const px = 610, t = M.anim || 0, ph = 60 * Math.sin(Math.min(1, t) * Math.PI);
+  ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.fillStyle = css('--bg');
+  ctx.beginPath(); ctx.roundRect(px - 22, 200, 44, 190, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#7a3fd0'; ctx.fillRect(px - 4, 130 + ph, 8, 80); ctx.fillRect(px - 40, 122 + ph, 80, 12);
+  ctx.fillStyle = css('--muted'); ctx.fillRect(px - 18, 208 + ph, 36, 8);
+  ctx.strokeStyle = '#7a7f9a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(px, 390); ctx.bezierCurveTo(px, 450, 420, 40, bx + 5, top - 66); ctx.stroke();
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('pompe', px, 412); ctx.fillText('valve', bx - 44, top - 58);
+  ctx.fillText('bouteille rigide : son volume ne change pas', bx, by + 88);
+  ctx.fillStyle = ink; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(`Air ajouté : ${f(M.coups * .25, 2)} L`, 680, 60);
+  if (M.anim !== undefined && M.anim < 1) M.anim += dt * 1.6;
+}
+/* ---------- compression ---------- */
+const P0 = 1013, X0 = 160, PX = 8, SY = 190, SH = 100;
+const Q = { fl: 'air', V: 60, Vb: 60, parts: [], bouche: true };
+function initSer() {
+  Q.parts = []; for (let i = 0; i < 70; i++) Q.parts.push(newPart(Q.V));
+  Q.Vb = Q.V;
+}
+function newPart(V, edge) {
+  return { x: edge ? X0 + 4 : X0 + 6 + Math.random() * (V * PX - 12), y: SY + 8 + Math.random() * (SH - 16),
+    vx: (Math.random() - .5) * 260, vy: (Math.random() - .5) * 260, a: Math.random() * 6, sp: Math.random() < .79 ? 'N2' : 'O2' };
+}
+const pression = () => Q.fl === 'eau' || !Q.bouche ? P0 : P0 * Q.Vb / Q.V;
+function sinfo() {
+  $('vs-out').textContent = Q.V + ' mL';
+  const p = pression();
+  let h = `Volume : <b>${Q.V} mL</b> · Pression : <b>${Math.round(p)} hPa</b>`;
+  if (Q.fl === 'air' && Q.bouche) h += `<br>Volume de départ : ${Q.Vb} mL. ${Q.V < Q.Vb ? 'Le volume diminue : la pression augmente.' : Q.V > Q.Vb ? 'Le volume augmente : la pression diminue.' : ''}`;
+  if (Q.fl === 'air' && Q.bouche) h += `<br><span style="color:var(--muted)">Le nombre de molécules ne change pas (${Q.parts.length} dessinées) : la masse d’air est la même.</span>`;
+  if (Q.fl === 'air' && !Q.bouche) h += '<br><span style="color:var(--muted)">Embout ouvert : l’air sort ou entre, la pression reste celle de la pièce.</span>';
+  if (Q.fl === 'eau') h += '<br><span style="color:var(--muted)">Les molécules d’eau sont déjà au contact : on ne peut pas les rapprocher.</span>';
+  $('sinfo').innerHTML = h;
+}
+function drawSer(dt) {
+  const ink = css('--text'), mut = css('--muted'), xr = X0 + Q.V * PX;
+  // manomètre
+  const mx = 84, my = 104, p = pression();
+  ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.fillStyle = css('--surface');
+  ctx.beginPath(); ctx.arc(mx, my, 64, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = mut; ctx.textAlign = 'center';
+  for (let k = 0; k <= 7; k++) { const a = Math.PI * (.75 + 1.5 * k / 7); ctx.beginPath(); ctx.moveTo(mx + 54 * Math.cos(a), my + 54 * Math.sin(a)); ctx.lineTo(mx + 62 * Math.cos(a), my + 62 * Math.sin(a)); ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillText(k, mx + 44 * Math.cos(a), my + 44 * Math.sin(a) + 4); }
+  const an = Math.PI * (.75 + 1.5 * Math.min(7000, p) / 7000);
+  ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + 44 * Math.cos(an), my + 44 * Math.sin(an)); ctx.stroke();
+  ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(mx, my, 4, 0, 7); ctx.fill();
+  ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = mut; ctx.fillText('× 1000 hPa', mx, my + 26); ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('manomètre', mx + 76, my - 30);
+  ctx.fillStyle = '#c0392b'; ctx.font = '700 18px system-ui, sans-serif'; ctx.fillText(Math.round(p) + ' hPa', mx + 76, my - 6);
+  // tuyau
+  ctx.strokeStyle = Q.bouche ? '#7a7f9a' : 'transparent'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(mx, my + 64); ctx.lineTo(mx, SY + SH / 2); ctx.lineTo(X0 - 40, SY + SH / 2); ctx.stroke();
+  // corps de seringue
+  ctx.fillStyle = css('--glass-fill'); ctx.strokeStyle = css('--glass'); ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.rect(X0, SY, 60 * PX + 20, SH); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.rect(X0 - 40, SY + SH / 2 - 8, 40, 16); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = ink; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 1; ctx.strokeStyle = ink;
+  for (let v = 0; v <= 60; v += 5) { const x = X0 + v * PX; ctx.beginPath(); ctx.moveTo(x, SY); ctx.lineTo(x, SY + (v % 10 ? 8 : 14)); ctx.stroke(); if (v % 10 === 0) ctx.fillText(v, x, SY - 6); }
+  ctx.fillText('mL', X0 + 60 * PX + 34, SY - 6);
+  // contenu
+  if (Q.fl === 'eau') {
+    ctx.fillStyle = 'rgba(80,150,230,.25)'; ctx.fillRect(X0 + 1, SY + 1, xr - X0 - 2, SH - 2);
+    for (let x = X0 + 7; x < xr - 4; x += 11) for (let y = SY + 7; y < SY + SH - 4; y += 11) {
+      const j = Math.sin(x * 3.1 + y * 1.7 + performance.now() / 160) * 1.2;
+      ctx.fillStyle = '#2c7fd6'; ctx.beginPath(); ctx.arc(x + j, y - j, 4.6, 0, 7); ctx.fill();
+    }
+  } else {
+    // nombre de particules : constant si bouché, sinon proportionnel au volume
+    if (!Q.bouche) { const nt = Math.round(70 * Q.V / Q.Vb); while (Q.parts.length < nt) Q.parts.push(newPart(Q.V, true)); if (Q.parts.length > nt) Q.parts.splice(0, Q.parts.length - nt); }
+    for (const m of Q.parts) {
+      m.x += m.vx * dt; m.y += m.vy * dt; m.a += dt * 4;
+      if (m.x < X0 + 8) { m.x = X0 + 8; m.vx = Math.abs(m.vx); } if (m.x > xr - 8) { m.x = xr - 8; m.vx = -Math.abs(m.vx); }
+      if (m.y < SY + 8) { m.y = SY + 8; m.vy = Math.abs(m.vy); } if (m.y > SY + SH - 8) { m.y = SY + SH - 8; m.vy = -Math.abs(m.vy); }
+      molecule(m.x, m.y, m.a, m.sp, 4.4);
+    }
+  }
+  if (!Q.bouche) { ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('embout ouvert', X0 - 20, SY + SH / 2 + 26); }
+  else { ctx.fillStyle = '#5a6478'; ctx.fillRect(X0 - 46, SY + SH / 2 - 10, 8, 20); }
+  // piston
+  ctx.fillStyle = '#7a3fd0'; ctx.fillRect(xr, SY + 3, 12, SH - 6); ctx.fillStyle = css('--muted'); ctx.fillRect(xr + 12, SY + SH / 2 - 6, 60 * PX + 120 - (xr - X0), 12);
+  ctx.fillStyle = '#7a3fd0'; ctx.fillRect(X0 + 60 * PX + 130, SY - 10, 12, SH + 20);
+  ctx.fillStyle = ink; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(Q.fl === 'eau' ? 'Seringue remplie d’eau' : 'Seringue remplie d’air', X0 + 240, SY + SH + 40);
+  ctx.fillStyle = mut; ctx.font = '12px system-ui, sans-serif';
+  ctx.fillText('Pousse ou tire le piston avec le curseur.', X0 + 240, SY + SH + 60);
+}
+/* ---------- interface ---------- */
+document.querySelectorAll('[data-air]').forEach(b => b.addEventListener('click', () => {
+  C.air = b.dataset.air; document.querySelectorAll('[data-air]').forEach(x => x.setAttribute('aria-pressed', x === b)); remplir();
+  $('msg').innerHTML = C.air === 'in' ? 'L’air que l’on inspire : environ 78 % de diazote et 21 % de dioxygène.'
+    : 'Dans l’air expiré, il y a moins de dioxygène (environ 17 %) et plus de dioxyde de carbone (environ 4 %) : on peut le montrer avec l’eau de chaux, qui se trouble.';
+}));
+$('trier').addEventListener('click', () => { C.tri = true; cibles(); $('msg').innerHTML = 'Molécules triées par espèce, 10 par ligne : on compte facilement les proportions.'; });
+$('melanger').addEventListener('click', () => { C.tri = false; $('msg').innerHTML = 'Dans l’air, les molécules sont mélangées, très éloignées les unes des autres et en mouvement permanent dans tous les sens.'; });
+$('pomper').addEventListener('click', () => {
+  if (M.coups >= 8) { $('msg').innerHTML = 'Attention, la bouteille ne supporte pas plus de pression : ouvre la valve.'; return; }
+  M.coups++; M.anim = 0; M.hist.push({ c: M.coups, m: masse() }); tabMasse();
+  $('msg').innerHTML = `On a fait entrer ${f(M.coups * .25, 2)} L d’air : la masse a augmenté de ${f(masse() - M.m0, 1)} g. Il y a plus de molécules dans la bouteille.`;
+});
+$('valve').addEventListener('click', () => { initMasse(); $('mres').hidden = true; $('msg').innerHTML = 'La valve est ouverte : l’air en trop s’échappe, la masse redevient celle du départ.'; });
+$('mverif').addEventListener('click', () => {
+  const r = $('mres'), v = parseFloat(($('mq').value || '').replace(',', '.')); r.hidden = false;
+  if (M.coups < 2) { r.className = 'res mid'; r.innerHTML = 'Fais d’abord quelques coups de pompe et observe la balance.'; return; }
+  if (!isFinite(v)) { r.className = 'res mid'; r.innerHTML = 'Écris un nombre, par exemple 1,5.'; return; }
+  const ok = Math.abs(v - 1.2) < .051;
+  r.className = 'res ' + (ok ? 'ok' : 'ko');
+  r.innerHTML = ok ? '<strong>Bravo !</strong> 1 L d’air a une masse d’environ <strong>1,2 g</strong> : l’air est léger, mais il a une masse.'
+    : 'Pas tout à fait. Divise la masse ajoutée Δm par le volume d’air ajouté V (dernière ligne sous le tableau).';
+});
+document.querySelectorAll('[data-fl]').forEach(b => b.addEventListener('click', () => {
+  Q.fl = b.dataset.fl; document.querySelectorAll('[data-fl]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  Q.V = 60; $('vs').value = 60; initSer(); sinfo();
+  $('msg').innerHTML = Q.fl === 'eau' ? 'Seringue pleine d’eau, embout bouché : essaie de pousser le piston.' : 'Seringue pleine d’air : pousse le piston, l’embout bouché.';
+}));
+$('bouche').addEventListener('change', () => { Q.bouche = $('bouche').checked; Q.Vb = Q.V; if (Q.bouche) { Q.parts.length = Math.min(Q.parts.length, 140); } sinfo();
+  $('msg').innerHTML = Q.bouche ? `Embout bouché à ${Q.V} mL : la quantité d’air enfermée ne peut plus changer.` : 'Embout ouvert : l’air peut entrer et sortir librement.'; });
+$('vs').addEventListener('input', () => {
+  const v = +$('vs').value;
+  if (Q.fl === 'eau' && Q.bouche && v !== Q.V) { $('vs').value = Q.V; $('msg').innerHTML = '<strong>Impossible !</strong> Le piston ne bouge pas : un liquide est (presque) <strong>incompressible</strong>.'; return; }
+  if (Q.fl === 'air' && !Q.bouche) Q.Vb = Q.Vb; // ouvert : la densité reste fixée par Vb (70 molécules pour Vb)
+  Q.V = v; sinfo();
+  if (Q.fl === 'air' && Q.bouche) $('msg').innerHTML = Q.V < Q.Vb ? `Les molécules sont <strong>plus serrées</strong> : elles frappent plus souvent les parois, la pression monte à ${Math.round(pression())} hPa.`
+    : Q.V > Q.Vb ? `Les molécules ont plus de place : moins de chocs sur les parois, la pression baisse à ${Math.round(pression())} hPa.` : 'Retour au volume de départ : la pression redevient celle de la pièce.';
+});
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  ['comp', 'masse', 'comp2'].forEach(m => $('p-' + m).hidden = m !== mode);
+  $('msg').innerHTML = mode === 'comp' ? 'Chaque petite bille est un atome. Les molécules de l’air bougent sans cesse, dans tous les sens.'
+    : mode === 'masse' ? 'On pèse une bouteille rigide fermée par une valve, puis on y fait entrer de l’air avec une pompe.'
+    : 'L’embout de la seringue est bouché et relié à un manomètre qui mesure la pression de l’air enfermé.';
+  cv.setAttribute('aria-label', mode === 'comp' ? 'Modèle moléculaire de l’air' : mode === 'masse' ? 'Bouteille sur une balance et pompe' : 'Seringue et manomètre');
+}));
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'comp' ? drawComp(dt) : mode === 'masse' ? drawMasse(dt) : drawSer(dt);
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); remplir(); initMasse(); initSer(); sinfo();
+$('msg').innerHTML = 'Chaque petite bille est un atome. Les molécules de l’air bougent sans cesse, dans tous les sens.';
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte } = Exo;
+const RAPPEL = `L'air contient environ 78 % de diazote et 21 % de dioxygène (en volume). 1 L d'air a une masse d'environ 1,2 g.
+  Volume d'un pavé : V = L × l × h. 1 m³ = 1 000 L ; 1 kg = 1 000 g.`;
+Exo.monter('exo-air', [
+  { id: 'piece', label: 'Masse de l’air d’une pièce', rappel: RAPPEL, gen() {
+    const L = rnd(4, 9, 3), l = rnd(3, 6, 3), h = pick([2.50, 2.60, 2.80, 3.00]), V = L * l * h, m = V * 1000 * 1.2 / 1000;
+    const nom = pick(['une salle de classe', 'une chambre', 'un salon', 'le laboratoire']);
+    return {
+      enonce: `<p>On veut connaître la masse de l'air contenu dans ${nom} : longueur <strong>${fmt(L, 3)} m</strong>, largeur <strong>${fmt(l, 3)} m</strong>, hauteur <strong>${fmt(h, 3)} m</strong>.</p>
+        <p>Donnée : 1 L d'air a une masse de 1,2 g.</p>`,
+      questions: [
+        { label: '1. Calcule le volume de la pièce en m³.', unite: 'm³', rep: V, cs: 3 },
+        { label: '2. Convertis ce volume en litres.', unite: 'L', rep: V * 1000, cs: 3 },
+        { label: '3. Calcule la masse de l’air de la pièce, en kilogrammes.', unite: 'kg', rep: m, cs: 2, marge: 2 }
+      ],
+      correction: etape({ q: '1.', lit: 'V = L × l × h', an: `V = ${fmt(L, 3)} × ${fmt(l, 3)} × ${fmt(h, 3)}`, res: `V = ${res(V, 3, 'm³')}` }) +
+        etape({ q: '2.', lit: '1 m³ = 1 000 L', an: `V = ${fmt(V, 3)} × 1 000`, res: `V = ${res(V * 1000, 3, 'L')}` }) +
+        etape({ q: '3.', note: '1 L d’air a une masse de 1,2 g : la masse est proportionnelle au volume. La donnée 1,2 g n’a que 2 chiffres significatifs.',
+          lit: 'm = 1,2 g/L × V', an: `m = 1,2 × ${fmt(V * 1000, 3)} = ${fmt(V * 1200, 3)} g`, res: `m = ${res(m, 2, 'kg')}` })
+    };
+  } },
+  { id: 'compo', label: 'Composition de l’air', rappel: RAPPEL, gen() {
+    const V = pick([rnd(1.5, 9.5, 2), irnd(20, 90) * 10]), u = V < 10 ? 'L' : 'L';
+    const ctx = V < 10 ? `Un adulte inspire environ <strong>${fmt(V, 2)} L</strong> d'air par minute au repos.` : `Un ballon de baudruche géant contient <strong>${V} L</strong> d'air.`;
+    const cs = V < 10 ? 2 : 2;
+    return {
+      enonce: `<p>${ctx}</p><p>L'air contient 21 % de dioxygène et 78 % de diazote (en volume).</p>`,
+      questions: [
+        { label: '1. Quel volume de dioxygène cela représente-t-il ?', unite: u, rep: V * .21, cs, marge: 2 },
+        { label: '2. Quel volume de diazote ?', unite: u, rep: V * .78, cs, marge: 2 },
+        { label: '3. Le gaz le plus abondant dans l’air est…', choix: ['le diazote', 'le dioxygène', 'le dioxyde de carbone'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', lit: 'V(O₂) = 21 % × V = (21 / 100) × V', an: `V(O₂) = 0,21 × ${fmt(V, V < 10 ? 2 : 3)}`, res: `V(O₂) = ${res(V * .21, cs, u)}` }) +
+        etape({ q: '2.', lit: 'V(N₂) = 78 % × V', an: `V(N₂) = 0,78 × ${fmt(V, V < 10 ? 2 : 3)}`, res: `V(N₂) = ${res(V * .78, cs, u)}` }) +
+        texte('3.', 'Le <strong>diazote</strong> : il représente environ 4/5 de l’air.')
+    };
+  } },
+  { id: 'pompe', label: 'Peser un ballon', rappel: RAPPEL, gen() {
+    const m1 = rnd(400, 450, 4), Vi = pick([2, 2.5, 3, 3.5, 4, 4.5, 5]), dm = Math.round(Vi * 1.2 * 10) / 10, m2 = m1 + dm;
+    return {
+      enonce: `<p>Un ballon de football, peu gonflé, est posé sur une balance : <strong>m₁ = ${fmt(m1, 4)} g</strong>.
+        On le gonfle avec une pompe, puis on le pèse à nouveau : <strong>m₂ = ${fmt(m2, 4)} g</strong>.</p><p>Donnée : 1 L d'air a une masse de 1,2 g.</p>`,
+      questions: [
+        { label: '1. Quelle masse d’air a-t-on ajoutée ?', unite: 'g', rep: dm, cs: 2, marge: 1 },
+        { label: '2. Quel volume d’air (pris dans la pièce) a-t-on fait entrer ?', unite: 'L', rep: dm / 1.2, cs: 2, marge: 2 },
+        { label: '3. Le volume du ballon a peu changé. La pression de l’air dans le ballon…', choix: ['a augmenté', 'a diminué', 'n’a pas changé'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', lit: 'm(air ajouté) = m₂ − m₁', an: `m = ${fmt(m2, 4)} − ${fmt(m1, 4)}`, res: `m = ${res(dm, 2, 'g')}` }) +
+        etape({ q: '2.', note: '1,2 g d’air occupent 1 L : on divise la masse par 1,2 g/L.', lit: 'V = m / 1,2', an: `V = ${fmt(dm, 2)} / 1,2`, res: `V = ${res(dm / 1.2, 2, 'L')}` }) +
+        texte('3.', 'On a fait entrer plus de molécules dans presque le même volume : elles frappent plus souvent la paroi, la pression <strong>augmente</strong>.')
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'L’air est…', c: ['un mélange', 'un corps pur', 'une seule molécule'], e: 'L’air contient plusieurs espèces chimiques : c’est un <strong>mélange</strong>.' },
+      { q: 'La molécule de dioxygène s’écrit…', c: ['O₂', 'N₂', 'CO₂'], e: 'Deux atomes d’oxygène : <strong>O₂</strong>.' },
+      { q: 'Dans un gaz, les molécules sont…', c: ['éloignées et en mouvement désordonné', 'collées et immobiles', 'collées et rangées'], e: 'Dans un gaz, les molécules sont <strong>éloignées les unes des autres</strong> et bougent dans tous les sens.' },
+      { q: 'Quand on comprime de l’air dans une seringue bouchée, sa pression…', c: ['augmente', 'diminue', 'ne change pas'], e: 'Les molécules sont plus serrées et frappent plus souvent les parois : la pression <strong>augmente</strong>.' },
+      { q: 'Quand on comprime de l’air dans une seringue bouchée, sa masse…', c: ['ne change pas', 'augmente', 'diminue'], e: 'Aucune molécule n’entre ni ne sort : la masse <strong>se conserve</strong>.' },
+      { q: 'Avec quel appareil mesure-t-on la pression d’un gaz ?', c: ['un manomètre', 'un thermomètre', 'un ampèremètre'], e: 'Avec un <strong>manomètre</strong> ; la pression s’exprime en hectopascals (hPa) ou en pascals (Pa).' },
+      { q: 'On peut comprimer…', c: ['un gaz, mais presque pas un liquide', 'un liquide, mais pas un gaz', 'les deux de la même façon'], e: 'Les molécules d’un liquide sont déjà au contact : <strong>un liquide est presque incompressible</strong>.' },
+      { q: 'L’air expiré contient, par rapport à l’air inspiré…', c: ['moins de dioxygène et plus de dioxyde de carbone', 'plus de dioxygène', 'exactement la même chose'], e: 'Les poumons prélèvent du dioxygène et rejettent du <strong>dioxyde de carbone</strong> (il trouble l’eau de chaux).' },
+      { q: 'La pression atmosphérique au niveau de la mer vaut environ…', c: ['1 013 hPa', '10 hPa', '100 000 hPa'], e: 'Environ <strong>1 013 hPa</strong>.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>
