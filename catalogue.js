@@ -276,5 +276,45 @@ window.CATALOGUE = [
     chapitre: "Signaux lumineux",
     mots: ["lumière", "propagation rectiligne", "ombre", "pénombre", "phases de la Lune", "éclipse", "Soleil", "Terre", "exercices"],
     statut: "en-ligne"
+    },
+  {
+    dossier: "air-molecules",
+    titre: "L'air qui nous entoure",
+    resume: "Zoomer sur les molécules de l'air (78 % de diazote, 21 % de dioxygène), comparer air inspiré et air expiré, peser une bouteille qu'on gonfle (1 L d'air ≈ 1,2 g), puis comprimer l'air dans une seringue reliée à un manomètre. Exercices corrigés.",
+    theme: "matiere-4",
+    niveau: "quatrieme",
+    chapitre: "L'air et ses molécules",
+    mots: ["air", "diazote", "dioxygène", "molécules", "mélange", "masse de l'air", "pression", "manomètre", "compressible", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "lumiere-couleurs",
+    titre: "Lumière et couleurs",
+    resume: "Superposer des lumières rouge, verte et bleue sur un écran (synthèse additive), faire traverser des filtres colorés à la lumière, et prévoir la couleur d'un objet éclairé par une lumière colorée. Exercices corrigés.",
+    theme: "signaux-4",
+    niveau: "quatrieme",
+    chapitre: "Signaux lumineux : couleurs",
+    mots: ["lumière blanche", "synthèse additive", "rouge vert bleu", "filtre", "absorber", "diffuser", "couleur d'un objet", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "conducteurs-court-circuit",
+    titre: "Conducteurs, isolants et court-circuit",
+    resume: "Placer des objets entre deux pinces : la lampe brille-t-elle ? Classer conducteurs et isolants. Puis court-circuiter une lampe ou le générateur, voir l'intensité grimper, les fils chauffer et le fusible fondre. Exercices corrigés.",
+    theme: "energie-4",
+    niveau: "quatrieme",
+    chapitre: "Circuits électriques et sécurité",
+    mots: ["conducteur", "isolant", "électrons libres", "court-circuit", "fusible", "intensité", "sécurité", "loi d'Ohm", "exercices"],
+    statut: "en-ligne"
+  },
+  {
+    dossier: "actions-mecaniques",
+    titre: "Actions mécaniques et forces",
+    resume: "Reconnaître une action de contact ou à distance, observer ses effets (mise en mouvement, vitesse, trajectoire, déformation), puis tracer à l'échelle la flèche d'une force sur un quadrillage : point d'application, direction, sens, valeur. Exercices corrigés.",
+    theme: "mouvement-4",
+    niveau: "quatrieme",
+    chapitre: "Actions mécaniques et forces",
+    mots: ["action de contact", "action à distance", "force", "newton", "point d'application", "direction", "sens", "échelle", "poids", "dynamomètre", "exercices"],
+    statut: "en-ligne"
   }
 ];

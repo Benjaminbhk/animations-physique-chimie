@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conducteurs et court-circuit</title>
+<meta name="description" content="Simulation interactive : tester si un matériau est conducteur ou isolant électrique, puis provoquer un court-circuit d'une lampe ou du générateur et voir le rôle du fusible (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#b8382a; --accent-soft:#fbe9e6; --accent-ink:#ffffff; --canvas:#fbfcff;
+  --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#ff8a7a; --accent-soft:#3a1d1a; --accent-ink:#14111f; --canvas:#141821;
+    --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#ff8a7a; --accent-soft:#3a1d1a; --accent-ink:#14111f; --canvas:#141821;
+  --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+table.t td.c{color:#1f8a52;font-weight:700} table.t td.i{color:#c8323a;font-weight:700}
+.danger{border-left:4px solid #c8323a;background:#fbe8e7;color:#7c1d22;padding:.5rem .75rem;border-radius:0 10px 10px 0;font-size:.93rem;margin-top:8px}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Conducteurs, isolants et court-circuit</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Place un objet entre les deux pinces : si la lampe brille, le matériau est <strong>conducteur</strong>, sinon il est
+    <strong>isolant</strong>. Puis relie deux bornes par un simple fil pour provoquer un <strong>court-circuit</strong> et découvre
+    pourquoi il est dangereux et à quoi sert un <strong>fusible</strong>.</p>
+
+  <section class="scene" id="sc" aria-label="Simulation de circuits électriques">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="mat" aria-pressed="true">🔌 Conducteur ou isolant ?</button>
+      <button type="button" class="seg" data-mode="cc" aria-pressed="false">⚡ Le court-circuit</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Circuit de test : pile, lampe et deux pinces"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-mat">
+          <h3>Objet placé entre les pinces</h3>
+          <div class="grid2" id="objs" role="group" aria-label="Objet"></div>
+          <table class="t" style="margin-top:10px" aria-label="Résultats">
+            <thead><tr><th>Conducteurs</th><th>Isolants</th></tr></thead>
+            <tbody id="tab"></tbody>
+          </table>
+        </div>
+        <div id="p-cc" hidden>
+          <h3>Le circuit <small>pile 4,5 V et deux lampes en série</small></h3>
+          <div class="grid2">
+            <button type="button" class="seg" id="k" aria-pressed="true">Interrupteur fermé</button>
+            <button type="button" class="seg" id="fus" aria-pressed="true">Avec fusible (1 A)</button>
+          </div>
+          <h3 style="margin-top:12px">Ajouter un fil…</h3>
+          <div class="grid2">
+            <button type="button" class="seg" id="cL2" aria-pressed="false">aux bornes de L₂</button>
+            <button type="button" class="seg" id="cG" aria-pressed="false">aux bornes du générateur</button>
+          </div>
+          <button type="button" id="rep" class="ghost" style="margin-top:8px" hidden>Remplacer le fusible fondu</button>
+          <div class="info" id="cinfo" style="margin-top:10px"></div>
+          <div class="danger" id="dang" hidden></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Conducteurs et isolants</h3>Les <strong>métaux</strong> (fer, cuivre, aluminium…) et le graphite sont conducteurs : ils contiennent des électrons libres. Plastique, bois, verre, caoutchouc, air sec sont <strong>isolants</strong>.</div>
+      <div><h3>Court-circuit</h3>Deux bornes d'un dipôle reliées par un fil : le courant passe par le fil (le chemin le plus facile). Le dipôle court-circuité ne fonctionne plus. Si c'est le <strong>générateur</strong>, l'intensité devient très grande : les fils <strong>chauffent</strong>, risque d'incendie.</div>
+      <div><h3>Se protéger</h3>Le <strong>fusible</strong> (ou le disjoncteur) ouvre le circuit quand l'intensité dépasse son calibre. Le corps humain est conducteur : on ne touche jamais une prise du secteur (230 V), danger d'<strong>électrocution</strong>.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-cc"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Valeurs indicatives : lampes de 9 Ω, pile de résistance interne 1 Ω.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'mat', T = 0;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+/* ---------- dessin de composants ---------- */
+function fil(pts, hot = 0) {
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  if (hot > 0) { ctx.strokeStyle = `rgba(255,${120 - 80 * hot},0,${.35 + .4 * hot})`; ctx.lineWidth = 6 + 8 * hot; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.stroke(); }
+  ctx.strokeStyle = hot > .3 ? '#ff7a1a' : css('--text'); ctx.lineWidth = 3;
+  ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.stroke();
+}
+function lampe(x, y, b, label) {      // b : 0 à 2 (1 = éclat normal)
+  if (b > 0.02) { const g = ctx.createRadialGradient(x, y, 4, x, y, 30 + 40 * Math.min(b, 2)); g.addColorStop(0, `rgba(255,230,120,${Math.min(1, .5 + .4 * b)})`); g.addColorStop(1, 'rgba(255,210,80,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 30 + 40 * Math.min(b, 2), 0, 7); ctx.fill(); }
+  ctx.fillStyle = css('--surface'); ctx.strokeStyle = css('--text'); ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - 12.7, y - 12.7); ctx.lineTo(x + 12.7, y + 12.7); ctx.moveTo(x + 12.7, y - 12.7); ctx.lineTo(x - 12.7, y + 12.7); ctx.stroke();
+  if (label) { ctx.fillStyle = css('--text'); ctx.font = '600 14px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 28); }
+}
+function pile(x, y, hot = 0) {        // verticale, + en haut
+  ctx.fillStyle = css('--surface'); ctx.fillRect(x - 24, y - 12, 48, 24);
+  if (hot > 0) { ctx.fillStyle = `rgba(255,90,0,${.25 * hot})`; ctx.beginPath(); ctx.arc(x, y, 40, 0, 7); ctx.fill(); }
+  ctx.strokeStyle = css('--text'); ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(x - 22, y - 6); ctx.lineTo(x + 22, y - 6); ctx.stroke();
+  ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(x - 11, y + 6); ctx.lineTo(x + 11, y + 6); ctx.stroke();
+  ctx.fillStyle = css('--text'); ctx.font = '700 14px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('+', x + 26, y - 6); ctx.fillText('−', x + 26, y + 16);
+  ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillText('pile 4,5 V', x - 28, y + 4);
+}
+function electrons(path, n, v, on) {
+  if (!on) return;
+  // longueur
+  let L = 0; const seg = []; for (let i = 1; i < path.length; i++) { const d = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); seg.push(d); L += d; }
+  ctx.fillStyle = '#2c7fd6';
+  for (let k = 0; k < n; k++) {
+    let s = ((k / n) * L + T * v) % L, i = 0; while (s > seg[i]) { s -= seg[i]; i++; }
+    const a = path[i], b = path[i + 1], t = s / seg[i];
+    ctx.beginPath(); ctx.arc(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, 3, 0, 7); ctx.fill();
+  }
+}
+/* ---------- conducteur / isolant ---------- */
+const OBJ = [
+  { n: 'Clé en fer', c: 1, b: 1, col: '#8a9099', s: 'cle' }, { n: 'Pièce de monnaie', c: 1, b: 1, col: '#c9973a', s: 'piece' },
+  { n: 'Papier aluminium', c: 1, b: 1, col: '#d6dae0', s: 'alu' }, { n: 'Mine de crayon', c: 1, b: .7, col: '#3a3f4a', s: 'mine' },
+  { n: 'Règle en plastique', c: 0, col: '#4aa3df', s: 'regle' }, { n: 'Gomme', c: 0, col: '#f08aa8', s: 'gomme' },
+  { n: 'Bâton de bois', c: 0, col: '#b07a3e', s: 'bois' }, { n: 'Verre', c: 0, col: 'rgba(170,215,230,.7)', s: 'verre' },
+  { n: 'Eau salée', c: 1, b: .35, col: 'rgba(80,150,230,.45)', s: 'eau' }, { n: 'Eau distillée', c: 0, col: 'rgba(80,150,230,.3)', s: 'eau' },
+  { n: 'Air (rien)', c: 0, col: 'transparent', s: 'air' }, { n: 'Élastique', c: 0, col: '#c9a227', s: 'elas' }
+];
+const M = { o: 0, vus: new Set() };
+const LOOP = [[150, 250], [150, 90], [660, 90], [660, 380], [470, 380], [330, 380], [150, 380], [150, 250]];
+function tab() {
+  const C = OBJ.filter((o, i) => M.vus.has(i) && o.c), I = OBJ.filter((o, i) => M.vus.has(i) && !o.c), n = Math.max(C.length, I.length, 1);
+  let h = ''; for (let i = 0; i < n; i++) h += `<tr><td class="c">${C[i] ? C[i].n : ''}</td><td class="i">${I[i] ? I[i].n : ''}</td></tr>`;
+  $('tab').innerHTML = h;
+}
+function objet(o, x, y) {
+  ctx.fillStyle = o.col; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1.2;
+  if (o.s === 'cle') { ctx.beginPath(); ctx.arc(x - 50, y, 18, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillRect(x - 34, y - 6, 90, 12); ctx.strokeRect(x - 34, y - 6, 90, 12); ctx.fillRect(x + 30, y + 6, 8, 10); ctx.fillRect(x + 44, y + 6, 8, 14); ctx.fillStyle = css('--canvas'); ctx.beginPath(); ctx.arc(x - 54, y, 6, 0, 7); ctx.fill(); }
+  else if (o.s === 'piece') { ctx.beginPath(); ctx.ellipse(x, y, 34, 12, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillRect(x - 34, y, 68, 5); }
+  else if (o.s === 'alu') { ctx.beginPath(); ctx.moveTo(x - 60, y - 8); for (let k = 0; k <= 12; k++) ctx.lineTo(x - 60 + k * 10, y - 8 + (k % 2 ? 4 : -2)); ctx.lineTo(x + 60, y + 8); ctx.lineTo(x - 60, y + 8); ctx.fill(); ctx.stroke(); }
+  else if (o.s === 'mine') { ctx.fillStyle = '#e8c35a'; ctx.fillRect(x - 70, y - 7, 120, 14); ctx.fillStyle = o.col; ctx.fillRect(x - 76, y - 3, 10, 6); ctx.beginPath(); ctx.moveTo(x + 50, y - 7); ctx.lineTo(x + 72, y); ctx.lineTo(x + 50, y + 7); ctx.fill(); ctx.fillStyle = '#e8c35a'; ctx.beginPath(); ctx.moveTo(x + 50, y - 7); ctx.lineTo(x + 62, y - 3); ctx.lineTo(x + 62, y + 3); ctx.lineTo(x + 50, y + 7); ctx.fill(); }
+  else if (o.s === 'regle') { ctx.fillRect(x - 75, y - 9, 150, 18); ctx.strokeRect(x - 75, y - 9, 150, 18); ctx.strokeStyle = 'rgba(0,0,0,.4)'; for (let k = 0; k < 15; k++) { ctx.beginPath(); ctx.moveTo(x - 70 + k * 10, y - 9); ctx.lineTo(x - 70 + k * 10, y - (k % 5 ? 3 : 0)); ctx.stroke(); } }
+  else if (o.s === 'gomme') { ctx.beginPath(); ctx.roundRect(x - 34, y - 12, 68, 24, 5); ctx.fill(); ctx.stroke(); }
+  else if (o.s === 'bois') { ctx.beginPath(); ctx.roundRect(x - 75, y - 8, 150, 16, 8); ctx.fill(); ctx.stroke(); }
+  else if (o.s === 'verre') { ctx.beginPath(); ctx.roundRect(x - 75, y - 6, 150, 12, 6); ctx.fill(); ctx.stroke(); }
+  else if (o.s === 'elas') { ctx.strokeStyle = o.col; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(x, y, 60, 10, 0, 0, 7); ctx.stroke(); }
+  else if (o.s === 'eau') { ctx.strokeStyle = css('--glass'); ctx.lineWidth = 2; ctx.fillStyle = o.col; ctx.fillRect(x - 60, y - 20, 120, 50); ctx.beginPath(); ctx.moveTo(x - 62, y - 40); ctx.lineTo(x - 62, y + 32); ctx.lineTo(x + 62, y + 32); ctx.lineTo(x + 62, y - 40); ctx.stroke(); }
+}
+function pince(x, y, dir) {
+  ctx.fillStyle = '#c8323a'; ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, y - 7); ctx.lineTo(x + dir * 34, y - 4); ctx.lineTo(x + dir * 40, y); ctx.lineTo(x + dir * 34, y + 4); ctx.lineTo(x, y + 7); ctx.closePath(); ctx.fill(); ctx.stroke();
+}
+function drawMat() {
+  const o = OBJ[M.o], ferme = o.c === 1, b = ferme ? o.b : 0, eau = o.s === 'eau';
+  const yG = eau ? 370 : 380;
+  fil([[150, 256], [150, 380], [300, 380]]); fil([[500, 380], [660, 380], [660, 90], [398, 90]]); fil([[362, 90], [150, 90], [150, 244]]);
+  pile(150, 250);
+  lampe(380, 90, b, 'lampe');
+  if (eau) { fil([[300, 380], [345, 380], [345, 330]]); fil([[500, 380], [455, 380], [455, 330]]); objet(o, 400, 360); ctx.fillStyle = '#5a6478'; ctx.fillRect(339, 320, 12, 50); ctx.fillRect(449, 320, 12, 50); }
+  else { objet(o, 400, 380); pince(300, 380, 1); pince(500, 380, -1); }
+  electrons([[150, 268], [150, 380], [300, 380], [500, 380], [660, 380], [660, 90], [150, 90], [150, 232]], 26, 60 * (ferme ? o.b : 0), ferme);
+  // sens conventionnel
+  ctx.fillStyle = '#c0392b'; ctx.font = '600 12px system-ui, sans-serif'; ctx.textAlign = 'center';
+  if (ferme) { ctx.beginPath(); ctx.moveTo(260, 80); ctx.lineTo(276, 90); ctx.lineTo(260, 100); ctx.fill(); ctx.fillText('sens du courant', 250, 70); }
+  ctx.fillStyle = css('--text'); ctx.font = '600 15px system-ui, sans-serif';
+  ctx.fillText(o.n, 400, 440);
+  ctx.fillStyle = ferme ? '#1f8a52' : '#c8323a'; ctx.font = '700 16px system-ui, sans-serif';
+  ctx.fillText(ferme ? (o.b < .5 ? 'La lampe brille faiblement : conducteur' : 'La lampe brille : conducteur') : 'La lampe ne brille pas : isolant', 400, 466);
+  ctx.fillStyle = css('--muted'); ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('● électrons libres en mouvement', 470, 130);
+}
+/* ---------- court-circuit ---------- */
+const RL = 9, r = 1, CAL = 1;
+const C = { k: true, fus: true, fondu: false, cL2: false, cG: false, temp: 20 };
+function calc() {
+  if (C.fus && C.fondu) return { I: 0, I1: 0, I2: 0, Ifil: 0 };
+  if (C.cG) { const I = 4.5 / (r + 0.02); return { I, I1: 0, I2: 0, Ifil: I }; }   // le fil court-circuite la pile, même interrupteur ouvert
+  if (!C.k) return { I: 0, I1: 0, I2: 0, Ifil: 0 };
+  const Rt = r + RL + (C.cL2 ? 0 : RL), I = 4.5 / Rt;
+  return { I, I1: I, I2: C.cL2 ? 0 : I, Ifil: C.cL2 ? I : 0 };
+}
+function cinfo() {
+  const s = calc();
+  $('k').textContent = C.k ? 'Interrupteur fermé' : 'Interrupteur ouvert'; $('k').setAttribute('aria-pressed', C.k);
+  $('fus').textContent = C.fus ? 'Avec fusible (1 A)' : 'Sans fusible'; $('fus').setAttribute('aria-pressed', C.fus);
+  $('rep').hidden = !(C.fus && C.fondu);
+  $('cinfo').innerHTML = `Intensité dans la pile : <b>I = ${f(s.I, 2)} A</b><br>Lampe L₁ : ${f(s.I1, 2)} A · Lampe L₂ : ${f(s.I2, 2)} A`;
+  const d = $('dang');
+  if (C.cG && !(C.fus && C.fondu)) { d.hidden = false; d.innerHTML = `<strong>Danger !</strong> Court-circuit du générateur : I ≈ ${f(s.I, 1)} A. Les fils et la pile chauffent (${Math.round(C.temp)} °C), la pile se décharge très vite.`; }
+  else if (C.fus && C.fondu) { d.hidden = false; d.innerHTML = 'Le <strong>fusible a fondu</strong> : le circuit est ouvert, plus aucun courant ne passe. Le court-circuit n’a pas fait de dégâts.'; }
+  else d.hidden = true;
+}
+function cmsg() {
+  const s = calc();
+  if (C.fus && C.fondu) return 'Le fusible protège le circuit : quand l’intensité dépasse son calibre (1 A), son filament fond et ouvre le circuit. Enlève le fil, puis remplace le fusible.';
+  if (C.cG) return (C.k ? '' : 'Même interrupteur ouvert, le fil ajouté forme une boucle avec la pile ! ') + 'Le fil relie directement les bornes du générateur : le courant passe presque entièrement par ce fil. Les lampes s’éteignent et l’intensité devient très grande.';
+  if (!C.k) return 'Interrupteur ouvert : le circuit est ouvert, aucun courant ne circule.';
+  if (C.cL2) return `L₂ est court-circuitée : le courant passe par le fil et pas par L₂, qui s’éteint. Il ne reste qu’une lampe dans le circuit : l’intensité augmente (${f(s.I, 2)} A) et L₁ brille plus fort.`;
+  return `Les deux lampes en série brillent normalement : I = ${f(s.I, 2)} A.`;
+}
+function drawCC(dt) {
+  const s = calc();
+  if (C.cG && s.I > 1) { C.temp = Math.min(260, C.temp + dt * 45); if (C.fus && !C.fondu) { C.fondu = true; C.temp = 20; cinfo(); $('msg').innerHTML = cmsg(); } }
+  else C.temp = Math.max(20, C.temp - dt * 30);
+  const hot = Math.min(1, (C.temp - 20) / 200);
+  // branches
+  fil([[150, 256], [150, 330]], C.cG ? hot : 0); fil([[150, 330], [150, 400], [660, 400], [660, 90], [548, 90]]);
+  fil([[512, 90], [348, 90]]);
+  fil([[150, 244], [150, 90], [190, 90]], hot); fil([[240, 90], [312, 90]], hot);
+  pile(150, 250, hot);
+  // fusible
+  ctx.strokeStyle = css('--text'); ctx.lineWidth = 2; ctx.fillStyle = css('--surface'); ctx.beginPath(); ctx.rect(190, 80, 50, 20); ctx.fill(); ctx.stroke();
+  if (C.fus) { ctx.strokeStyle = C.fondu ? '#c8323a' : css('--text'); ctx.lineWidth = 1.5; ctx.beginPath(); if (C.fondu) { ctx.moveTo(190, 90); ctx.lineTo(208, 90); ctx.moveTo(222, 90); ctx.lineTo(240, 90); } else { ctx.moveTo(190, 90); ctx.lineTo(240, 90); } ctx.stroke(); }
+  else { ctx.strokeStyle = css('--text'); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(190, 90); ctx.lineTo(240, 90); ctx.stroke(); }
+  ctx.fillStyle = css('--muted'); ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(C.fus ? (C.fondu ? 'fusible fondu' : 'fusible 1 A') : 'pas de fusible', 215, 72);
+  // lampes
+  const b1 = (s.I1 / 0.237) ** 2, b2 = (s.I2 / 0.237) ** 2;
+  lampe(330, 90, b1 * .9, 'L₁'); lampe(530, 90, b2 * .9, 'L₂');
+  // interrupteur sur la droite
+  ctx.fillStyle = css('--canvas'); ctx.fillRect(650, 220, 20, 60);
+  ctx.strokeStyle = css('--text'); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(660, 220); if (C.k) ctx.lineTo(660, 280); else ctx.lineTo(690, 270); ctx.stroke();
+  ctx.fillStyle = css('--text'); ctx.beginPath(); ctx.arc(660, 220, 4, 0, 7); ctx.arc(660, 280, 4, 0, 7); ctx.fill();
+  ctx.fillStyle = css('--muted'); ctx.textAlign = 'left'; ctx.fillText('K', 676, 250);
+  // ampèremètre (en série avec la pile)
+  ctx.fillStyle = css('--surface'); ctx.strokeStyle = css('--text'); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(150, 293, 17, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = css('--text'); ctx.font = '700 15px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('A', 150, 298);
+  ctx.fillStyle = '#0d2a1c'; ctx.beginPath(); ctx.roundRect(22, 300, 100, 30, 6); ctx.fill();
+  ctx.fillStyle = '#5dff9c'; ctx.font = '700 17px ui-monospace, Menlo, Consolas, monospace'; ctx.fillText(f(s.I, 2) + ' A', 72, 321);
+  // fils de court-circuit
+  ctx.setLineDash([]);
+  if (C.cL2) { fil([[480, 90], [480, 160], [580, 160], [580, 90]]); ctx.fillStyle = '#c0392b'; ctx.font = '600 12px system-ui, sans-serif'; ctx.fillText('fil ajouté', 530, 178); }
+  if (C.cG) { fil([[270, 90], [270, 330], [150, 330]], hot); ctx.fillStyle = '#c0392b'; ctx.font = '600 12px system-ui, sans-serif'; ctx.fillText('fil ajouté', 310, 220); }
+  // électrons
+  const on = s.I > 0, v = Math.min(400, 60 * s.I / 0.237);
+  if (on && C.cG) electrons([[150, 268], [150, 330], [270, 330], [270, 90], [150, 90], [150, 232]], 14, v, true);
+  else if (on && C.cL2) electrons([[150, 268], [150, 400], [660, 400], [660, 90], [580, 90], [580, 160], [480, 160], [480, 90], [150, 90], [150, 232]], 34, v, true);
+  else if (on) electrons([[150, 268], [150, 400], [660, 400], [660, 90], [150, 90], [150, 232]], 30, v, true);
+  if (hot > .05) { ctx.fillStyle = '#c8323a'; ctx.font = '700 14px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`🔥 ${Math.round(C.temp)} °C`, 290, 300); }
+}
+/* ---------- interface ---------- */
+$('objs').innerHTML = OBJ.map((o, i) => `<button type="button" class="seg" data-i="${i}" aria-pressed="${i === 0}">${o.n}</button>`).join('');
+$('objs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  M.o = +b.dataset.i; M.vus.add(M.o); tab(); $('objs').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  const o = OBJ[M.o];
+  $('msg').innerHTML = o.c ? (o.s === 'eau' ? 'L’eau salée conduit le courant, mais assez mal : la lampe brille faiblement. (L’eau du robinet conduit très peu ; avec une DEL on verrait un faible courant.)'
+      : `${o.n} : le circuit est fermé, les électrons libres circulent, la lampe brille. ${o.s === 'mine' ? 'Le graphite n’est pas un métal, mais il conduit.' : 'Les métaux sont conducteurs.'}`)
+    : `${o.n} : aucun courant ne passe, la lampe reste éteinte. ${o.s === 'air' ? 'Un circuit ouvert, c’est un circuit coupé par de l’air.' : o.s === 'eau' ? 'L’eau pure conduit très mal : on la considère comme isolante.' : 'Ce matériau est isolant.'}`;
+}));
+$('k').addEventListener('click', () => { C.k = !C.k; cinfo(); $('msg').innerHTML = cmsg(); });
+$('fus').addEventListener('click', () => { C.fus = !C.fus; C.fondu = false; cinfo(); $('msg').innerHTML = cmsg(); });
+$('cL2').addEventListener('click', () => { C.cL2 = !C.cL2; $('cL2').setAttribute('aria-pressed', C.cL2); cinfo(); $('msg').innerHTML = cmsg(); });
+$('cG').addEventListener('click', () => { C.cG = !C.cG; $('cG').setAttribute('aria-pressed', C.cG); cinfo(); $('msg').innerHTML = cmsg(); });
+$('rep').addEventListener('click', () => {
+  if (C.cG) { $('msg').innerHTML = 'Enlève d’abord le fil qui court-circuite le générateur, sinon le nouveau fusible fondra aussitôt !'; return; }
+  C.fondu = false; cinfo(); $('msg').innerHTML = cmsg();
+});
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('p-mat').hidden = mode !== 'mat'; $('p-cc').hidden = mode !== 'cc';
+  cv.setAttribute('aria-label', mode === 'mat' ? 'Circuit de test : pile, lampe et deux pinces' : 'Circuit avec deux lampes en série, fusible et ampèremètre');
+  if (mode === 'cc') { cinfo(); $('msg').innerHTML = cmsg(); } else $('msg').innerHTML = 'Choisis un objet : il est placé entre les deux pinces crocodiles du circuit.';
+}));
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; T += dt;
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  if (mode === 'mat') drawMat(); else { drawCC(dt); if (C.cG) cinfo(); }
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); M.vus.add(0); tab(); cinfo();
+$('msg').innerHTML = 'Choisis un objet : il est placé entre les deux pinces crocodiles du circuit.';
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, fmt, res, shuffle, etape, texte } = Exo;
+const RAPPEL = `Conducteurs : métaux, graphite, eau salée, corps humain. Isolants : plastique, bois, verre, caoutchouc, air sec.
+  Un dipôle court-circuité ne fonctionne plus. Loi d'Ohm : U = R × I, donc I = U / R. Un fusible fond si l'intensité dépasse son calibre.`;
+Exo.monter('exo-cc', [
+  { id: 'mat', label: 'Conducteur ou isolant ?', rappel: RAPPEL, gen() {
+    const L = [['un clou en fer', 1], ['une cuillère en bois', 0], ['un fil de cuivre', 1], ['une bouteille en verre', 0], ['une canette en aluminium', 1],
+      ['un gant en caoutchouc', 0], ['une mine de crayon (graphite)', 1], ['une paille en plastique', 0], ['une bague en or', 1], ['une feuille de papier sec', 0], ['de l’eau salée', 1], ['un bouchon en liège', 0]];
+    const qs = shuffle(L).slice(0, 3);
+    return {
+      enonce: '<p>On place chaque objet entre les pinces d’un circuit « pile + lampe ». La lampe brille-t-elle ?</p>',
+      questions: qs.map((o, i) => ({ label: `${i + 1}. Avec ${o[0]}, la lampe…`, choix: ['brille : conducteur', 'ne brille pas : isolant'], rep: o[1] ? 0 : 1 })),
+      correction: qs.map((o, i) => texte(`${i + 1}.`, o[1] ? `${o[0].replace(/^./, c => c.toUpperCase())} est <strong>conducteur</strong>${/fer|cuivre|alu|or/.test(o[0]) ? ' (c’est un métal)' : ''} : la lampe brille.` : `${o[0].replace(/^./, c => c.toUpperCase())} est <strong>isolant</strong> : la lampe ne brille pas.`)).join('')
+    };
+  } },
+  { id: 'cc', label: 'Prévoir un court-circuit', rappel: RAPPEL, gen() {
+    const cas = pick([
+      { e: 'Un circuit en série comporte une pile, la lampe L₁ et la lampe L₂. On relie les deux bornes de <strong>L₁</strong> par un fil.', l1: 0, l2: 1, i: 0, x: 'L₁ est court-circuitée : le courant passe par le fil, L₁ s’éteint. Il n’y a plus qu’une lampe en série : l’intensité augmente, L₂ brille plus.' },
+      { e: 'Un circuit en série comporte une pile, la lampe L₁ et la lampe L₂. On relie les deux bornes de <strong>L₂</strong> par un fil.', l1: 1, l2: 0, i: 0, x: 'L₂ est court-circuitée : elle s’éteint. L₁ reste seule : l’intensité augmente, L₁ brille plus.' },
+      { e: 'Un circuit en série comporte une pile, la lampe L₁ et la lampe L₂. On relie les deux bornes de la <strong>pile</strong> par un fil.', l1: 0, l2: 0, i: 0, x: 'Le générateur est court-circuité : le courant passe par le fil, les deux lampes s’éteignent. L’intensité devient très grande : danger !' },
+      { e: 'Un circuit en série comporte une pile, la lampe L₁ et la lampe L₂. On relie par un fil la borne gauche de L₁ et la borne droite de L₂ (les deux lampes à la fois).', l1: 0, l2: 0, i: 0, x: 'Les deux lampes sont court-circuitées : elles s’éteignent. Il ne reste que le fil entre les bornes de la pile : c’est un court-circuit du générateur, dangereux.' }
+    ]);
+    const CH = ['s’éteint', 'brille plus fort', 'brille moins fort'];
+    return {
+      enonce: `<p>${cas.e}</p>`,
+      questions: [
+        { label: '1. La lampe L₁…', choix: CH, rep: cas.l1 },
+        { label: '2. La lampe L₂…', choix: CH, rep: cas.l2 },
+        { label: '3. L’intensité du courant qui sort de la pile…', choix: ['augmente', 'diminue', 'ne change pas'], rep: cas.i }
+      ],
+      correction: texte('', cas.x)
+    };
+  } },
+  { id: 'fus', label: 'Le fusible', rappel: RAPPEL, gen() {
+    const U = pick([4.5, 6.0, 9.0, 12.0]), Us = fmt(U, U < 10 ? 2 : 3), R = rnd(2, 30, 3), I = U / R, cal = pick([0.5, 1, 2, 3, 5]), Rf = pick([0.10, 0.20, 0.050]), Icc = U / Rf;
+    return {
+      enonce: `<p>Un générateur de tension <strong>U = ${Us} V</strong> alimente une résistance <strong>R = ${fmt(R, 3)} Ω</strong>. Le circuit est protégé par un fusible de calibre <strong>${fmt(cal, cal < 1 ? 1 : 1)} A</strong>.</p>
+        <p>Par erreur, on relie ensuite les bornes du générateur par un fil de résistance <strong>${fmt(Rf, 2)} Ω</strong>.</p>`,
+      questions: [
+        { label: '1. Calcule l’intensité du courant dans la résistance (avant l’erreur).', unite: 'A', rep: I, cs: 2, marge: 2 },
+        { label: '2. Le fusible fond-il en fonctionnement normal ?', choix: ['oui', 'non'], rep: I > cal ? 0 : 1 },
+        { label: '3. Calcule l’intensité dans le fil du court-circuit.', unite: 'A', rep: Icc, cs: 2, marge: 2 }
+      ],
+      correction: etape({ q: '1.', note: 'On garde 2 chiffres significatifs (la donnée qui en a le moins).', lit: 'U = R × I donc I = U / R', an: `I = ${Us} / ${fmt(R, 3)}`, res: `I = ${res(I, 2, 'A')}` }) +
+        texte('2.', I > cal ? `${fmt(I, 2)} A &gt; ${fmt(cal, 1)} A : l’intensité dépasse le calibre, le fusible <strong>fond</strong> (il est mal choisi !).` : `${fmt(I, 2)} A &lt; ${fmt(cal, 1)} A : le fusible <strong>ne fond pas</strong>.`) +
+        etape({ q: '3.', lit: 'I = U / R(fil)', an: `I = ${Us} / ${fmt(Rf, 2)}`, res: `I = ${res(Icc, 2, 'A')}` }) +
+        texte('', `Cette intensité est énorme : le fusible de ${fmt(cal, 1)} A fond et ouvre le circuit, ce qui évite que les fils chauffent et prennent feu.`)
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'Les métaux sont…', c: ['conducteurs', 'isolants', 'conducteurs seulement s’ils sont mouillés'], e: 'Tous les métaux sont <strong>conducteurs</strong> : ils contiennent des électrons libres.' },
+      { q: 'Dans un métal, le courant électrique est dû à…', c: ['un déplacement d’électrons', 'un déplacement d’atomes', 'un déplacement d’air'], e: 'Ce sont les <strong>électrons libres</strong> qui se déplacent.' },
+      { q: 'Une lampe court-circuitée…', c: ['ne brille plus', 'brille plus fort', 'grille toujours'], e: 'Le courant passe par le fil et pas par la lampe : elle <strong>ne brille plus</strong>.' },
+      { q: 'Le court-circuit du générateur est dangereux car…', c: ['l’intensité devient très grande et les fils chauffent', 'la tension devient nulle', 'les lampes grillent toutes'], e: 'L’intensité devient très grande : les fils <strong>chauffent</strong>, risque d’incendie.' },
+      { q: 'Le rôle d’un fusible est…', c: ['d’ouvrir le circuit si l’intensité est trop grande', 'd’augmenter l’intensité', 'de mesurer la tension'], e: 'Il <strong>fond et ouvre le circuit</strong> quand l’intensité dépasse son calibre.' },
+      { q: 'Le corps humain est…', c: ['conducteur', 'isolant', 'isolant s’il est mouillé'], e: 'Le corps humain est <strong>conducteur</strong> (surtout mouillé) : le courant du secteur peut l’électrocuter.' },
+      { q: 'La tension du secteur, dans une prise en France, vaut…', c: ['230 V', '4,5 V', '12 V'], e: '<strong>230 V</strong> : c’est dangereux, on ne touche jamais l’intérieur d’une prise.' },
+      { q: 'Un circuit ouvert…', c: ['ne laisse pas passer le courant', 'laisse passer un courant plus fort', 'est un court-circuit'], e: 'Un circuit ouvert est coupé (par de l’air, isolant) : <strong>pas de courant</strong>.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

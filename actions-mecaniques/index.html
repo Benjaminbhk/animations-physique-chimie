@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actions mécaniques et forces</title>
+<meta name="description" content="Simulation interactive : reconnaître une action de contact ou à distance, observer les effets d'une action (mise en mouvement, vitesse, trajectoire, déformation) et représenter une force par une flèche à l'échelle (physique-chimie, Quatrième).">
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --text:#1c2333; --muted:#5a6478; --border:#dde2ec;
+  --accent:#1f6fae; --accent-soft:#e4f0fa; --accent-ink:#ffffff; --canvas:#fbfcff;
+  --glass:rgba(70,90,120,0.62); --glass-fill:rgba(160,185,215,0.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+    --accent:#6db6ec; --accent-soft:#132a3d; --accent-ink:#14111f; --canvas:#141821;
+    --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c26; --text:#e6e9f0; --muted:#9aa3b6; --border:#2a3040;
+  --accent:#6db6ec; --accent-soft:#132a3d; --accent-ink:#14111f; --canvas:#141821;
+  --glass:rgba(190,208,235,0.62); --glass-fill:rgba(140,170,210,0.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 8px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem);margin:0;letter-spacing:-.01em}
+header.top a{font-size:.95rem;text-decoration:none}
+.lead{color:var(--muted);margin:.4rem 0 1.2rem;max-width:75ch}
+.scene{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:0 0 22px}
+.scene > h2{margin:0 0 .3rem;font-size:1.2rem}
+.sub{color:var(--muted);margin:0 0 .8rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--canvas);border:1px solid var(--border);touch-action:manipulation}
+.panel{display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:1rem;margin:0 0 .4rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted);font-size:.82rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{font:inherit;font-weight:600;padding:.5rem .8rem;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-ink);cursor:pointer;min-height:42px}
+button.ghost{background:transparent;color:var(--accent)}
+button.seg{background:var(--bg);color:var(--text);border-color:var(--border);font-size:.9rem;padding:.4rem .4rem}
+button.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.row label{font-weight:600;font-size:.92rem;min-width:8.5em}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:2.5ch;text-align:right}
+.eq{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;font-size:.95rem}
+.eq b{display:block;font-size:1.08rem;margin-top:.15rem}
+table.cnt{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.cnt th,table.cnt td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:center}
+table.cnt th:first-child,table.cnt td:first-child{text-align:left}
+table.cnt td.same{color:#1f8a52;font-weight:700}
+.tests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tube{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.tube i{flex:none;width:18px;height:40px;border:2px solid var(--glass);border-top:none;border-radius:0 0 9px 9px;background:var(--glass-fill);transition:background .6s}
+.explain{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem .8rem;border-radius:0 10px 10px 0;
+  margin:12px 0 0;min-height:3.2em}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.memo div{border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;background:var(--bg);font-size:.93rem}
+.memo h3{margin:0 0 .2rem;font-size:.95rem}
+footer{max-width:1180px;margin:0 auto;padding:10px 16px 28px;color:var(--muted);font-size:.9rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)}
+footer strong{color:var(--text)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .memo{grid-template-columns:1fr}
+  .scene{padding:12px}
+}
+#cv{aspect-ratio:820/480}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.tabs button{border-radius:999px}
+.info{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.6;font-variant-numeric:tabular-nums}
+.info b{color:var(--accent)}
+.check{display:flex;align-items:center;gap:6px;font-size:.92rem;margin-top:6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.res{margin-top:8px;border-radius:10px;padding:.55rem .75rem;font-size:.93rem;line-height:1.5;border:1px solid}
+.res.ok{background:#e2f4ea;border-color:#1f8a52;color:#14532f}
+.res.ko{background:#fbe8e7;border-color:#c8323a;color:#7c1d22}
+.res.mid{background:#fdf1de;border-color:#b86a00;color:#6b3e00}
+select{font:inherit;padding:.35rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:38px}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:.25rem .35rem;text-align:left}
+[hidden]{display:none!important}
+
+#cv{touch-action:none}
+.q{font-weight:600;margin:.2rem 0 .4rem}
+.score{color:var(--muted);font-size:.9rem;margin-left:auto}
+</style>
+<link rel="stylesheet" href="../commun/exercices.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Actions mécaniques et forces</h1>
+    <a href="../quatrieme/">← Toutes les simulations</a>
+  </header>
+  <p class="lead">Un objet peut agir sur un autre <strong>par contact</strong> ou <strong>à distance</strong>. Une action peut mettre en
+    mouvement, changer la vitesse ou la trajectoire, ou déformer. On la modélise par une <strong>force</strong>, représentée par une
+    flèche : point d'application, direction, sens et valeur (en newtons, N).</p>
+
+  <section class="scene" id="sc" aria-label="Simulation sur les actions mécaniques">
+    <div class="tabs" role="group" aria-label="Choisir l'activité">
+      <button type="button" class="seg" data-mode="ca" aria-pressed="true">🧲 Contact ou à distance ?</button>
+      <button type="button" class="seg" data-mode="ef" aria-pressed="false">⚽ Les effets d'une action</button>
+      <button type="button" class="seg" data-mode="fl" aria-pressed="false">➜ Représenter une force</button>
+    </div>
+    <div class="layout">
+      <div>
+        <canvas id="cv" role="img" aria-label="Situation : une action mécanique"></canvas>
+        <p class="explain" id="msg" aria-live="polite"></p>
+      </div>
+      <div class="panel">
+        <div id="p-ca">
+          <h3>Situation <span id="ca-n"></span></h3>
+          <p class="q" id="ca-q"></p>
+          <div class="grid2">
+            <button type="button" class="seg" data-rep="c">De contact</button>
+            <button type="button" class="seg" data-rep="d">À distance</button>
+          </div>
+          <div class="res" id="ca-res" aria-live="polite" hidden></div>
+          <label class="check"><input type="checkbox" id="ca-f"> Montrer la force qui modélise l'action</label>
+          <div class="row"><button type="button" id="ca-next">Situation suivante</button><span class="score" id="ca-score"></span></div>
+        </div>
+        <div id="p-ef" hidden>
+          <h3>Choisir une action</h3>
+          <div class="grid2" id="effets" role="group" aria-label="Effet"></div>
+          <button type="button" id="ef-rejouer" class="ghost" style="margin-top:8px">Rejouer</button>
+          <div class="info" id="ef-info" style="margin-top:10px"></div>
+        </div>
+        <div id="p-fl" hidden>
+          <h3>Consigne</h3>
+          <div class="info" id="fl-cons"></div>
+          <p class="sub" style="margin:.5rem 0 0">Fais glisser le <strong>point de départ</strong> (rond) et la <strong>pointe</strong> (triangle) de la flèche. Ils se placent sur les nœuds du quadrillage.</p>
+          <table class="t" style="margin-top:8px" aria-label="Caractéristiques de ta flèche"><tbody id="fl-car"></tbody></table>
+          <div class="row"><button type="button" id="fl-verif">Vérifier</button><button type="button" id="fl-next" class="ghost">Autre force</button></div>
+          <div class="res" id="fl-res" aria-live="polite" hidden></div>
+        </div>
+      </div>
+    </div>
+    <div class="memo">
+      <div><h3>Action mécanique</h3>Un <strong>acteur</strong> agit sur un <strong>receveur</strong>. Action <strong>de contact</strong> : les objets se touchent (main, sol, fil, vent…). Action <strong>à distance</strong> : sans se toucher (attraction de la Terre, aimant, électricité statique).</div>
+      <div><h3>Effets</h3>Une action peut <strong>mettre en mouvement</strong>, <strong>modifier la vitesse</strong>, <strong>modifier la trajectoire</strong> d'un objet, ou le <strong>déformer</strong>.</div>
+      <div><h3>Une force</h3>Une flèche avec : un <strong>point d'application</strong>, une <strong>direction</strong> (droite d'action), un <strong>sens</strong>, une <strong>valeur</strong> en newtons (N), mesurée au dynamomètre. Longueur = valeur × échelle.</div>
+    </div>
+  </section>
+
+  <section class="scene exercices" id="sc-exo" aria-labelledby="t-exo">
+    <h2 id="t-exo"><span class="ex-badge">✎ Exercices</span> À toi de t'entraîner</h2>
+    <p class="sub">Des petits exercices avec des valeurs tirées au hasard.</p>
+    <div id="exo-am"></div>
+  </section>
+</div>
+<footer><span>Réalisé par <strong>Benjamin Barre</strong>, professeur de physique-chimie.</span><span>Intensité de la pesanteur sur Terre : g = 9,8 N/kg.</span></footer>
+
+<script src="../commun/exercices.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const W = 820, H = 480;
+const f = (x, d) => x.toFixed(d).replace('.', ',');
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, dpr = 1, mode = 'ca', T = 0;
+function resize() {
+  const w = cv.clientWidth || W; dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  scale = w / W; cv.width = Math.round(w * dpr); cv.height = Math.round(w * H / W * dpr);
+}
+const ROUGE = '#d62f2f';
+function fleche(x1, y1, x2, y2, col = ROUGE, w = 4, label = '') {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';
+  if (L > 2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - 14 * Math.cos(a), y2 - 14 * Math.sin(a)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - 18 * Math.cos(a - .38), y2 - 18 * Math.sin(a - .38)); ctx.lineTo(x2 - 18 * Math.cos(a + .38), y2 - 18 * Math.sin(a + .38)); ctx.closePath(); ctx.fill(); }
+  ctx.beginPath(); ctx.arc(x1, y1, 5, 0, 7); ctx.fill(); ctx.lineCap = 'butt';
+  if (label) { ctx.font = '700 15px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(label, (x1 + x2) / 2 + 10, (y1 + y2) / 2 - 6); }
+}
+const sol = y => { ctx.fillStyle = css('--border'); ctx.fillRect(20, y, 780, 6); ctx.strokeStyle = css('--muted'); ctx.lineWidth = 1; for (let x = 24; x < 800; x += 16) { ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x - 8, y + 16); ctx.stroke(); } };
+const txt = (s, x, y, c, fnt = '600 14px system-ui, sans-serif', al = 'center') => { ctx.fillStyle = c || css('--text'); ctx.font = fnt; ctx.textAlign = al; ctx.fillText(s, x, y); };
+const ballon = (x, y, r = 30) => { const g = ctx.createRadialGradient(x - r * .35, y - r * .35, 3, x, y, r); g.addColorStop(0, '#fff'); g.addColorStop(1, '#d9dee6'); ctx.fillStyle = g; ctx.strokeStyle = '#3a3f4a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3a3f4a'; ctx.beginPath(); for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + k * 1.2566; ctx.lineTo(x + r * .35 * Math.cos(a), y + r * .35 * Math.sin(a)); } ctx.fill(); };
+const pomme = (x, y, r = 26) => { ctx.fillStyle = '#d63a2f'; ctx.beginPath(); ctx.arc(x - r * .35, y, r * .8, 0, 7); ctx.arc(x + r * .35, y, r * .8, 0, 7); ctx.fill(); ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, y - r * .6); ctx.lineTo(x + 4, y - r * 1.1); ctx.stroke(); ctx.fillStyle = '#3c9a3c'; ctx.beginPath(); ctx.ellipse(x + 13, y - r * 1.0, 10, 5, -.5, 0, 7); ctx.fill(); };
+/* ---------- contact ou à distance ---------- */
+const SIT = [
+  { a: 'l’aimant', r: 'le trombone', t: 'd', e: 'L’aimant attire le trombone sans le toucher : action <strong>à distance</strong> (magnétique).', draw(t) {
+    const x = 520 - 90 * Math.min(1, (t % 4) / 2.2) ** 2;
+    ctx.strokeStyle = '#c8323a'; ctx.lineWidth = 22; ctx.beginPath(); ctx.arc(330, 240, 60, Math.PI / 2, -Math.PI / 2, true); ctx.stroke();
+    ctx.strokeStyle = '#2c6fd6'; ctx.beginPath(); ctx.moveTo(330, 180); ctx.lineTo(380, 180); ctx.moveTo(330, 300); ctx.lineTo(380, 300); ctx.stroke(); txt('aimant', 330, 350);
+    ctx.strokeStyle = '#8a9099'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, 228, 50, 24, 10); ctx.stroke(); ctx.beginPath(); ctx.roundRect(x + 6, 233, 36, 14, 6); ctx.stroke(); txt('trombone', x + 25, 280);
+    return [x + 2, 240, x - 60, 240]; } },
+  { a: 'la main', r: 'la caisse', t: 'c', e: 'La main touche la caisse pour la pousser : action <strong>de contact</strong>.', draw(t) {
+    const x = 260 + 40 * ((t % 4) / 4); sol(330);
+    ctx.fillStyle = '#b07a3e'; ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 2; ctx.fillRect(x, 210, 140, 120); ctx.strokeRect(x, 210, 140, 120); ctx.beginPath(); ctx.moveTo(x, 210); ctx.lineTo(x + 140, 330); ctx.moveTo(x + 140, 210); ctx.lineTo(x, 330); ctx.stroke(); txt('caisse', x + 70, 200);
+    ctx.fillStyle = '#f1c27d'; ctx.beginPath(); ctx.roundRect(x - 70, 250, 70, 34, 12); ctx.fill(); ctx.fillRect(x - 160, 258, 100, 20); txt('main', x - 90, 310);
+    return [x, 267, x + 80, 267]; } },
+  { a: 'la Terre', r: 'la pomme', t: 'd', e: 'La pomme tombe sans que la Terre la touche : action <strong>à distance</strong> (attraction gravitationnelle). On la modélise par le <strong>poids</strong>.', draw(t) {
+    const y = 140 + 170 * Math.min(1, ((t % 3) / 1.4) ** 2); sol(380);
+    ctx.fillStyle = '#6b4a2b'; ctx.fillRect(220, 140, 26, 240); ctx.fillStyle = '#3c9a3c'; ctx.beginPath(); ctx.arc(233, 120, 80, 0, 7); ctx.arc(330, 110, 60, 0, 7); ctx.fill();
+    pomme(360, y); txt('pomme', 420, y + 6, null, '600 14px system-ui, sans-serif', 'left'); txt('la Terre (le sol)', 560, 420);
+    return [360, y, 360, y + 70]; } },
+  { a: 'le pied', r: 'le ballon', t: 'c', e: 'Le pied touche le ballon pendant le tir : action <strong>de contact</strong>.', draw(t) {
+    const k = t % 3, bx = k < 1 ? 380 : 380 + 260 * (k - 1); sol(380);
+    const ang = k < 1 ? -.9 + 1.0 * k : .1;
+    ctx.save(); ctx.translate(300, 210); ctx.rotate(ang); ctx.fillStyle = '#1f6fae'; ctx.fillRect(-14, 0, 28, 120); ctx.fillStyle = '#222'; ctx.beginPath(); ctx.roundRect(-14, 110, 66, 26, 10); ctx.fill(); ctx.restore();
+    ballon(bx, 350); txt('ballon', bx, 305); txt('pied', 250, 230);
+    return k < 1.05 ? [bx - 30, 350, bx + 50, 350] : null; } },
+  { a: 'le fil', r: 'la lampe', t: 'c', e: 'Le fil, attaché à la lampe, la retient : action <strong>de contact</strong>. Elle compense le poids de la lampe.', draw(t) {
+    const sw = .05 * Math.sin(t * 1.5);
+    ctx.fillStyle = css('--border'); ctx.fillRect(250, 40, 320, 14);
+    ctx.save(); ctx.translate(410, 54); ctx.rotate(sw);
+    ctx.strokeStyle = css('--text'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 180); ctx.stroke();
+    ctx.fillStyle = '#2f8f6b'; ctx.beginPath(); ctx.moveTo(-12, 180); ctx.lineTo(12, 180); ctx.lineTo(60, 250); ctx.lineTo(-60, 250); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffe48a'; ctx.beginPath(); ctx.arc(0, 256, 18, 0, Math.PI); ctx.fill(); ctx.restore();
+    txt('fil', 440, 140, null, '600 14px system-ui, sans-serif', 'left'); txt('lampe', 520, 300, null, '600 14px system-ui, sans-serif', 'left');
+    const ax = 410 - 180 * Math.sin(sw), ay = 54 + 180 * Math.cos(sw);
+    return [ax, ay, ax, ay - 70]; } },
+  { a: 'la règle frottée', r: 'les petits papiers', t: 'd', e: 'La règle frottée attire les papiers avant de les toucher : action <strong>à distance</strong> (électrique).', draw(t) {
+    sol(380); ctx.fillStyle = '#4aa3df'; ctx.fillRect(250, 220, 320, 22); txt('règle en plastique frottée', 410, 210);
+    ctx.fillStyle = '#c8323a'; ctx.font = '700 13px system-ui, sans-serif'; for (let x = 262; x < 560; x += 26) ctx.fillText('−', x, 236);
+    for (let i = 0; i < 9; i++) { const ph = (t * .8 + i * .37) % 2, up = ph < 1 ? 0 : Math.min(1, (ph - 1) * 2), x = 280 + i * 32, y = 370 - (370 - 250) * up * (i % 3 === 0 ? 1 : .5);
+      ctx.fillStyle = '#f4f4f0'; ctx.strokeStyle = '#999'; ctx.lineWidth = 1; ctx.save(); ctx.translate(x, y); ctx.rotate(i); ctx.fillRect(-7, -4, 14, 8); ctx.strokeRect(-7, -4, 14, 8); ctx.restore(); }
+    txt('petits papiers', 410, 410); return [376, 340, 376, 280]; } },
+  { a: 'le vent', r: 'la voile', t: 'c', e: 'L’air en mouvement frappe toute la voile : action <strong>de contact</strong>, répartie sur toute la surface.', draw(t) {
+    ctx.fillStyle = 'rgba(44,127,214,.25)'; ctx.fillRect(20, 360, 780, 100);
+    ctx.fillStyle = '#b07a3e'; ctx.beginPath(); ctx.moveTo(330, 360); ctx.lineTo(560, 360); ctx.lineTo(530, 395); ctx.lineTo(360, 395); ctx.fill();
+    ctx.fillStyle = css('--text'); ctx.fillRect(443, 120, 5, 240);
+    ctx.fillStyle = '#f4f4f0'; ctx.strokeStyle = '#999'; ctx.beginPath(); ctx.moveTo(448, 130); ctx.quadraticCurveTo(540, 230, 448, 340); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#2c7fd6'; ctx.lineWidth = 2; for (let i = 0; i < 4; i++) { const x = 80 + ((t * 120 + i * 90) % 330); ctx.beginPath(); ctx.moveTo(x, 170 + i * 40); ctx.lineTo(x + 50, 170 + i * 40); ctx.stroke(); }
+    txt('vent', 160, 150); txt('voile', 540, 140);
+    return [480, 235, 560, 235]; } },
+  { a: 'la Terre', r: 'la Lune', t: 'd', e: 'La Terre attire la Lune à 384 000 km de distance : action <strong>à distance</strong> (gravitation). Elle la maintient sur son orbite.', draw(t) {
+    ctx.fillStyle = '#0b1020'; ctx.beginPath(); ctx.roundRect(20, 20, 780, 440, 12); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.setLineDash([4, 6]); ctx.beginPath(); ctx.arc(410, 240, 170, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    const g = ctx.createRadialGradient(400, 230, 5, 410, 240, 50); g.addColorStop(0, '#6db6ec'); g.addColorStop(1, '#1f5fa0'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(410, 240, 46, 0, 7); ctx.fill();
+    const a = t * .4, lx = 410 + 170 * Math.cos(a), ly = 240 + 170 * Math.sin(a);
+    ctx.fillStyle = '#c9ced6'; ctx.beginPath(); ctx.arc(lx, ly, 16, 0, 7); ctx.fill();
+    txt('Terre', 410, 312, '#e6e9f0'); txt('Lune', lx, ly - 24, '#e6e9f0');
+    return [lx, ly, lx + (410 - lx) * .35, ly + (240 - ly) * .35]; } }
+];
+const CA = { i: 0, ordre: [], rep: null, ok: 0, n: 0 };
+function caNouveau(first) {
+  if (!CA.ordre.length) CA.ordre = Exo.shuffle(SIT.map((_, i) => i));
+  CA.i = first ? CA.ordre.shift() : CA.ordre.shift(); CA.rep = null; T = 0;
+  const s = SIT[CA.i];
+  $('ca-n').textContent = ''; $('ca-q').innerHTML = `L’action de <strong>${s.a}</strong> sur <strong>${s.r}</strong> est…`;
+  $('ca-res').hidden = true; document.querySelectorAll('[data-rep]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  $('msg').innerHTML = `Acteur : ${s.a}. Receveur : ${s.r}. Les deux objets se touchent-ils ?`;
+}
+function drawCA() {
+  const s = SIT[CA.i], fl = s.draw(T);
+  if (fl && ($('ca-f').checked)) fleche(...fl, ROUGE, 4, 'F');
+}
+/* ---------- effets ---------- */
+const EF = [
+  { id: 'mv', n: 'Mettre en mouvement', e: 'Le ballon était <strong>immobile</strong>. L’action du pied le <strong>met en mouvement</strong>.' },
+  { id: 'vi', n: 'Modifier la vitesse', e: 'Le chariot roulait à vitesse constante (points régulièrement espacés). La poussée <strong>augmente sa vitesse</strong> : les points s’écartent.' },
+  { id: 'fr', n: 'Freiner', e: 'Les frottements du tapis sur le palet <strong>diminuent sa vitesse</strong> : les points se rapprochent jusqu’à l’arrêt.' },
+  { id: 'tr', n: 'Modifier la trajectoire', e: 'La bille roulait en ligne droite. L’aimant l’attire à distance et <strong>courbe sa trajectoire</strong>.' },
+  { id: 'de', n: 'Déformer', e: 'La main appuie sur la balle en mousse : elle <strong>s’écrase</strong>. Quand la main la lâche, la balle reprend sa forme.' },
+  { id: 're', n: 'Allonger un ressort', e: 'La masse accrochée étire le ressort : l’action le <strong>déforme</strong>. C’est le principe du <strong>dynamomètre</strong>, qui mesure la valeur d’une force.' }
+];
+const E = { id: 'mv', t: 0 };
+function drawEf(dt) {
+  E.t += dt; const t = E.t, mut = css('--muted');
+  const chrono = (fn, t0, t1, step, draw) => { for (let s = t0; s <= Math.min(t, t1) + 1e-9; s += step) { const [x, y] = fn(s); draw(x, y, s); } };
+  if (E.id === 'mv') {
+    sol(380); const pos = s => [s < 1 ? 200 : Math.min(740, 200 + 230 * (s - 1)), 350];
+    chrono(pos, 1, 4, .25, (x, y) => { ctx.fillStyle = mut; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 7); ctx.fill(); });
+    const [x] = pos(Math.min(t, 4)); ballon(x, 350);
+    const ang = t < 1 ? -1 + t : 0;
+    ctx.save(); ctx.translate(130, 210); ctx.rotate(ang); ctx.fillStyle = '#1f6fae'; ctx.fillRect(-14, 0, 28, 120); ctx.fillStyle = '#222'; ctx.beginPath(); ctx.roundRect(-14, 110, 66, 26, 10); ctx.fill(); ctx.restore();
+    if (t > .85 && t < 1.15) fleche(170, 350, 240, 350, ROUGE, 4, 'F');
+  } else if (E.id === 'vi' || E.id === 'fr') {
+    sol(380); const v0 = 150;
+    const pos = E.id === 'vi' ? s => [60 + (s < 1.5 ? v0 * s : v0 * 1.5 + v0 * (s - 1.5) + 110 * (s - 1.5) ** 2), 345]
+      : s => { const u = Math.min(Math.max(s - 1.5, 0), 2); return [60 + (s < 1.5 ? 195 * s : 292.5 + 195 * u - 48.75 * u * u), 345]; };
+    if (E.id === 'fr') { ctx.fillStyle = 'rgba(184,56,42,.18)'; ctx.fillRect(352, 370, 450, 10); txt('tapis rugueux', 580, 410, mut, '12px system-ui, sans-serif'); }
+    chrono(pos, 0, 4, .25, (x, y) => { if (x < 790) { ctx.fillStyle = mut; ctx.beginPath(); ctx.arc(x, y + 30, 3.5, 0, 7); ctx.fill(); } });
+    const x = Math.min(pos(Math.min(t, 4))[0], 750);
+    {
+      ctx.fillStyle = E.id === 'vi' ? '#2f8f6b' : '#7a3fd0'; ctx.beginPath(); ctx.roundRect(x - 40, 320 + (E.id === 'fr' ? 30 : 0), 80, E.id === 'fr' ? 20 : 34, 6); ctx.fill();
+      if (E.id === 'vi') { ctx.fillStyle = '#3a3f4a'; ctx.beginPath(); ctx.arc(x - 24, 362, 12, 0, 7); ctx.arc(x + 24, 362, 12, 0, 7); ctx.fill(); }
+      if (E.id === 'vi' && t > 1.5 && t < 2.6) { fleche(x - 110, 335, x - 44, 335, ROUGE, 4, 'F'); ctx.fillStyle = '#f1c27d'; ctx.beginPath(); ctx.roundRect(x - 112, 322, 50, 26, 10); ctx.fill(); }
+      if (E.id === 'fr' && t > 1.5 && t < 3.5) fleche(x, 368, x - 60, 368, ROUGE, 4, 'f');
+    }
+    txt('Positions toutes les 0,25 s', 410, 440, mut, '12px system-ui, sans-serif');
+  } else if (E.id === 'tr') {
+    ctx.fillStyle = css('--bg'); ctx.fillRect(20, 60, 780, 360);
+    const pos = s => { if (s < 1.6) return [60 + 220 * s, 140]; const u = s - 1.6; return [412 + 220 * u - 30 * u * u, 140 + 70 * u * u]; };
+    chrono(pos, 0, 3.6, .2, (x, y) => { if (y < 420) { ctx.fillStyle = mut; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 7); ctx.fill(); } });
+    ctx.strokeStyle = mut; ctx.setLineDash([6, 6]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(60, 140); ctx.lineTo(790, 140); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#c8323a'; ctx.fillRect(470, 330, 70, 40); ctx.fillStyle = '#2c6fd6'; ctx.fillRect(540, 330, 70, 40); txt('N', 505, 356, '#fff'); txt('S', 575, 356, '#fff'); txt('aimant', 540, 395);
+    const [x, y] = pos(Math.min(t, 3.6));
+    if (y < 420) { const g = ctx.createRadialGradient(x - 4, y - 4, 2, x, y, 13); g.addColorStop(0, '#fff'); g.addColorStop(1, '#7d848e'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 13, 0, 7); ctx.fill();
+      if (t > 1.6) fleche(x, y, x + (505 - x) * .25, y + (330 - y) * .25, ROUGE, 3.5, 'F'); }
+    txt('vue de dessus : une bille d’acier roule sur une table', 410, 450, mut, '12px system-ui, sans-serif');
+  } else if (E.id === 'de') {
+    sol(380); const k = Math.max(0, Math.sin(Math.min(t, 3) * Math.PI / 3)), h = 120 - 60 * k, w = 120 + 50 * k;
+    ctx.fillStyle = '#f2b84b'; ctx.beginPath(); ctx.ellipse(410, 380 - h / 2, w / 2, h / 2, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.08)'; for (let i = 0; i < 20; i++) { ctx.beginPath(); ctx.arc(410 + (i * 37 % 90) - 45, 380 - h / 2 + (i * 23 % 40) - 20, 3, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#f1c27d'; ctx.beginPath(); ctx.roundRect(350, 380 - h - 46, 120, 46, 18); ctx.fill(); ctx.fillRect(390, 60, 40, 380 - h - 100);
+    if (k > .05) fleche(410, 380 - h, 410, 380 - h + 60, ROUGE, 4, 'F');
+    txt('balle en mousse', 560, 360, null, '600 14px system-ui, sans-serif', 'left');
+  } else {
+    const k = Math.min(1, t / 1.5), L = 120 + 110 * k;
+    ctx.fillStyle = css('--border'); ctx.fillRect(310, 40, 200, 14);
+    ctx.strokeStyle = css('--text'); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(410, 54);
+    for (let i = 0; i <= 24; i++) ctx.lineTo(410 + (i % 2 ? 16 : -16) * (i && i < 24 ? 1 : 0), 64 + L * i / 24); ctx.stroke();
+    ctx.fillStyle = '#7d848e'; ctx.fillRect(385, 64 + L + 6, 50, 50); txt('100 g', 410, 64 + L + 38, '#fff');
+    ctx.strokeStyle = css('--muted'); ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(450, 184); ctx.lineTo(560, 184); ctx.moveTo(450, 64 + L); ctx.lineTo(560, 64 + L); ctx.stroke(); ctx.setLineDash([]);
+    fleche(540, 184, 540, 64 + L, '#2f8f6b', 2.5); txt(`allongement ${f(k * 2.2, 1)} cm`, 570, 130 + L / 2, null, '600 13px system-ui, sans-serif', 'left');
+    fleche(410, 64 + L, 410, 64 + L + 70, ROUGE, 4); txt('action de la masse', 300, 64 + L + 30, ROUGE, '600 12px system-ui, sans-serif'); txt('sur le ressort', 300, 64 + L + 46, ROUGE, '600 12px system-ui, sans-serif');
+  }
+}
+function efInfo() { const e = EF.find(x => x.id === E.id); $('ef-info').innerHTML = `<b>${e.n}</b><br>${e.e}`; $('msg').innerHTML = e.e; }
+/* ---------- représenter une force ---------- */
+const G = 40, OX = 40, OY = 40, NX = 13, NY = 10;    // quadrillage : carreaux de 40 px
+const FL = [
+  { c: 'Représente le <strong>poids</strong> de la pomme accrochée à l’arbre : <strong>P = 2,0 N</strong>.', ech: .5, u: 'N', pt: [7, 4], v: [0, 1], val: 2, pa: 'centre de la pomme', draw() { ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(OX + 3 * G, OY + G); ctx.lineTo(OX + 11 * G, OY + G); ctx.stroke(); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(OX + 7 * G, OY + G); ctx.lineTo(OX + 7 * G, OY + 3.2 * G); ctx.stroke(); pomme(OX + 7 * G, OY + 4 * G, 30); } },
+  { c: 'Représente l’action du <strong>fil</strong> sur la lampe : <strong>T = 3,0 N</strong>.', ech: 1, u: 'N', pt: [6, 5], v: [0, -1], val: 3, pa: 'point d’attache du fil sur la lampe', draw() { ctx.fillStyle = css('--border'); ctx.fillRect(OX + 4 * G, OY - 4, 4 * G, 10); ctx.strokeStyle = css('--text'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(OX + 6 * G, OY); ctx.lineTo(OX + 6 * G, OY + 5 * G); ctx.stroke();
+      ctx.fillStyle = '#2f8f6b'; ctx.beginPath(); ctx.moveTo(OX + 6 * G - 10, OY + 5 * G); ctx.lineTo(OX + 6 * G + 10, OY + 5 * G); ctx.lineTo(OX + 6 * G + 60, OY + 6.6 * G); ctx.lineTo(OX + 6 * G - 60, OY + 6.6 * G); ctx.closePath(); ctx.fill(); } },
+  { c: 'La corde tire la caisse vers la droite : <strong>F = 40 N</strong>.', ech: 10, u: 'N', pt: [6, 6], v: [1, 0], val: 40, pa: 'point d’attache de la corde', draw() { ctx.fillStyle = css('--border'); ctx.fillRect(OX, OY + 8 * G, NX * G, 6); ctx.fillStyle = '#b07a3e'; ctx.fillRect(OX + 2 * G, OY + 4 * G, 4 * G, 4 * G); ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 2; ctx.strokeRect(OX + 2 * G, OY + 4 * G, 4 * G, 4 * G);
+      ctx.strokeStyle = '#c9a227'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(OX + 6 * G, OY + 6 * G); ctx.lineTo(OX + 12.5 * G, OY + 6 * G); ctx.stroke(); } },
+  { c: 'L’aimant attire la bille d’acier vers la gauche : <strong>F = 0,60 N</strong>.', ech: .2, u: 'N', pt: [9, 5], v: [-1, 0], val: .6, pa: 'centre de la bille', draw() { ctx.fillStyle = '#c8323a'; ctx.fillRect(OX + .5 * G, OY + 4 * G, 1.5 * G, 2 * G); ctx.fillStyle = '#2c6fd6'; ctx.fillRect(OX + 2 * G, OY + 4 * G, 1.5 * G, 2 * G);
+      const g = ctx.createRadialGradient(OX + 9 * G - 6, OY + 5 * G - 6, 2, OX + 9 * G, OY + 5 * G, 22); g.addColorStop(0, '#fff'); g.addColorStop(1, '#7d848e'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(OX + 9 * G, OY + 5 * G, 22, 0, 7); ctx.fill(); } },
+  { c: 'La table soutient le livre : <strong>R = 6,0 N</strong>.', ech: 2, u: 'N', pt: [6, 7], v: [0, -1], val: 6, pa: 'centre de la surface de contact', draw() { ctx.fillStyle = '#b07a3e'; ctx.fillRect(OX + G, OY + 7 * G, 11 * G, 18); ctx.fillStyle = '#1f6fae'; ctx.fillRect(OX + 4 * G, OY + 6 * G, 4 * G, G); ctx.fillStyle = '#fff'; ctx.fillRect(OX + 4 * G + 4, OY + 6 * G + 6, 4 * G - 8, 8); } }
+];
+const Fs = { k: 0, A: [2, 2], B: [4, 2], drag: null };
+function nfmt(x) { return Exo.fmt(x, 2); }
+function car() {
+  const s = FL[Fs.k], dx = Fs.B[0] - Fs.A[0], dy = Fs.B[1] - Fs.A[1], L = Math.hypot(dx, dy);
+  const dir = !L ? '—' : dx === 0 ? 'verticale' : dy === 0 ? 'horizontale' : 'oblique';
+  const sens = !L ? '—' : dx === 0 ? (dy > 0 ? 'vers le bas' : 'vers le haut') : dy === 0 ? (dx > 0 ? 'vers la droite' : 'vers la gauche') : (dy > 0 ? 'vers le bas' : 'vers le haut') + (dx > 0 ? ' et la droite' : ' et la gauche');
+  $('fl-car').innerHTML = `<tr><th>Point d’application</th><td>nœud (${Fs.A[0]} ; ${Fs.A[1]})</td></tr><tr><th>Direction</th><td>${dir}</td></tr><tr><th>Sens</th><td>${sens}</td></tr>
+    <tr><th>Longueur</th><td>${f(L, L % 1 ? 1 : 0)} carreau${L > 1 ? 'x' : ''}</td></tr><tr><th>Valeur représentée</th><td><b>${nfmt(L * s.ech)} ${s.u}</b></td></tr>`;
+}
+function flNouveau(k) {
+  Fs.k = k === undefined ? (Fs.k + 1) % FL.length : k; Fs.A = [1, 1]; Fs.B = [3, 1];
+  const s = FL[Fs.k];
+  $('fl-cons').innerHTML = `${s.c}<br>Échelle : <b>1 carreau ↔ ${nfmt(s.ech)} ${s.u}</b>`;
+  $('fl-res').hidden = true; car();
+  $('msg').innerHTML = 'Place le point de départ de la flèche au point d’application, puis la pointe dans le bon sens, avec la bonne longueur.';
+}
+function drawFl() {
+  ctx.strokeStyle = css('--border'); ctx.lineWidth = 1;
+  for (let i = 0; i <= NX; i++) { ctx.beginPath(); ctx.moveTo(OX + i * G, OY); ctx.lineTo(OX + i * G, OY + NY * G); ctx.stroke(); }
+  for (let j = 0; j <= NY; j++) { ctx.beginPath(); ctx.moveTo(OX, OY + j * G); ctx.lineTo(OX + NX * G, OY + j * G); ctx.stroke(); }
+  FL[Fs.k].draw();
+  const P = p => [OX + p[0] * G, OY + p[1] * G], a = P(Fs.A), b = P(Fs.B);
+  fleche(a[0], a[1], b[0], b[1], ROUGE, 4);
+  ctx.strokeStyle = ROUGE; ctx.lineWidth = 2; ctx.fillStyle = css('--surface'); ctx.beginPath(); ctx.arc(a[0], a[1], 10, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = ROUGE; ctx.beginPath(); ctx.arc(a[0], a[1], 4, 0, 7); ctx.fill();
+  ctx.strokeStyle = ROUGE; ctx.globalAlpha = .35; ctx.beginPath(); ctx.arc(b[0], b[1], 14, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+  txt('1 carreau ↔ ' + nfmt(FL[Fs.k].ech) + ' ' + FL[Fs.k].u, 680, 30, css('--muted'), '12px system-ui, sans-serif');
+}
+function pt(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; }
+const snap = ([x, y]) => [Math.max(0, Math.min(NX, Math.round((x - OX) / G))), Math.max(0, Math.min(NY, Math.round((y - OY) / G)))];
+cv.addEventListener('pointerdown', e => {
+  if (mode !== 'fl') return;
+  const [x, y] = pt(e), dA = Math.hypot(x - OX - Fs.A[0] * G, y - OY - Fs.A[1] * G), dB = Math.hypot(x - OX - Fs.B[0] * G, y - OY - Fs.B[1] * G);
+  if (Math.min(dA, dB) > 34) return;
+  Fs.drag = dB <= dA ? 'B' : 'A'; cv.setPointerCapture(e.pointerId); e.preventDefault();
+});
+cv.addEventListener('pointermove', e => { if (!Fs.drag) return; Fs[Fs.drag] = snap(pt(e)); car(); $('fl-res').hidden = true; });
+cv.addEventListener('pointerup', () => { Fs.drag = null; });
+cv.addEventListener('pointercancel', () => { Fs.drag = null; });
+/* clavier : flèches = pointe, Maj + flèches = point de départ */
+cv.tabIndex = 0;
+cv.addEventListener('keydown', e => {
+  if (mode !== 'fl') return;
+  const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!d) return;
+  e.preventDefault(); const k = e.shiftKey ? 'A' : 'B';
+  Fs[k] = [Math.max(0, Math.min(NX, Fs[k][0] + d[0])), Math.max(0, Math.min(NY, Fs[k][1] + d[1]))]; car(); $('fl-res').hidden = true;
+});
+$('fl-verif').addEventListener('click', () => {
+  const s = FL[Fs.k], dx = Fs.B[0] - Fs.A[0], dy = Fs.B[1] - Fs.A[1], L = Math.hypot(dx, dy), r = $('fl-res'), Lb = s.val / s.ech;
+  const err = [];
+  if (Fs.A[0] !== s.pt[0] || Fs.A[1] !== s.pt[1]) err.push(`le <strong>point d’application</strong> : c’est le ${s.pa}`);
+  const ux = L ? dx / L : 0, uy = L ? dy / L : 0;
+  if (!L) err.push('la flèche n’a pas de longueur');
+  else if (Math.abs(ux * s.v[1] - uy * s.v[0]) > 1e-6) err.push(`la <strong>direction</strong> : elle est ${s.v[0] ? 'horizontale' : 'verticale'}`);
+  else if (ux * s.v[0] + uy * s.v[1] < 0) err.push('le <strong>sens</strong> de la flèche');
+  if (L && Math.abs(L - Lb) > 1e-6) err.push(`la <strong>longueur</strong> : ${nfmt(s.val)} ${s.u} ÷ ${nfmt(s.ech)} ${s.u} par carreau = ${Lb} carreaux`);
+  r.hidden = false;
+  if (!err.length) { r.className = 'res ok'; r.innerHTML = `<strong>Bravo !</strong> Point d’application, direction, sens et valeur sont justes : ${Lb} carreaux ↔ ${nfmt(s.val)} ${s.u}.`; }
+  else { r.className = 'res ko'; r.innerHTML = 'À corriger : ' + err.join(' ; ') + '.'; }
+});
+$('fl-next').addEventListener('click', () => flNouveau());
+/* ---------- interface ---------- */
+document.querySelectorAll('[data-rep]').forEach(b => b.addEventListener('click', () => {
+  const s = SIT[CA.i], ok = b.dataset.rep === s.t, r = $('ca-res');
+  document.querySelectorAll('[data-rep]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  if (CA.rep === null) { CA.n++; if (ok) CA.ok++; }
+  CA.rep = b.dataset.rep; r.hidden = false; r.className = 'res ' + (ok ? 'ok' : 'ko');
+  r.innerHTML = (ok ? '<strong>Oui !</strong> ' : '<strong>Non.</strong> ') + s.e;
+  $('ca-score').textContent = `Score : ${CA.ok} / ${CA.n}`;
+  $('msg').innerHTML = 'Coche « Montrer la force » pour voir la flèche qui modélise cette action.';
+}));
+$('ca-next').addEventListener('click', () => caNouveau());
+$('effets').innerHTML = EF.map(e => `<button type="button" class="seg" data-ef="${e.id}" aria-pressed="${e.id === E.id}">${e.n}</button>`).join('');
+$('effets').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  E.id = b.dataset.ef; E.t = 0; $('effets').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); efInfo();
+}));
+$('ef-rejouer').addEventListener('click', () => { E.t = 0; });
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  ['ca', 'ef', 'fl'].forEach(m => $('p-' + m).hidden = m !== mode);
+  cv.setAttribute('aria-label', mode === 'ca' ? 'Situation : une action mécanique' : mode === 'ef' ? 'Animation : effet d’une action' : 'Quadrillage pour tracer une force ; flèches du clavier pour déplacer la pointe, Maj + flèches pour le point de départ');
+  if (mode === 'ca') caNouveau(); else if (mode === 'ef') { E.t = 0; efInfo(); } else flNouveau(Fs.k);
+}));
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; T += dt;
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  mode === 'ca' ? drawCA() : mode === 'ef' ? drawEf(dt) : drawFl();
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resize);
+resize(); caNouveau(true); car();
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+const { pick, rnd, irnd, fmt, res, shuffle, etape, texte } = Exo;
+const RAPPEL = `Action de contact : les objets se touchent. Action à distance : ils ne se touchent pas (gravitation, aimant, électricité statique).
+  Une force : point d'application, direction, sens, valeur en newtons (N). Longueur de la flèche = valeur / échelle. Poids : P = m × g avec m en kg et g = 9,8 N/kg.`;
+Exo.monter('exo-am', [
+  { id: 'ca', label: 'Contact ou à distance ?', rappel: RAPPEL, gen() {
+    const L = [['L’action du sol sur un livre posé', 0], ['L’action de la Terre sur un parachutiste', 1], ['L’action d’un aimant sur une boussole', 1], ['L’action de la raquette sur la balle', 0],
+      ['L’action de l’eau sur un bateau', 0], ['L’action du Soleil sur la Terre', 1], ['L’action d’un ballon frotté sur des cheveux', 1], ['L’action de la corde sur un seau', 0], ['L’action de l’air sur un parachute', 0]];
+    const qs = shuffle(L).slice(0, 3);
+    return {
+      enonce: '<p>Pour chaque action, indique si elle est de contact ou à distance.</p>',
+      questions: qs.map((o, i) => ({ label: `${i + 1}. ${o[0]} est une action…`, choix: ['de contact', 'à distance'], rep: o[1] })),
+      correction: qs.map((o, i) => texte(`${i + 1}.`, `${o[0]} : action <strong>${o[1] ? 'à distance' : 'de contact'}</strong>${o[1] ? ' (les objets ne se touchent pas)' : ' (les objets se touchent)'}.`)).join('')
+    };
+  } },
+  { id: 'ech', label: 'Longueur d’une flèche', rappel: RAPPEL, gen() {
+    const ech = pick([[1, '1 cm ↔ 2 N', 2], [1, '1 cm ↔ 5 N', 5], [1, '1 cm ↔ 10 N', 10], [1, '1 cm ↔ 0,5 N', .5]]), L = pick([1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6]), F = L * ech[2];
+    const L2 = pick([2, 3, 4, 5, 6].filter(x => x !== L)), F2 = L2 * ech[2];
+    return {
+      enonce: `<p>On choisit l’échelle <strong>${ech[1]}</strong>.</p><p>Une force a une valeur <strong>F = ${fmt(F, 2)} N</strong>. Une autre flèche, tracée à la même échelle, mesure <strong>${fmt(L2, 2)} cm</strong>.</p>`,
+      questions: [
+        { label: '1. Quelle est la longueur de la flèche représentant F ?', unite: 'cm', rep: L, cs: 0 },
+        { label: '2. Quelle est la valeur de la force représentée par la flèche de ' + fmt(L2, 2) + ' cm ?', unite: 'N', rep: F2, cs: 0 }
+      ],
+      correction: etape({ q: '1.', lit: 'longueur = F / échelle', an: `longueur = ${fmt(F, 2)} N / ${fmt(ech[2], 1)} N par cm`, res: `longueur = <span class="exo-res">${fmt(L, 2)} cm</span>` }) +
+        etape({ q: '2.', lit: 'F = longueur × échelle', an: `F = ${fmt(L2, 2)} × ${fmt(ech[2], 1)}`, res: `F = <span class="exo-res">${fmt(F2, 2)} N</span>` })
+    };
+  } },
+  { id: 'poids', label: 'Le poids', rappel: RAPPEL, gen() {
+    const o = pick([['une pomme', 150, 250], ['un cartable', 4000, 8000], ['une bouteille d’eau', 500, 1500], ['un chat', 3000, 5500], ['un ballon de basket', 550, 650]]);
+    const mg = irnd(o[1] / 10, o[2] / 10) * 10, m = mg / 1000, P = m * 9.8, ms = fmt(m, Math.max(1, String(mg).replace(/0+$/, '').length));
+    return {
+      enonce: `<p>On suspend ${o[0]} de masse <strong>m = ${mg} g</strong> à un dynamomètre. Sur Terre, g = 9,8 N/kg.</p>`,
+      questions: [
+        { label: '1. Convertis la masse en kilogrammes.', unite: 'kg', rep: m, cs: 0 },
+        { label: '2. Calcule la valeur du poids P.', unite: 'N', rep: P, cs: 2, marge: 2 },
+        { label: '3. Le poids est une force…', choix: ['verticale, vers le bas', 'verticale, vers le haut', 'horizontale'], rep: 0 }
+      ],
+      correction: etape({ q: '1.', lit: '1 kg = 1 000 g', an: `m = ${mg} / 1 000`, res: `m = <span class="exo-res">${ms} kg</span>` }) +
+        etape({ q: '2.', note: 'g = 9,8 N/kg a 2 chiffres significatifs.', lit: 'P = m × g', an: `P = ${ms} × 9,8`, res: `P = ${res(P, 2, 'N')}` }) +
+        texte('3.', 'Le poids est une action à distance de la Terre : force <strong>verticale, vers le bas</strong>, appliquée au centre de l’objet.')
+    };
+  } },
+  { id: 'qcm', label: 'Questions de cours', gen() {
+    const POOL = [
+      { q: 'L’unité de la valeur d’une force est…', c: ['le newton (N)', 'le kilogramme (kg)', 'le joule (J)'], e: 'La valeur d’une force s’exprime en <strong>newtons (N)</strong>.' },
+      { q: 'On mesure la valeur d’une force avec…', c: ['un dynamomètre', 'une balance', 'un chronomètre'], e: 'Avec un <strong>dynamomètre</strong> (un ressort gradué en newtons).' },
+      { q: 'Une action qui fait tourner un ballon sans toucher le sol…', c: ['peut modifier sa trajectoire', 'ne peut avoir aucun effet', 'est forcément de contact'], e: 'Une action peut <strong>modifier la trajectoire</strong>, la vitesse, mettre en mouvement ou déformer.' },
+      { q: 'Lequel n’est PAS une caractéristique d’une force ?', c: ['sa couleur', 'son sens', 'son point d’application'], e: 'Une force a un point d’application, une direction, un sens et une valeur : <strong>pas de couleur</strong> !' },
+      { q: 'L’action de la Terre sur un objet est modélisée par…', c: ['le poids', 'la masse', 'la vitesse'], e: 'Par le <strong>poids P</strong>, une force (en N). La masse (en kg) n’est pas une force.' },
+      { q: 'Quand on écrase une pâte à modeler, l’action de la main…', c: ['la déforme', 'la met en mouvement', 'agit à distance'], e: 'L’action de contact de la main <strong>déforme</strong> la pâte.' },
+      { q: 'Un aimant attire un clou placé à 2 cm. C’est une action…', c: ['à distance', 'de contact', 'impossible'], e: 'L’aimant et le clou ne se touchent pas : action <strong>à distance</strong>.' }
+    ];
+    const qs = shuffle(POOL).slice(0, 3).map(p => { const c = shuffle(p.c); return { ...p, ch: c, rep: c.indexOf(p.c[0]) }; });
+    return {
+      enonce: '<p>Choisis la bonne réponse à chaque question.</p>',
+      questions: qs.map((p, i) => ({ label: `${i + 1}. ${p.q}`, choix: p.ch, rep: p.rep })),
+      correction: qs.map((p, i) => texte(`${i + 1}.`, p.e)).join('')
+    };
+  } }
+]);
+})();
+</script>
+</body>
+</html>

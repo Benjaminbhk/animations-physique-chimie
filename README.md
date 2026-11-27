@@ -34,6 +34,10 @@ Site : https://benjaminbhk.github.io/animations-physique-chimie/ (choix du nivea
 | Chaînes énergétiques (4e) | https://benjaminbhk.github.io/animations-physique-chimie/chaines-energetiques/ |
 | Le son (4e) | https://benjaminbhk.github.io/animations-physique-chimie/le-son/ |
 | Ombres, phases de la Lune et éclipses (4e) | https://benjaminbhk.github.io/animations-physique-chimie/ombres-phases-lune/ |
+| L'air qui nous entoure (4e) | https://benjaminbhk.github.io/animations-physique-chimie/air-molecules/ |
+| Lumière et couleurs (4e) | https://benjaminbhk.github.io/animations-physique-chimie/lumiere-couleurs/ |
+| Conducteurs, isolants et court-circuit (4e) | https://benjaminbhk.github.io/animations-physique-chimie/conducteurs-court-circuit/ |
+| Actions mécaniques et forces (4e) | https://benjaminbhk.github.io/animations-physique-chimie/actions-mecaniques/ |
 
 ## Organisation
 
